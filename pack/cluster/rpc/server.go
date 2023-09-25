@@ -56,12 +56,12 @@ func (srv *Server) ServeConn(conn io.ReadWriteCloser) {
 	if opt.MagicNum != MagicNum {
 		return
 	}
-	f := codec.NewCodecFuncMap[opt.CodecType]
-	if f == nil {
+	fn := codec.NewCodecFuncMap[opt.CodecType]
+	if fn == nil {
 		log.Printf("rpc server: invalid codec type %s", opt.CodecType)
 		return
 	}
-	srv.serveCodec(f(conn), &opt)
+	srv.serveCodec(fn(conn), &opt)
 }
 
 // 处理编码
@@ -75,6 +75,7 @@ func (srv *Server) serveCodec(cc codec.Codec, opt *Option) {
 			if req == nil {
 				break
 			}
+			// 获取错误
 			req.header.Error = err.Error()
 			// 回复请求
 			srv.sendResponse(cc, req.header, invalidRequest, mutex)
@@ -99,6 +100,7 @@ func (srv *Server) Accept(lis net.Listener) {
 	}
 }
 
+// 注册实例
 func (srv *Server) Register(rcvr any) error {
 	svc := newService(rcvr)
 	if _, dup := srv.serviceMap.LoadOrStore(svc.name, svc); dup {
@@ -108,7 +110,7 @@ func (srv *Server) Register(rcvr any) error {
 }
 
 // 查找服务
-func (srv *Server) findService(method string) (*service, *methodType, error) {
+func (srv *Server) findService(method string) (*service, *Method, error) {
 	dot := strings.LastIndex(method, ".")
 	if dot < 0 {
 		return nil, nil, errors.New("rpc server: service/method request ill-formed: " + method)
@@ -137,7 +139,7 @@ var invalidRequest = struct{}{}
 type request struct {
 	header     *codec.Header
 	argv, repv reflect.Value
-	mtype      *methodType
+	mtype      *Method
 	svc        *service
 }
 
@@ -198,18 +200,20 @@ func (srv *Server) handleRequest(cc codec.Codec, req *request, mutex *sync.Mutex
 	called := make(chan struct{})
 	sent := make(chan struct{})
 	go func() {
+		// 执行函数
 		err := req.svc.call(req.mtype, req.argv, req.repv)
-		called <- struct{}{}
+		called <- struct{}{} // 通知已经执行
 		if err != nil {
 			req.header.Error = err.Error()
 			srv.sendResponse(cc, req.header, invalidRequest, mutex)
-			sent <- struct{}{}
+			sent <- struct{}{} // 通知已经发送
 			return
 		}
 		srv.sendResponse(cc, req.header, req.repv.Interface(), mutex)
 		sent <- struct{}{}
 	}()
 
+	// 无超时时间
 	if timeout == 0 {
 		<-called
 		<-sent
@@ -223,4 +227,8 @@ func (srv *Server) handleRequest(cc codec.Codec, req *request, mutex *sync.Mutex
 	case <-called:
 		<-sent
 	}
+}
+
+func Register(rcvr interface{}) error {
+	return DefaultServer.Register(rcvr)
 }

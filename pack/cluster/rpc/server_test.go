@@ -10,6 +10,8 @@ import (
 )
 
 func startServer(addr chan string) {
+	var b Bar
+	Register(&b)
 	lis, err := net.Listen("tcp", ":0")
 	if err != nil {
 		log.Fatalln("network error: ", err)
@@ -19,24 +21,42 @@ func startServer(addr chan string) {
 	Accept(lis)
 }
 
-type Bar struct{}
+type Bar int
 
 func (Bar) Timeout(argv int, reply *int) error {
 	time.Sleep(time.Second * 2)
 	return nil
 }
 
+func (Bar) Square(argv int, reply *int) error {
+	*reply = argv * argv
+	return nil
+}
+
+type AddReq struct {
+	A int
+	B int
+}
+
+type AddReply struct {
+	Sum int
+}
+
+func (Bar) Add(req AddReq, reply *AddReply) {
+	reply.Sum = req.A + req.B
+}
+
 func TestClientDialTimeout(t *testing.T) {
 	t.Parallel()
 	lis, _ := net.Listen("tcp", ":0")
 	f := func(conn net.Conn, opt *Option) (client *Client, err error) {
-		_ = conn.Close()
+		conn.Close()
 		time.Sleep(time.Second * 2)
 		return nil, nil
 	}
 	t.Run("timeout", func(t *testing.T) {
 		_, err := dialTimeout(f, "tcp", lis.Addr().String(), &Option{ConnectTimeout: time.Second})
-		_assert(err != nil && strings.Contains(err.Error(), "connect timeout"), "expect a timeout error")
+		_assert(err != nil && strings.Contains(err.Error(), "connection timeout"), "expect a timeout error")
 	})
 	t.Run("0", func(t *testing.T) {
 		_, err := dialTimeout(f, "tcp", lis.Addr().String(), &Option{ConnectTimeout: 0})
@@ -50,6 +70,24 @@ func TestClientCall(t *testing.T) {
 	go startServer(addrCh)
 	addr := <-addrCh
 	time.Sleep(time.Second)
+
+	t.Run("test square", func(t *testing.T) {
+		cli, _ := Dial("tcp", addr)
+		ctx, _ := context.WithTimeout(context.Background(), time.Second)
+		var reply, num int
+		num = 2
+		err := cli.Call(ctx, "Bar.Square", num, &reply)
+		_assert(err == nil && reply == num*num, "call failed")
+	})
+
+	t.Run("test add", func(t *testing.T) {
+		cli, _ := Dial("tcp", addr)
+		ctx, _ := context.WithTimeout(context.Background(), time.Second)
+		var reply AddReply
+		err := cli.Call(ctx, "Bar.Add", AddReq{1, 2}, &reply)
+		_assert(err == nil && reply.Sum == 3, "call failed")
+	})
+
 	t.Run("client timeout", func(t *testing.T) {
 		cli, _ := Dial("tcp", addr)
 		ctx, _ := context.WithTimeout(context.Background(), time.Second)

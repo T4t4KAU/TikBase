@@ -135,6 +135,7 @@ func (cli *Client) receive() {
 		}
 	}
 
+	// 中断调用
 	cli.terminateCalls(err)
 }
 
@@ -255,6 +256,7 @@ type clientResult struct {
 type newClientFunc func(conn net.Conn, opt *Option) (*Client, error)
 
 func dialTimeout(f newClientFunc, network, address string, opts ...*Option) (*Client, error) {
+	// 解析配置信息
 	opt, err := parseOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -276,6 +278,7 @@ func dialTimeout(f newClientFunc, network, address string, opts ...*Option) (*Cl
 		ch <- clientResult{client: cli, err: e}
 	}()
 
+	// 无超时时间
 	if opt.ConnectTimeout == 0 {
 		res := <-ch
 		return res.client, res.err
