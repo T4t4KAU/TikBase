@@ -1,8 +1,8 @@
 package http
 
 import (
-	caches2 "TikCache/mode/caches"
-	"TikCache/net/http/router"
+	"TikCache/engine/caches"
+	"TikCache/proto/http/router"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -15,10 +15,10 @@ const (
 )
 
 type Server struct {
-	*caches2.Cache
+	*caches.Cache
 }
 
-func NewServer(cache *caches2.Cache) *Server {
+func NewServer(cache *caches.Cache) *Server {
 	return &Server{
 		Cache: cache,
 	}
@@ -68,7 +68,7 @@ func (s *Server) setHandler(ctx *router.Context) {
 func parseTTL(request *http.Request) (int64, error) {
 	ttls, ok := request.Header["Ttl"]
 	if !ok || len(ttls) < 1 {
-		return caches2.NeverExpire, nil
+		return caches.NeverExpire, nil
 	}
 	return strconv.ParseInt(ttls[0], 10, 64)
 }

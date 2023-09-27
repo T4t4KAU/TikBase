@@ -9,49 +9,45 @@ import (
 	"io"
 	"log"
 	"net"
-	"net/rpc"
 	"sync"
 	"time"
 )
 
-// Call 承载远程调用所需要的信息
+// Call represents an active RPC.
 type Call struct {
-	SeqNum        uint64 // 序列号
-	ServiceMethod string // 方法
-	Args          any    // 参数
-	Reply         any    // 回应
-	Error         error
-	Done          chan *Call
+	Seq           uint64
+	ServiceMethod string      // format "<service>.<method>"
+	Args          interface{} // arguments to the function
+	Reply         interface{} // reply from the function
+	Error         error       // if error occurs, it will be set
+	Done          chan *Call  // Strobes when call is complete.
 }
 
-// 通知调用方
+// 通知调用完成
 func (call *Call) done() {
 	call.Done <- call
 }
 
-// Client 客户端
 type Client struct {
 	cc       codec.Codec
-	opt      *Option    // 配置信息
-	sm       sync.Mutex // send mutex
+	opt      *Option
+	sm       sync.Mutex // sm mutex
 	header   codec.Header
 	cm       sync.Mutex // common mutex
-	seq      uint64     // 序列号
-	closing  bool       // 标识连接是否关闭
-	shutdown bool       // 标识服务是否停机
-
-	pending map[uint64]*Call // 待执行调用
+	seq      uint64
+	pending  map[uint64]*Call
+	closing  bool
+	shutdown bool
 }
 
 var _ io.Closer = (*Client)(nil)
 
-var ErrShutdown = errors.New("connection is shutdown")
+var ErrShutdown = errors.New("connection is shut down")
 
-// Close 关闭连接
+// Close the connection
 func (cli *Client) Close() error {
 	cli.cm.Lock()
 	defer cli.cm.Unlock()
-
 	if cli.closing {
 		return ErrShutdown
 	}
@@ -59,47 +55,41 @@ func (cli *Client) Close() error {
 	return cli.cc.Close()
 }
 
-// IsAvailable 检查客户端是否有效
+// IsAvailable return true if the client does work
 func (cli *Client) IsAvailable() bool {
 	cli.cm.Lock()
 	defer cli.cm.Unlock()
 	return !cli.shutdown && !cli.closing
 }
 
-// 注册调用
+// register a call
 func (cli *Client) registerCall(call *Call) (uint64, error) {
 	cli.cm.Lock()
 	defer cli.cm.Unlock()
-
-	// 检查是否关闭
 	if cli.closing || cli.shutdown {
-		return 0, rpc.ErrShutdown
+		return 0, ErrShutdown
 	}
-
-	call.SeqNum = cli.seq
-	cli.pending[call.SeqNum] = call
+	call.Seq = cli.seq
+	// 添加调用
+	cli.pending[call.Seq] = call
 	cli.seq++
-	return call.SeqNum, nil
+	return call.Seq, nil
 }
 
-// 根据序列号 移除调用
 func (cli *Client) removeCall(seq uint64) *Call {
 	cli.cm.Lock()
 	defer cli.cm.Unlock()
-
 	call := cli.pending[seq]
 	delete(cli.pending, seq)
 	return call
 }
 
-// 服务端或客户端 发生错误调用
+// 中断调用
 func (cli *Client) terminateCalls(err error) {
 	cli.sm.Lock()
 	defer cli.sm.Unlock()
-
 	cli.cm.Lock()
 	defer cli.cm.Unlock()
-
 	cli.shutdown = true
 	for _, call := range cli.pending {
 		call.Error = err
@@ -107,18 +97,44 @@ func (cli *Client) terminateCalls(err error) {
 	}
 }
 
-// 接收响应
-func (cli *Client) receive() {
+func (cli *Client) send(call *Call) {
+	// make sure that the client will send a complete request
+	cli.sm.Lock()
+	defer cli.sm.Unlock()
+
+	// register this call.
+	seq, err := cli.registerCall(call)
+	if err != nil {
+		call.Error = err
+		call.done()
+		return
+	}
+
+	// prepare request header
+	cli.header.ServiceMethod = call.ServiceMethod
+	cli.header.Seq = seq
+	cli.header.Error = ""
+
+	// encode and send the request
+	if err = cli.cc.Write(&cli.header, call.Args); err != nil {
+		c := cli.removeCall(seq)
+		// call may be nil, it usually means that Write partially failed,
+		// client has received the response and handled
+		if c != nil {
+			c.Error = err
+			c.done()
+		}
+	}
+}
+
+func (cli *Client) recv() {
 	var err error
 	for err == nil {
 		var h codec.Header
-		err = cli.cc.ReadHeader(&h)
-		if err != nil {
+		if err = cli.cc.ReadHeader(&h); err != nil {
 			break
 		}
-
-		// 从pending中移除call
-		call := cli.removeCall(h.SeqNum)
+		call := cli.removeCall(h.Seq)
 		switch {
 		case call == nil:
 			err = cli.cc.ReadBody(nil)
@@ -134,118 +150,83 @@ func (cli *Client) receive() {
 			call.done()
 		}
 	}
-
-	// 中断调用
+	// 发生错误 中断调用
 	cli.terminateCalls(err)
 }
 
-// NewClient 创建新的客户端
-func NewClient(conn net.Conn, opt *Option) (*Client, error) {
-	f := codec.NewCodecFuncMap[opt.CodecType]
-	if f == nil {
-		log.Printf("invalid codec type %s\n", opt.CodecType)
-		return nil, fmt.Errorf("invalid codec type %s", opt.CodecType)
-	}
-
-	// 初始化编码器
-	err := json.NewEncoder(conn).Encode(opt)
-	if err != nil {
-		log.Println("rpc client: options error:", err)
-		return nil, err
-	}
-	return newClientCodec(f(conn), opt), nil
-}
-
-// 初始化编解码器
-func newClientCodec(cc codec.Codec, opt *Option) *Client {
-	cli := &Client{
-		seq:     1,
-		cc:      cc,
-		opt:     opt,
-		pending: make(map[uint64]*Call),
-	}
-
-	go cli.receive()
-	return cli
-}
-
-// 解析配置选项
-func parseOptions(opts ...*Option) (*Option, error) {
-	if len(opts) == 0 || opts[0] == nil {
-		return DefaultOption, nil
-	}
-	if len(opts) != 1 {
-		return nil, errors.New("number of options is more than one")
-	}
-	opt := opts[0]
-	opt.MagicNum = DefaultOption.MagicNum
-	if opt.CodecType == "" {
-		opt.CodecType = DefaultOption.CodecType
-	}
-	return opt, nil
-}
-
-// Dial 连接RPC服务器
-func Dial(network, address string, opts ...*Option) (*Client, error) {
-	return dialTimeout(NewClient, network, address, opts...)
-}
-
-// 发送请求
-func (cli *Client) send(call *Call) {
-	cli.sm.Lock()
-	defer cli.sm.Unlock()
-
-	// 注册调用方法
-	seq, err := cli.registerCall(call)
-	if err != nil {
-		call.Error = err
-		call.done()
-		return
-	}
-
-	cli.header.ServiceMethod = call.ServiceMethod
-	cli.header.SeqNum = seq
-	cli.header.Error = ""
-
-	// 编码并发送请求
-	err = cli.cc.Write(&cli.header, call.Args)
-	if err != nil {
-		call = cli.removeCall(seq)
-		if call != nil {
-			call.Error = err
-			call.done()
-		}
-	}
-}
-
-// NewCall 创建远程调用
-func (cli *Client) NewCall(method string, args, reply any, done chan *Call) *Call {
+// Invoke invokes the function asynchronously.
+// It returns the Call structure representing the invocation.
+func (cli *Client) Invoke(serviceMethod string, args, reply interface{}, done chan *Call) *Call {
 	if done == nil {
 		done = make(chan *Call, 10)
 	} else if cap(done) == 0 {
 		log.Panic("rpc client: done channel is unbuffered")
 	}
 	call := &Call{
-		ServiceMethod: method,
+		ServiceMethod: serviceMethod,
 		Args:          args,
 		Reply:         reply,
 		Done:          done,
 	}
-
 	cli.send(call)
 	return call
 }
 
-// Call 远程调用
-func (cli *Client) Call(ctx context.Context, method string, args, reply any) error {
-	call := cli.NewCall(method, args, reply, make(chan *Call, 1))
+// Call invokes the named function, waits for it to complete,
+// and returns its error status.
+func (cli *Client) Call(ctx context.Context, serviceMethod string, args, reply interface{}) error {
+	call := cli.Invoke(serviceMethod, args, reply, make(chan *Call, 1))
 	select {
 	case <-ctx.Done():
-		cli.removeCall(call.SeqNum)
+		cli.removeCall(call.Seq)
 		return errors.New("rpc client: call failed: " + ctx.Err().Error())
 	case call = <-call.Done:
 		return call.Error
 	}
+}
+
+func parseOptions(opts ...*Option) (*Option, error) {
+	// if opts is nil or pass nil as parameter
+	if len(opts) == 0 || opts[0] == nil {
+		return DefaultOption, nil
+	}
+	if len(opts) != 1 {
+		return nil, errors.New("number of options is more than 1")
+	}
+	opt := opts[0]
+	opt.MagicNumber = DefaultOption.MagicNumber
+	if opt.CodecType == "" {
+		opt.CodecType = DefaultOption.CodecType
+	}
+	return opt, nil
+}
+
+func NewClient(conn net.Conn, opt *Option) (client *Client, err error) {
+	f := codec.NewCodecFuncMap[opt.CodecType]
+	if f == nil {
+		err = fmt.Errorf("invalid codec type %s", opt.CodecType)
+		log.Println("rpc client: codec error:", err)
+		return
+	}
+	// send options with server
+	if err = json.NewEncoder(conn).Encode(opt); err != nil {
+		log.Println("rpc client: options error: ", err)
+		return
+	}
+	return newClientCodec(f(conn), opt), nil
+}
+
+func newClientCodec(cc codec.Codec, opt *Option) *Client {
+	client := &Client{
+		seq:     1, // seq starts with 1, 0 means invalid call
+		cc:      cc,
+		opt:     opt,
+		pending: make(map[uint64]*Call),
+	}
+
+	// 异步接收消息
+	go client.recv()
+	return client
 }
 
 type clientResult struct {
@@ -253,10 +234,9 @@ type clientResult struct {
 	err    error
 }
 
-type newClientFunc func(conn net.Conn, opt *Option) (*Client, error)
+type newClientFunc func(conn net.Conn, opt *Option) (client *Client, err error)
 
-func dialTimeout(f newClientFunc, network, address string, opts ...*Option) (*Client, error) {
-	// 解析配置信息
+func dialTimeout(fn newClientFunc, network, address string, opts ...*Option) (*Client, error) {
 	opt, err := parseOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -265,29 +245,30 @@ func dialTimeout(f newClientFunc, network, address string, opts ...*Option) (*Cl
 	if err != nil {
 		return nil, err
 	}
-
+	// close the connection if client is nil
 	defer func() {
 		if err != nil {
-			conn.Close()
+			_ = conn.Close()
 		}
 	}()
-
 	ch := make(chan clientResult)
 	go func() {
-		cli, e := f(conn, opt)
+		cli, e := fn(conn, opt)
 		ch <- clientResult{client: cli, err: e}
 	}()
-
-	// 无超时时间
 	if opt.ConnectTimeout == 0 {
-		res := <-ch
-		return res.client, res.err
+		result := <-ch
+		return result.client, result.err
 	}
-
 	select {
 	case <-time.After(opt.ConnectTimeout):
-		return nil, fmt.Errorf("rpc client: connection timeout: expect within %s", opt.ConnectTimeout)
-	case res := <-ch:
-		return res.client, res.err
+		return nil, fmt.Errorf("rpc client: connect timeout: expect within %s", opt.ConnectTimeout)
+	case result := <-ch:
+		return result.client, result.err
 	}
+}
+
+// Dial connects to an RPC server at the specified network address
+func Dial(network, address string, opts ...*Option) (*Client, error) {
+	return dialTimeout(NewClient, network, address, opts...)
 }

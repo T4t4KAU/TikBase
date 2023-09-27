@@ -4,34 +4,31 @@ import (
 	"io"
 )
 
-const (
-	GobType  Type = "application/gob"
-	JsonType Type = "application/json"
-)
-
 type Type string
 
-type NewCodeFunc func(closer io.ReadWriteCloser) Codec
+const (
+	GobType  Type = "application/gob"
+	JsonType Type = "application/json" // not implemented
+)
 
-// Header 消息头
 type Header struct {
-	ServiceMethod string // 方法名
-	SeqNum        uint64 // 序列号
-	Error         string // 错误信息
+	ServiceMethod string // format "Service.Method"
+	Seq           uint64 // sequence number chosen by client
+	Error         string
 }
 
-// Codec 消息编解码
 type Codec interface {
 	io.Closer
 	ReadHeader(*Header) error
-	ReadBody(any) error
-	Write(*Header, any) error
+	ReadBody(interface{}) error
+	Write(*Header, interface{}) error
 }
 
-var NewCodecFuncMap map[Type]NewCodeFunc
+type NewCodecFunc func(io.ReadWriteCloser) Codec
 
-// 初始化
+var NewCodecFuncMap map[Type]NewCodecFunc
+
 func init() {
-	NewCodecFuncMap = make(map[Type]NewCodeFunc)
+	NewCodecFuncMap = make(map[Type]NewCodecFunc)
 	NewCodecFuncMap[GobType] = NewGobCodec
 }

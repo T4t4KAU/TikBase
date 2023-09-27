@@ -7,52 +7,47 @@ import (
 	"sync/atomic"
 )
 
-// Method 方法
-type Method struct {
-	method    reflect.Method // 方法本身
-	ArgType   reflect.Type   // 第一个参数类型
-	ReplyType reflect.Type   // 第二个参数类型
+type methodType struct {
+	method    reflect.Method
+	ArgType   reflect.Type
+	ReplyType reflect.Type
 	numCalls  uint64
 }
 
-// NumCalls 获取调用次数
-func (m *Method) NumCalls() uint64 {
-	return atomic.LoadUint64(&m.numCalls)
+func (mt *methodType) NumCalls() uint64 {
+	return atomic.LoadUint64(&mt.numCalls)
 }
 
-func (m *Method) newArgv() reflect.Value {
+func (mt *methodType) newArgv() reflect.Value {
 	var argv reflect.Value
-
-	if m.ArgType.Kind() == reflect.Ptr {
-		// 创建指针类型
-		argv = reflect.New(m.ArgType.Elem())
+	// arg may be a pointer type, or a value type
+	if mt.ArgType.Kind() == reflect.Ptr {
+		argv = reflect.New(mt.ArgType.Elem())
 	} else {
-		// 创建值类型
-		argv = reflect.New(m.ArgType).Elem()
+		argv = reflect.New(mt.ArgType).Elem()
 	}
 	return argv
 }
 
-func (m *Method) newReplyv() reflect.Value {
-	replyv := reflect.New(m.ReplyType.Elem())
-	switch m.ReplyType.Elem().Kind() {
+func (mt *methodType) newReplyv() reflect.Value {
+	// reply must be a pointer type
+	replyv := reflect.New(mt.ReplyType.Elem())
+	switch mt.ReplyType.Elem().Kind() {
 	case reflect.Map:
-		replyv.Elem().Set(reflect.MakeMap(m.ReplyType.Elem()))
+		replyv.Elem().Set(reflect.MakeMap(mt.ReplyType.Elem()))
 	case reflect.Slice:
-		replyv.Elem().Set(reflect.MakeSlice(m.ReplyType.Elem(), 0, 0))
+		replyv.Elem().Set(reflect.MakeSlice(mt.ReplyType.Elem(), 0, 0))
 	}
 	return replyv
 }
 
-// 服务
 type service struct {
-	name    string        // 映射结构体名称
-	typ     reflect.Type  // 结构体类型
-	rcvr    reflect.Value // 结构体实例本身
-	methods map[string]*Method
+	name   string
+	typ    reflect.Type
+	rcvr   reflect.Value
+	method map[string]*methodType
 }
 
-// 构造函数
 func newService(rcvr interface{}) *service {
 	s := new(service)
 	s.rcvr = reflect.ValueOf(rcvr)
@@ -65,47 +60,40 @@ func newService(rcvr interface{}) *service {
 	return s
 }
 
-// 过滤符合条件的方法
-func (svc *service) registerMethods() {
-	svc.methods = make(map[string]*Method)
-
-	// 遍历结构体中的方法
-	for i := 0; i < svc.typ.NumMethod(); i++ {
-		method := svc.typ.Method(i)
-		mt := method.Type // 类型
-		if mt.NumIn() != 3 || mt.NumOut() != 1 {
+func (s *service) registerMethods() {
+	s.method = make(map[string]*methodType)
+	for i := 0; i < s.typ.NumMethod(); i++ {
+		method := s.typ.Method(i)
+		mType := method.Type
+		if mType.NumIn() != 3 || mType.NumOut() != 1 {
 			continue
 		}
-		if mt.Out(0) != reflect.TypeOf((*error)(nil)).Elem() {
+		if mType.Out(0) != reflect.TypeOf((*error)(nil)).Elem() {
 			continue
 		}
-		argt, rept := mt.In(1), mt.In(2)
-		if !isExportedOrBuiltinType(argt) || !isExportedOrBuiltinType(rept) {
+		argType, replyType := mType.In(1), mType.In(2)
+		if !isExportedOrBuiltinType(argType) || !isExportedOrBuiltinType(replyType) {
 			continue
 		}
-
-		// 添加映射到map
-		svc.methods[method.Name] = &Method{
+		s.method[method.Name] = &methodType{
 			method:    method,
-			ArgType:   argt,
-			ReplyType: rept,
+			ArgType:   argType,
+			ReplyType: replyType,
 		}
-		log.Printf("rpc server: register %s.%s\n", svc.name, method.Name)
+		log.Printf("rpc server: register %s.%s\n", s.name, method.Name)
 	}
 }
 
-func (svc *service) call(mt *Method, argv, repv reflect.Value) error {
-	atomic.AddUint64(&mt.numCalls, 1)
-	fn := mt.method.Func
-	retvs := fn.Call([]reflect.Value{svc.rcvr, argv, repv})
-	err := retvs[0].Interface()
-	if err != nil {
-		return err.(error)
+func (s *service) call(m *methodType, argv, replyv reflect.Value) error {
+	atomic.AddUint64(&m.numCalls, 1)
+	fn := m.method.Func
+	returnValues := fn.Call([]reflect.Value{s.rcvr, argv, replyv})
+	if errInter := returnValues[0].Interface(); errInter != nil {
+		return errInter.(error)
 	}
 	return nil
 }
 
-// 判断是否为导出字段
 func isExportedOrBuiltinType(t reflect.Type) bool {
 	return ast.IsExported(t.Name()) || t.PkgPath() == ""
 }

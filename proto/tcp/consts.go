@@ -15,7 +15,7 @@ const (
 var (
 	errCommandNeedsMoreArguments = errors.New("command needs more arguments")
 	errNotFound                  = errors.New("not found")
-	errProtocolVersionMismatch   = errors.New("protocol version between client and net doesn't match")
+	errProtocolVersionMismatch   = errors.New("protocol version between client and proto doesn't match")
 	errCommandHandlerNotFound    = errors.New("failed to find a handler of command")
 )
 

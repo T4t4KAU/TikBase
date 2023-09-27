@@ -1,7 +1,7 @@
 package test
 
 import (
-	"TikCache/net/tcp"
+	"TikCache/proto/tcp"
 	"net/http"
 	"strconv"
 	"strings"

@@ -1,7 +1,7 @@
 package tcp
 
 import (
-	"TikCache/mode/caches"
+	"TikCache/engine/caches"
 	"bufio"
 	"encoding/binary"
 	"encoding/json"
@@ -84,7 +84,7 @@ func (s *Server) handleConn(conn net.Conn) {
 		// 处理请求
 		reply, body, err := s.handleRequest(command, args)
 		if err != nil {
-			writeErrorResponseTo(conn, err.Error())
+			_, _ = writeErrorResponseTo(conn, err.Error())
 			continue
 		}
 

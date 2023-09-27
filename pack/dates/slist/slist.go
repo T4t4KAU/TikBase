@@ -1,7 +1,7 @@
 package slist
 
 import (
-	"TikCache/pack"
+	"TikCache/pack/dates"
 	"fmt"
 	"math/rand"
 	"time"
@@ -16,24 +16,24 @@ func isInsertUp() bool {
 }
 
 // Node 跳表节点
-type Node[T pack.Sortable] struct {
+type Node[T dates.Sortable] struct {
 	Value T
 	Next  *Node[T] // 指向后继结点
 	Down  *Node[T] // 指向下方结点
 }
 
-func newNode[T pack.Sortable](value T) *Node[T] {
+func newNode[T dates.Sortable](value T) *Node[T] {
 	return &Node[T]{
 		Value: value,
 	}
 }
 
-type List[T pack.Sortable] struct {
+type List[T dates.Sortable] struct {
 	Head *Node[T]
 }
 
 // New 创建跳表
-func New[T pack.Sortable]() *List[T] {
+func New[T dates.Sortable]() *List[T] {
 	return &List[T]{
 		Head: newNode[T](-1),
 	}

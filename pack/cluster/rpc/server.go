@@ -14,46 +14,47 @@ import (
 	"time"
 )
 
-const MagicNum = 0x3bef5c
+const MagicNumber = 0x3bef5c
 
-// Option 设置消息编解码方式
 type Option struct {
-	MagicNum       int           // 标识协议类型
-	CodecType      codec.Type    // 标识编码类型
-	ConnectTimeout time.Duration // 连接超时时间
-	HandleTimeout  time.Duration // 处理超时时间
+	MagicNumber    int
+	CodecType      codec.Type    // client may choose different Codec to encode body
+	ConnectTimeout time.Duration // 0 means no limit
+	HandleTimeout  time.Duration
 }
 
-// DefaultOption 默认配置
 var DefaultOption = &Option{
-	MagicNum:       MagicNum,
+	MagicNumber:    MagicNumber,
 	CodecType:      codec.GobType,
 	ConnectTimeout: time.Second * 10,
 }
 
+// Server represents an RPC Server.
 type Server struct {
 	serviceMap sync.Map
 }
 
-// NewServer 创建服务器
+// NewServer returns a new Server.
 func NewServer() *Server {
 	return &Server{}
 }
 
+// DefaultServer is the default instance of *Server.
 var DefaultServer = NewServer()
 
-// ServeConn 处理连接
-func (srv *Server) ServeConn(conn io.ReadWriteCloser) {
+// HandleConn runs the server on a single connection.
+func (srv *Server) HandleConn(conn io.ReadWriteCloser) {
 	defer func() {
-		conn.Close()
+		_ = conn.Close()
 	}()
 
 	var opt Option
-	err := json.NewDecoder(conn).Decode(&opt)
-	if err != nil {
+	if err := json.NewDecoder(conn).Decode(&opt); err != nil {
+		log.Println("rpc server: options error: ", err)
 		return
 	}
-	if opt.MagicNum != MagicNum {
+	if opt.MagicNumber != MagicNumber {
+		log.Printf("rpc server: invalid magic number %x", opt.MagicNumber)
 		return
 	}
 	fn := codec.NewCodecFuncMap[opt.CodecType]
@@ -61,174 +62,164 @@ func (srv *Server) ServeConn(conn io.ReadWriteCloser) {
 		log.Printf("rpc server: invalid codec type %s", opt.CodecType)
 		return
 	}
-	srv.serveCodec(fn(conn), &opt)
+	srv.handleCodec(fn(conn), &opt)
 }
 
-// 处理编码
-func (srv *Server) serveCodec(cc codec.Codec, opt *Option) {
-	mutex := new(sync.Mutex)
-	wg := new(sync.WaitGroup)
+var invalidRequest = struct{}{}
+
+func (srv *Server) handleCodec(cc codec.Codec, opt *Option) {
+	sm := new(sync.Mutex)     // make sure to send a complete response
+	wg := new(sync.WaitGroup) // wait until all request are handled
 	for {
-		// 读取请求
 		req, err := srv.readRequest(cc)
 		if err != nil {
 			if req == nil {
 				break
 			}
-			// 获取错误
-			req.header.Error = err.Error()
-			// 回复请求
-			srv.sendResponse(cc, req.header, invalidRequest, mutex)
+			req.h.Error = err.Error()
+			srv.sendResponse(cc, req.h, invalidRequest, sm)
 			continue
 		}
 		wg.Add(1)
-		// 处理请求
-		go srv.handleRequest(cc, req, mutex, wg, opt.HandleTimeout)
+		go srv.handleRequest(cc, req, sm, wg, opt.HandleTimeout)
 	}
 	wg.Wait()
-	cc.Close()
+	_ = cc.Close()
 }
 
-// Accept 接收请求
-func (srv *Server) Accept(lis net.Listener) {
-	for {
-		conn, err := lis.Accept()
-		if err != nil {
-			return
-		}
-		go srv.ServeConn(conn)
-	}
-}
-
-// 注册实例
-func (srv *Server) Register(rcvr any) error {
-	svc := newService(rcvr)
-	if _, dup := srv.serviceMap.LoadOrStore(svc.name, svc); dup {
-		return errors.New("rpc: service already defined: " + svc.name)
-	}
-	return nil
-}
-
-// 查找服务
-func (srv *Server) findService(method string) (*service, *Method, error) {
-	dot := strings.LastIndex(method, ".")
-	if dot < 0 {
-		return nil, nil, errors.New("rpc server: service/method request ill-formed: " + method)
-	}
-	serviceName, methodName := method[:dot], method[dot+1:]
-	svci, ok := srv.serviceMap.Load(serviceName)
-	if !ok {
-		return nil, nil, errors.New("rpc server: can't find service " + serviceName)
-	}
-	svc := svci.(*service)
-	mt := svc.methods[methodName]
-	if mt == nil {
-		return svc, mt, errors.New("rpc server: can't find method " + methodName)
-	}
-	return svc, mt, nil
-}
-
-func Accept(lis net.Listener) {
-	DefaultServer.Accept(lis)
-}
-
-// 无效请求
-var invalidRequest = struct{}{}
-
-// 请求结构体
+// request stores all information of a call
 type request struct {
-	header     *codec.Header
-	argv, repv reflect.Value
-	mtype      *Method
-	svc        *service
+	h            *codec.Header // header of request
+	argv, replyv reflect.Value // argv and replyv of request
+	mtype        *methodType
+	svc          *service
 }
 
-// 读取请求头
 func (srv *Server) readRequestHeader(cc codec.Codec) (*codec.Header, error) {
-	var header codec.Header
-	err := cc.ReadHeader(&header)
-	if err != nil {
+	var h codec.Header
+	if err := cc.ReadHeader(&h); err != nil {
 		if err != io.EOF && !errors.Is(err, io.ErrUnexpectedEOF) {
 			log.Println("rpc server: read header error:", err)
 		}
 		return nil, err
 	}
-	return &header, nil
+	return &h, nil
 }
 
-// 读取请求
+func (srv *Server) findService(serviceMethod string) (svc *service, mtype *methodType, err error) {
+	dot := strings.LastIndex(serviceMethod, ".")
+	if dot < 0 {
+		err = errors.New("rpc server: service/method request ill-formed: " + serviceMethod)
+		return
+	}
+	serviceName, methodName := serviceMethod[:dot], serviceMethod[dot+1:]
+	svci, ok := srv.serviceMap.Load(serviceName)
+	if !ok {
+		err = errors.New("rpc server: can't find service " + serviceName)
+		return
+	}
+	svc = svci.(*service)
+	mtype = svc.method[methodName]
+	if mtype == nil {
+		err = errors.New("rpc server: can't find method " + methodName)
+	}
+	return
+}
+
 func (srv *Server) readRequest(cc codec.Codec) (*request, error) {
-	// 读取请求头
-	header, err := srv.readRequestHeader(cc)
+	h, err := srv.readRequestHeader(cc)
 	if err != nil {
 		return nil, err
 	}
-	// 封装请求
-	req := &request{header: header}
-	req.svc, req.mtype, err = srv.findService(header.ServiceMethod)
+	req := &request{h: h}
+	req.svc, req.mtype, err = srv.findService(h.ServiceMethod)
 	if err != nil {
 		return req, err
 	}
-	req.argv = req.mtype.newArgv()
-	req.repv = req.mtype.newReplyv()
 
+	// 拼接参数
+	req.argv = req.mtype.newArgv()
+	req.replyv = req.mtype.newReplyv()
+
+	// make sure that argvi is a pointer, ReadBody need a pointer as parameter
 	argvi := req.argv.Interface()
 	if req.argv.Type().Kind() != reflect.Ptr {
 		argvi = req.argv.Addr().Interface()
 	}
-	err = cc.ReadBody(argvi)
-	if err != nil {
-		log.Println("rpc server: read argv error:", err)
+	if err = cc.ReadBody(argvi); err != nil {
+		log.Println("rpc server: read body err:", err)
 		return req, err
 	}
 	return req, nil
 }
 
-// 发送响应信息
-func (srv *Server) sendResponse(cc codec.Codec, header *codec.Header, body any, mutex *sync.Mutex) {
-	mutex.Lock()
-	defer mutex.Unlock()
-	err := cc.Write(header, body)
-	if err != nil {
+func (srv *Server) sendResponse(cc codec.Codec, h *codec.Header, body interface{}, sm *sync.Mutex) {
+	sm.Lock()
+	defer sm.Unlock()
+	if err := cc.Write(h, body); err != nil {
 		log.Println("rpc server: write response error:", err)
 	}
 }
 
-// 处理请求
-func (srv *Server) handleRequest(cc codec.Codec, req *request, mutex *sync.Mutex, wg *sync.WaitGroup, timeout time.Duration) {
+func (srv *Server) handleRequest(cc codec.Codec, req *request, sm *sync.Mutex, wg *sync.WaitGroup, timeout time.Duration) {
 	defer wg.Done()
 	called := make(chan struct{})
 	sent := make(chan struct{})
 	go func() {
-		// 执行函数
-		err := req.svc.call(req.mtype, req.argv, req.repv)
-		called <- struct{}{} // 通知已经执行
+		err := req.svc.call(req.mtype, req.argv, req.replyv)
+		called <- struct{}{}
 		if err != nil {
-			req.header.Error = err.Error()
-			srv.sendResponse(cc, req.header, invalidRequest, mutex)
-			sent <- struct{}{} // 通知已经发送
+			req.h.Error = err.Error()
+			srv.sendResponse(cc, req.h, invalidRequest, sm)
+			sent <- struct{}{}
 			return
 		}
-		srv.sendResponse(cc, req.header, req.repv.Interface(), mutex)
+		srv.sendResponse(cc, req.h, req.replyv.Interface(), sm)
 		sent <- struct{}{}
 	}()
 
-	// 无超时时间
 	if timeout == 0 {
 		<-called
 		<-sent
 		return
 	}
-
 	select {
 	case <-time.After(timeout):
-		req.header.Error = fmt.Sprintf("rpc server: request handle timeout: expect within %s", timeout)
-		srv.sendResponse(cc, req.header, invalidRequest, mutex)
+		req.h.Error = fmt.Sprintf("rpc server: request handle timeout: expect within %s", timeout)
+		srv.sendResponse(cc, req.h, invalidRequest, sm)
 	case <-called:
 		<-sent
 	}
 }
 
+// Accept accepts connections on the listener and serves requests
+// for each incoming connection.
+func (srv *Server) Accept(lis net.Listener) {
+	for {
+		conn, err := lis.Accept()
+		if err != nil {
+			log.Println("rpc server: accept error:", err)
+			return
+		}
+		go srv.HandleConn(conn)
+	}
+}
+
+// Accept accepts connections on the listener and serves requests
+// for each incoming connection.
+func Accept(lis net.Listener) {
+	DefaultServer.Accept(lis)
+}
+
+func (srv *Server) Register(rcvr interface{}) error {
+	s := newService(rcvr)
+	if _, ok := srv.serviceMap.LoadOrStore(s.name, s); ok {
+		return errors.New("rpc: service already defined: " + s.name)
+	}
+	return nil
+}
+
+// Register publishes the receiver's methods in the DefaultServer.
 func Register(rcvr interface{}) error {
 	return DefaultServer.Register(rcvr)
 }
