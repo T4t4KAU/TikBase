@@ -1,5 +1,7 @@
 package values
 
+import "strings"
+
 // Set 集合
 type Set struct {
 	dict *Dict
@@ -33,4 +35,14 @@ func (set *Set) Len() int {
 		return 0
 	}
 	return set.dict.Len()
+}
+
+func (set *Set) String() string {
+	s := ""
+	for k := range set.dict.m {
+		s += k + ", "
+	}
+
+	s = strings.TrimRight(s, ", ")
+	return "{" + s + "}"
 }

@@ -1,7 +1,7 @@
 package slist
 
 import (
-	"TikCache/engine"
+	"TikCache/engine/dates"
 	"fmt"
 	"math/rand"
 	"time"
@@ -17,12 +17,12 @@ func isInsertUp() bool {
 
 // Node 跳表节点
 type Node struct {
-	Value engine.Value
+	Value dates.Value
 	Next  *Node // 指向后继结点
 	Down  *Node // 指向下方结点
 }
 
-func newNode(value engine.Value) *Node {
+func newNode(value dates.Value) *Node {
 	return &Node{
 		Value: value,
 	}
@@ -40,7 +40,7 @@ func New() *List {
 }
 
 // Insert 插入值
-func (list *List) Insert(value engine.Value) {
+func (list *List) Insert(value dates.Value) {
 	// 保存结点路径
 	path := make([]*Node, 0)
 	p := list.Head
@@ -48,7 +48,7 @@ func (list *List) Insert(value engine.Value) {
 	// 从下往上逐层遍历
 	// 找到插入值的前驱结点
 	for p != nil {
-		for p.Next != nil && p.Next.Value.Compare(p.Value) == -1 {
+		for p.Next != nil && p.Next.Value.Score() < value.Score() {
 			p = p.Next
 		}
 		// 将每层找到的结点存入
@@ -129,13 +129,13 @@ func (list *List) Print() {
 }
 
 // Remove 删除元素
-func (list *List) Remove(value engine.Value) bool {
+func (list *List) Remove(value dates.Value) bool {
 	p, ok := list.Head, false
 	for p != nil {
-		for p.Next != nil && p.Next.Value.Compare(value) == -1 {
+		for p.Next != nil && p.Next.Value.Score() < value.Score() {
 			p = p.Next
 		}
-		if p.Next == nil || p.Next.Value.Compare(value) == -1 {
+		if p.Next == nil || p.Next.Value.Score() < value.Score() {
 			p = p.Down
 		} else {
 			p.Next = p.Next.Next
@@ -147,15 +147,15 @@ func (list *List) Remove(value engine.Value) bool {
 }
 
 // Search 搜索
-func (list *List) Search(value engine.Value) (*Node, bool) {
+func (list *List) Search(value dates.Value) (*Node, bool) {
 	p := list.Head
 	for p != nil {
-		for p.Next != nil && p.Next.Value.Compare(value) == -1 {
+		for p.Next != nil && p.Next.Value.Score() < value.Score() {
 			p = p.Next
 		}
 
 		// 在该层搜索不到 下降到下一层
-		if p.Next == nil || p.Next.Value.Compare(value) == -1 {
+		if p.Next == nil || p.Next.Value.Score() < value.Score() {
 			p = p.Down
 		} else {
 			return p.Next, true

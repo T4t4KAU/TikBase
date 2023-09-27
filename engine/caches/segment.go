@@ -7,7 +7,7 @@ import (
 
 // 数据块
 type segment struct {
-	Data    map[string]*value
+	Data    map[string]*Value
 	Status  *Status
 	options *Options
 	mutex   *sync.RWMutex
@@ -16,7 +16,7 @@ type segment struct {
 // 返回一个使用options初始化过的segment实例
 func newSegment(options *Options) *segment {
 	return &segment{
-		Data:    make(map[string]*value, options.MapSizeOfSegment),
+		Data:    make(map[string]*Value, options.MapSizeOfSegment),
 		Status:  NewStatus(),
 		options: options,
 		mutex:   &sync.RWMutex{},
@@ -24,7 +24,7 @@ func newSegment(options *Options) *segment {
 }
 
 // 返回指定key数据
-func (seg *segment) get(key string) ([]byte, bool) {
+func (seg *segment) get(key string) (*Value, bool) {
 	// 对当前segment加读锁
 	seg.mutex.RLock()
 	defer seg.mutex.RUnlock()
@@ -42,29 +42,31 @@ func (seg *segment) get(key string) ([]byte, bool) {
 		seg.mutex.Unlock()
 		return nil, false
 	}
-	return v.data(), true
+	return v, true
 }
 
 // 将一个数据添加进segment
-func (seg *segment) set(key string, value []byte, ttl int64) error {
+func (seg *segment) set(key string, data []byte, ttl int64, typ Type) error {
 	// 对当前segment进行加锁
 	seg.mutex.Lock()
 	defer seg.mutex.Unlock()
 	// 检查是否以及存在
-	if oldValue, ok := seg.Data[key]; ok {
-		seg.Status.subEntry(key, oldValue.Data)
+	if v, ok := seg.Data[key]; ok {
+		seg.Status.subEntry(key, v.Data)
 	}
 	// 检查数据是否超出容量
-	if !seg.checkEntryCapacity(key, value) {
+	if !seg.checkEntryCapacity(key, data) {
 		if oldValue, ok := seg.Data[key]; ok {
 			seg.Status.addEntry(key, oldValue.Data)
 		}
+
+		// 超出单segment存储上限
 		return errors.New("the entry size will exceed if you set this entry")
 	}
 
 	// 修改状态消息
-	seg.Status.addEntry(key, value)
-	seg.Data[key] = newValue(value, ttl)
+	seg.Status.addEntry(key, data)
+	seg.Data[key] = newValue(data, ttl, typ)
 	return nil
 }
 

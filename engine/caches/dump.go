@@ -28,7 +28,7 @@ func newDump(c *Cache) *dump {
 	}
 }
 
-// 时间戳
+// 当前时间戳后缀
 func nowSuffix() string {
 	return "." + time.Now().Format("20060102150405")
 }
@@ -42,6 +42,8 @@ func (d *dump) to(dumpFile string) error {
 		return err
 	}
 	defer file.Close()
+
+	// 使用Gob编码
 	err = gob.NewEncoder(file).Encode(d)
 	if err != nil {
 		os.Remove(newDumpFile)
@@ -49,7 +51,7 @@ func (d *dump) to(dumpFile string) error {
 	}
 
 	// 删除持久化文件
-	os.Remove(dumpFile)
+	_ = os.Remove(dumpFile)
 	return os.Rename(newDumpFile, dumpFile)
 }
 

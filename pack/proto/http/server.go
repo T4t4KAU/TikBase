@@ -2,7 +2,7 @@ package http
 
 import (
 	"TikCache/engine/caches"
-	router2 "TikCache/server/proto/http/router"
+	router2 "TikCache/pack/proto/http/router"
 	"encoding/json"
 	"io"
 	"net/http"

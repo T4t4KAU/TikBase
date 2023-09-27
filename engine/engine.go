@@ -2,14 +2,11 @@ package engine
 
 import (
 	"TikCache/engine/caches"
+	"TikCache/engine/dates"
 )
 
 type Engine interface {
-	Lookup(key string) (Value, bool)
-}
-
-type Value interface {
-	Compare(Value) int
+	Lookup(key string) (dates.Value, bool)
 }
 
 func NewEngine(name string) Engine {
@@ -17,6 +14,6 @@ func NewEngine(name string) Engine {
 	case "caches":
 		return caches.NewCache()
 	default:
-		return caches.NewCache()
+		panic("invalid name")
 	}
 }

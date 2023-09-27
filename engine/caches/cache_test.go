@@ -1,42 +1,23 @@
 package caches
 
 import (
-	"strconv"
-	"sync"
+	"fmt"
 	"testing"
-	"time"
 )
 
-const (
-	concurrency = 100000
-)
-
-// 测试任务
-func testTask(task func(no int)) string {
-	beginTime := time.Now()
-	wg := &sync.WaitGroup{}
-	for i := 0; i < concurrency; i++ {
-		wg.Add(1)
-		go func(no int) {
-			defer wg.Done()
-			task(no)
-		}(i)
+func TestCache_Set(t *testing.T) {
+	c := NewCache()
+	err := c.Set("key1", []byte("value"), STRING)
+	if err != nil {
+		t.Error(err.Error())
 	}
-	wg.Wait()
-	return time.Since(beginTime).String()
-}
+	v, _ := c.Get("key1")
+	fmt.Printf("%v\n", v.String())
 
-func TestCacheSetGet(t *testing.T) {
-	cache := NewCache()
-	writeTime := testTask(func(no int) {
-		data := strconv.Itoa(no)
-		_ = cache.Set(data, []byte(data))
-	})
-	t.Logf("consume write time: %s\n", writeTime)
-	time.Sleep(3 * time.Second)
-	readTime := testTask(func(no int) {
-		data := strconv.Itoa(no)
-		cache.Get(data)
-	})
-	t.Logf("consume read time: %s\n", readTime)
+	err = c.SetInt("key2", 100, 0)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	v, _ = c.Get("key2")
+	fmt.Printf("%v\n", v.String())
 }

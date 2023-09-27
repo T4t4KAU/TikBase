@@ -68,7 +68,7 @@ func TestClient_Call(t *testing.T) {
 		ctx, _ := context.WithTimeout(context.Background(), time.Second)
 		var reply AddRep
 		err := client.Call(ctx, "Bar.Add", AddReq{10, 20}, &reply)
-		_assert(err == nil && reply.Sum == 30, "wrong answer")
+		_assert(err == nil && reply.Sum == 30, "wrong answer: ", reply.Sum)
 	})
 	t.Run("client timeout", func(t *testing.T) {
 		client, _ := Dial("tcp", addr)

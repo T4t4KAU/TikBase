@@ -1,7 +1,8 @@
 package caches
 
 import (
-	"TikCache/engine"
+	"TikCache/engine/dates"
+	"TikCache/pack/utils"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -67,25 +68,33 @@ func recoverFromDumpFile(dumpFile string) (*Cache, bool) {
 	return cache, true
 }
 
-func (c *Cache) Lookup(key string) (engine.Value, bool) {
-	return nil, false
+func (c *Cache) Lookup(key string) (dates.Value, bool) {
+	return c.Get(key)
 }
 
 // Get 返回指定value 未找到则返回false
-func (c *Cache) Get(key string) ([]byte, bool) {
+func (c *Cache) Get(key string) (*Value, bool) {
 	c.waitForDumping()
 	return c.segmentOf(key).get(key)
 }
 
 // Set 保存键值对到缓存
-func (c *Cache) Set(key string, value []byte) error {
-	return c.SetWithTTL(key, value, NeverExpire)
+func (c *Cache) Set(key string, value []byte, typ Type) error {
+	return c.SetWithTTL(key, value, NeverExpire, typ)
+}
+
+func (c *Cache) SetInt(key string, value int, ttl int64) error {
+	return c.SetWithTTL(key, utils.IntToBytes(value), ttl, INT)
+}
+
+func (c *Cache) SetString(key string, value string, ttl int64) error {
+	return c.SetWithTTL(key, []byte(value), ttl, STRING)
 }
 
 // SetWithTTL 添加到指定的数据到缓存中 设置相应有效期
-func (c *Cache) SetWithTTL(key string, value []byte, ttl int64) error {
+func (c *Cache) SetWithTTL(key string, value []byte, ttl int64, typ Type) error {
 	c.waitForDumping()
-	return c.segmentOf(key).set(key, value, ttl)
+	return c.segmentOf(key).set(key, value, ttl, typ)
 }
 
 // Delete 从缓存中删除指定键值对

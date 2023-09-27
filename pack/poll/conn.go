@@ -1,4 +1,4 @@
 package poll
 
-type connection struct {
+type conn struct {
 }

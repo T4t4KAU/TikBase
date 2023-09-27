@@ -2,7 +2,7 @@ package server
 
 import (
 	"TikCache/engine"
-	"TikCache/server/proto"
+	"TikCache/pack/proto"
 )
 
 type Server struct {
@@ -16,7 +16,7 @@ func New(opt *Option) *Server {
 	case "caches":
 		s.Engine = engine.NewEngine("caches")
 	default:
-		s.Engine = engine.NewEngine("caches")
+		panic("invalid engine type")
 	}
 
 	switch {
