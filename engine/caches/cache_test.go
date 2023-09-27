@@ -30,7 +30,7 @@ func TestCacheSetGet(t *testing.T) {
 	cache := NewCache()
 	writeTime := testTask(func(no int) {
 		data := strconv.Itoa(no)
-		cache.Set(data, []byte(data))
+		_ = cache.Set(data, []byte(data))
 	})
 	t.Logf("consume write time: %s\n", writeTime)
 	time.Sleep(3 * time.Second)

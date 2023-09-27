@@ -1,4 +1,4 @@
-package tcp
+package vex
 
 import (
 	"TikCache/engine/caches"
@@ -31,7 +31,7 @@ func (s *Server) Run(address string) error {
 	s.RegisterHandler(setCommand, s.setHandler)
 	s.RegisterHandler(deleteCommand, s.deleteHandler)
 	s.RegisterHandler(statusCommand, s.statusHandler)
-	return s.ListenAndServe("tcp", address)
+	return s.ListenAndServe("vex", address)
 }
 
 // RegisterHandler 注册命令处理器

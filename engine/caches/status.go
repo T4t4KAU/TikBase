@@ -16,14 +16,14 @@ func NewStatus() *Status {
 	}
 }
 
-// 储存键值对
+// 储存键值对后更新状态信息
 func (s *Status) addEntry(key string, value []byte) {
 	s.Count++
 	s.KeySize += int64(len(key))
 	s.ValueSize += int64(len(value))
 }
 
-// DelEntry 删除键值对
+// 删除键值对后更新状态信息
 func (s *Status) subEntry(key string, value []byte) {
 	s.Count--
 	s.KeySize -= int64(len(key))

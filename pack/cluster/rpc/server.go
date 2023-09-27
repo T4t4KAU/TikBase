@@ -2,7 +2,7 @@ package rpc
 
 import (
 	"TikCache/pack/cluster/rpc/codec"
-	"encoding/json"
+	"encoding/gob"
 	"errors"
 	"fmt"
 	"io"
@@ -49,7 +49,7 @@ func (srv *Server) HandleConn(conn io.ReadWriteCloser) {
 	}()
 
 	var opt Option
-	if err := json.NewDecoder(conn).Decode(&opt); err != nil {
+	if err := gob.NewDecoder(conn).Decode(&opt); err != nil {
 		log.Println("rpc server: options error: ", err)
 		return
 	}
@@ -107,12 +107,12 @@ func (srv *Server) readRequestHeader(cc codec.Codec) (*codec.Header, error) {
 }
 
 func (srv *Server) findService(serviceMethod string) (svc *service, mtype *methodType, err error) {
-	dot := strings.LastIndex(serviceMethod, ".")
-	if dot < 0 {
+	index := strings.LastIndex(serviceMethod, ".")
+	if index < 0 {
 		err = errors.New("rpc server: service/method request ill-formed: " + serviceMethod)
 		return
 	}
-	serviceName, methodName := serviceMethod[:dot], serviceMethod[dot+1:]
+	serviceName, methodName := serviceMethod[:index], serviceMethod[index+1:]
 	svci, ok := srv.serviceMap.Load(serviceName)
 	if !ok {
 		err = errors.New("rpc server: can't find service " + serviceName)

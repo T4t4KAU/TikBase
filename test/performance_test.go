@@ -1,7 +1,7 @@
 package test
 
 import (
-	"TikCache/proto/tcp"
+	"TikCache/proto/vex"
 	"net/http"
 	"strconv"
 	"strings"
@@ -56,7 +56,7 @@ func TestHTTPServer(t *testing.T) {
 }
 
 func TestTCPServer(t *testing.T) {
-	client, err := tcp.NewClient(":9960")
+	client, err := vex.NewClient(":9960")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -81,7 +81,7 @@ func TestTCPServer(t *testing.T) {
 }
 
 func TestAsyncClientPerformance(t *testing.T) {
-	c, err := tcp.NewAsyncClient(":9960")
+	c, err := vex.NewAsyncClient(":9960")
 	if err != nil {
 		t.Fatal(err)
 	}

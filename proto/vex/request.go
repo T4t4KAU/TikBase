@@ -1,4 +1,4 @@
-package tcp
+package vex
 
 import (
 	"encoding/binary"

@@ -1,6 +1,7 @@
 package caches
 
 import (
+	"TikCache/engine"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -64,6 +65,10 @@ func recoverFromDumpFile(dumpFile string) (*Cache, bool) {
 		return nil, false
 	}
 	return cache, true
+}
+
+func (c *Cache) Lookup(key string) (engine.Value, bool) {
+	return c.Get(key)
 }
 
 // Get 返回指定value 未找到则返回false
@@ -140,7 +145,7 @@ func (c *Cache) AutoDump() {
 		d := time.Duration(c.options.DumpDuration) * time.Minute
 		ticker := time.NewTicker(d)
 		for range ticker.C {
-			c.dump()
+			_ = c.dump()
 		}
 	}()
 }

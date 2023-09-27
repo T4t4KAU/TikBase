@@ -1,4 +1,4 @@
-package tcp
+package vex
 
 import (
 	"TikCache/engine/caches"
@@ -89,7 +89,7 @@ type Client struct {
 
 // NewClient 创建客户端
 func NewClient(address string) (*Client, error) {
-	conn, err := net.Dial("tcp", address)
+	conn, err := net.Dial("vex", address)
 	if err != nil {
 		return nil, err
 	}

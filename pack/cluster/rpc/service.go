@@ -20,7 +20,7 @@ func (mt *methodType) NumCalls() uint64 {
 
 func (mt *methodType) newArgv() reflect.Value {
 	var argv reflect.Value
-	// arg may be a pointer type, or a value type
+	// arg may be a pointer type, or a values type
 	if mt.ArgType.Kind() == reflect.Ptr {
 		argv = reflect.New(mt.ArgType.Elem())
 	} else {

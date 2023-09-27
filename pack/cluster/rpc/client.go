@@ -3,7 +3,7 @@ package rpc
 import (
 	"TikCache/pack/cluster/rpc/codec"
 	"context"
-	"encoding/json"
+	"encoding/gob"
 	"errors"
 	"fmt"
 	"io"
@@ -209,7 +209,7 @@ func NewClient(conn net.Conn, opt *Option) (client *Client, err error) {
 		return
 	}
 	// send options with server
-	if err = json.NewEncoder(conn).Encode(opt); err != nil {
+	if err = gob.NewEncoder(conn).Encode(opt); err != nil {
 		log.Println("rpc client: options error: ", err)
 		return
 	}
