@@ -1,7 +1,7 @@
 package slist
 
 import (
-	"TikCache/pack/dates"
+	"TikCache/engine"
 	"fmt"
 	"math/rand"
 	"time"
@@ -16,39 +16,39 @@ func isInsertUp() bool {
 }
 
 // Node 跳表节点
-type Node[T dates.Sortable] struct {
-	Value T
-	Next  *Node[T] // 指向后继结点
-	Down  *Node[T] // 指向下方结点
+type Node struct {
+	Value engine.Value
+	Next  *Node // 指向后继结点
+	Down  *Node // 指向下方结点
 }
 
-func newNode[T dates.Sortable](value T) *Node[T] {
-	return &Node[T]{
+func newNode(value engine.Value) *Node {
+	return &Node{
 		Value: value,
 	}
 }
 
-type List[T dates.Sortable] struct {
-	Head *Node[T]
+type List struct {
+	Head *Node
 }
 
 // New 创建跳表
-func New[T dates.Sortable]() *List[T] {
-	return &List[T]{
-		Head: newNode[T](-1),
+func New() *List {
+	return &List{
+		Head: newNode(nil),
 	}
 }
 
 // Insert 插入值
-func (list *List[T]) Insert(value T) {
+func (list *List) Insert(value engine.Value) {
 	// 保存结点路径
-	path := make([]*Node[T], 0)
+	path := make([]*Node, 0)
 	p := list.Head
 
 	// 从下往上逐层遍历
 	// 找到插入值的前驱结点
 	for p != nil {
-		for p.Next != nil && p.Next.Value < value {
+		for p.Next != nil && p.Next.Value.Compare(p.Value) == -1 {
 			p = p.Next
 		}
 		// 将每层找到的结点存入
@@ -58,7 +58,7 @@ func (list *List[T]) Insert(value T) {
 
 	// 插入标识
 	var insertUpFlag = true
-	var downNode *Node[T]
+	var downNode *Node
 
 	// 向当前层增加结点
 	for insertUpFlag && len(path) > 0 {
@@ -78,9 +78,9 @@ func (list *List[T]) Insert(value T) {
 
 	// 建立新的层
 	if len(path) <= 0 && isInsertUp() {
-		node := newNode[T](value)
+		node := newNode(value)
 		node.Down = downNode
-		newHead := newNode[T](-1)
+		newHead := newNode(nil)
 		newHead.Next = node
 		newHead.Down = list.Head
 		list.Head = newHead
@@ -88,7 +88,7 @@ func (list *List[T]) Insert(value T) {
 }
 
 // Level 索引层数
-func (list *List[T]) Level() int {
+func (list *List) Level() int {
 	if list.Head == nil {
 		return 0
 	}
@@ -103,7 +103,7 @@ func (list *List[T]) Level() int {
 }
 
 // Print 打印跳表
-func (list *List[T]) Print() {
+func (list *List) Print() {
 	if list.Head == nil || list.Head.Next == nil {
 		fmt.Println("跳表为空")
 		return
@@ -129,13 +129,13 @@ func (list *List[T]) Print() {
 }
 
 // Remove 删除元素
-func (list *List[T]) Remove(value T) bool {
+func (list *List) Remove(value engine.Value) bool {
 	p, ok := list.Head, false
 	for p != nil {
-		for p.Next != nil && p.Next.Value < value {
+		for p.Next != nil && p.Next.Value.Compare(value) == -1 {
 			p = p.Next
 		}
-		if p.Next == nil || p.Next.Value > value {
+		if p.Next == nil || p.Next.Value.Compare(value) == -1 {
 			p = p.Down
 		} else {
 			p.Next = p.Next.Next
@@ -147,19 +147,19 @@ func (list *List[T]) Remove(value T) bool {
 }
 
 // Search 搜索
-func (list *List[T]) Search(value T) (*Node[T], bool) {
+func (list *List) Search(value engine.Value) (*Node, bool) {
 	p := list.Head
 	for p != nil {
-		for p.Next != nil && p.Next.Value < value {
+		for p.Next != nil && p.Next.Value.Compare(value) == -1 {
 			p = p.Next
 		}
 
 		// 在该层搜索不到 下降到下一层
-		if p.Next == nil || p.Next.Value > value {
+		if p.Next == nil || p.Next.Value.Compare(value) == -1 {
 			p = p.Down
 		} else {
 			return p.Next, true
 		}
 	}
-	return &Node[T]{}, false
+	return &Node{}, false
 }

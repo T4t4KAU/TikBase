@@ -2,7 +2,7 @@ package http
 
 import (
 	"TikCache/engine/caches"
-	"TikCache/proto/http/router"
+	router2 "TikCache/server/proto/http/router"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -32,8 +32,8 @@ func wrapUriWithVersion(uri string) string {
 	return path.Join("/", APIVersion, uri)
 }
 
-func (s *Server) routerHandler() *router.Router {
-	r := router.New()
+func (s *Server) routerHandler() *router2.Router {
+	r := router2.New()
 	r.GET(wrapUriWithVersion("/cache/:key"), s.getHandler)
 	r.PUT(wrapUriWithVersion("/cache/:key"), s.setHandler)
 	r.DELETE(wrapUriWithVersion("/cache/:key"), s.deleteHandler)
@@ -41,7 +41,7 @@ func (s *Server) routerHandler() *router.Router {
 	return r
 }
 
-func (s *Server) setHandler(ctx *router.Context) {
+func (s *Server) setHandler(ctx *router2.Context) {
 	// 查找指定key
 	key := ctx.Params.ByName("key")
 	value, err := io.ReadAll(ctx.Req.Body)
@@ -73,7 +73,7 @@ func parseTTL(request *http.Request) (int64, error) {
 	return strconv.ParseInt(ttls[0], 10, 64)
 }
 
-func (s *Server) getHandler(ctx *router.Context) {
+func (s *Server) getHandler(ctx *router2.Context) {
 	key := ctx.Params.ByName("key")
 	value, ok := s.Get(key)
 	if !ok {
@@ -83,7 +83,7 @@ func (s *Server) getHandler(ctx *router.Context) {
 	ctx.Writer.Write(value)
 }
 
-func (s *Server) deleteHandler(ctx *router.Context) {
+func (s *Server) deleteHandler(ctx *router2.Context) {
 	key := ctx.Params.ByName("key")
 	err := s.Delete(key)
 	if err != nil {
@@ -92,7 +92,7 @@ func (s *Server) deleteHandler(ctx *router.Context) {
 	}
 }
 
-func (s *Server) statusHandler(ctx *router.Context) {
+func (s *Server) statusHandler(ctx *router2.Context) {
 	status, err := json.Marshal(s.Status())
 	if err != nil {
 		ctx.Writer.WriteHeader(http.StatusInternalServerError)

@@ -2,8 +2,8 @@ package raft
 
 import "sync"
 
-// Raft raft节点
-type Raft struct {
+// Node 节点
+type Node struct {
 	Mutex sync.Mutex
 	Dead  int32
 
@@ -16,6 +16,6 @@ type Raft struct {
 	MatchIndex  []int
 }
 
-func (rf *Raft) GetState() {
+func (node *Node) GetState() {
 
 }

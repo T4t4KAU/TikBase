@@ -1,6 +1,7 @@
 package caches
 
 import (
+	"TikCache/engine"
 	"TikCache/pack/utils"
 	"sync/atomic"
 	"time"
@@ -24,6 +25,11 @@ type value struct {
 	TTL     int64  // 存活时间
 	Created int64  // 数据创建时间
 	Type    uint8
+}
+
+func (v *value) Compare(e engine.Value) int {
+	e = e.(*value)
+	return 0
 }
 
 // 返回一个封装好的数据

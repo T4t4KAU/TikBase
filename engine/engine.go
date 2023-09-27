@@ -5,18 +5,16 @@ import (
 )
 
 type Engine interface {
+	Lookup(key string) (Value, bool)
 }
 
 type Value interface {
-}
-
-type KVStore interface {
-	Lookup(key string) (Value, bool)
+	Compare(Value) int
 }
 
 func NewEngine(name string) Engine {
 	switch name {
-	case "cache":
+	case "caches":
 		return caches.NewCache()
 	default:
 		return caches.NewCache()

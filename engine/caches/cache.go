@@ -68,7 +68,7 @@ func recoverFromDumpFile(dumpFile string) (*Cache, bool) {
 }
 
 func (c *Cache) Lookup(key string) (engine.Value, bool) {
-	return c.Get(key)
+	return nil, false
 }
 
 // Get 返回指定value 未找到则返回false

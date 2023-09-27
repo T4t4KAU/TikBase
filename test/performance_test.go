@@ -1,7 +1,7 @@
 package test
 
 import (
-	"TikCache/proto/vex"
+	"TikCache/server/proto/vex"
 	"net/http"
 	"strconv"
 	"strings"
