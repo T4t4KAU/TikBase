@@ -97,6 +97,7 @@ func (cli *Client) terminateCalls(err error) {
 	}
 }
 
+// 发送调用
 func (cli *Client) send(call *Call) {
 	// make sure that the client will send a complete request
 	cli.sm.Lock()

@@ -1,22 +1,11 @@
 package caches
 
 import (
+	"TikCache/iface"
 	"TikCache/pack/utils"
 	"fmt"
 	"sync/atomic"
 	"time"
-)
-
-type Type uint8
-
-const (
-	INT Type = iota
-	FLOAT
-	STRING
-	SET
-	ZSET
-	MAP
-	NULL
 )
 
 const (
@@ -24,14 +13,14 @@ const (
 )
 
 type Value struct {
-	Data    []byte // 数据
-	TTL     int64  // 存活时间
-	Created int64  // 数据创建时间
-	Type    Type   // 数据类型
+	Data    []byte     // 数据
+	TTL     int64      // 存活时间
+	Created int64      // 数据创建时间
+	Type    iface.Type // 数据类型
 }
 
 // 返回一个封装好的数据
-func newValue(data []byte, ttl int64, typ Type) *Value {
+func newValue(data []byte, ttl int64, typ iface.Type) *Value {
 	return &Value{
 		Data:    utils.Copy(data),
 		TTL:     ttl,
@@ -46,13 +35,21 @@ func (v *Value) Score() float32 {
 
 func (v *Value) String() string {
 	switch v.Type {
-	case STRING:
+	case iface.STRING:
 		return v.toString()
-	case INT:
+	case iface.INT:
 		return fmt.Sprintf("%d", v.toInt())
 	default:
 		panic("wrong type")
 	}
+}
+
+func (v *Value) Bytes() []byte {
+	return v.data()
+}
+
+func (v *Value) Attr() iface.Type {
+	return v.Type
 }
 
 func (v *Value) toInt() int {

@@ -1,7 +1,7 @@
 package slist
 
 import (
-	"TikCache/engine/dates"
+	"TikCache/iface"
 	"fmt"
 	"math/rand"
 	"time"
@@ -17,12 +17,12 @@ func isInsertUp() bool {
 
 // Node 跳表节点
 type Node struct {
-	Value dates.Value
+	Value iface.Value
 	Next  *Node // 指向后继结点
 	Down  *Node // 指向下方结点
 }
 
-func newNode(value dates.Value) *Node {
+func newNode(value iface.Value) *Node {
 	return &Node{
 		Value: value,
 	}
@@ -40,7 +40,7 @@ func New() *List {
 }
 
 // Insert 插入值
-func (list *List) Insert(value dates.Value) {
+func (list *List) Insert(value iface.Value) {
 	// 保存结点路径
 	path := make([]*Node, 0)
 	p := list.Head
@@ -129,7 +129,7 @@ func (list *List) Print() {
 }
 
 // Remove 删除元素
-func (list *List) Remove(value dates.Value) bool {
+func (list *List) Remove(value iface.Value) bool {
 	p, ok := list.Head, false
 	for p != nil {
 		for p.Next != nil && p.Next.Value.Score() < value.Score() {
@@ -147,7 +147,7 @@ func (list *List) Remove(value dates.Value) bool {
 }
 
 // Search 搜索
-func (list *List) Search(value dates.Value) (*Node, bool) {
+func (list *List) Search(value iface.Value) (*Node, bool) {
 	p := list.Head
 	for p != nil {
 		for p.Next != nil && p.Next.Value.Score() < value.Score() {

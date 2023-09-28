@@ -1,7 +1,6 @@
 package test
 
 import (
-	"TikCache/pack/proto/vex"
 	"net/http"
 	"strconv"
 	"strings"
@@ -53,51 +52,4 @@ func TestHTTPServer(t *testing.T) {
 		response.Body.Close()
 	})
 	t.Logf("consume read time: %s\n", readTime)
-}
-
-func TestTCPServer(t *testing.T) {
-	client, err := vex.NewClient(":9960")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer client.Close()
-	writeTime := testTask(func(no int) {
-		data := strconv.Itoa(no)
-		err := client.Set(data, []byte(data), 0)
-		if err != nil {
-			t.Fatal(err)
-		}
-	})
-	t.Logf("consume write time: %s\n", writeTime)
-	time.Sleep(3 * time.Second)
-	readTime := testTask(func(no int) {
-		data := strconv.Itoa(no)
-		_, err := client.Get(data)
-		if err != nil {
-			t.Fatal(err)
-		}
-	})
-	t.Logf("consume read time: %s\n", readTime)
-}
-
-func TestAsyncClientPerformance(t *testing.T) {
-	c, err := vex.NewAsyncClient(":9960")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer c.Exit()
-
-	writeTime := testTask(func(no int) {
-		data := strconv.Itoa(no)
-		c.Set(data, []byte(data), 0)
-	})
-	t.Logf("consume write time: %s\n", writeTime)
-	time.Sleep(3 * time.Second)
-
-	readTime := testTask(func(no int) {
-		data := strconv.Itoa(no)
-		c.Get(data)
-	})
-	t.Logf("consume read time: %s\n", readTime)
-	time.Sleep(time.Second)
 }

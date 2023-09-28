@@ -1,7 +1,7 @@
 package caches
 
 import (
-	"TikCache/engine/dates"
+	"TikCache/iface"
 	"TikCache/pack/utils"
 	"sync"
 	"sync/atomic"
@@ -68,31 +68,27 @@ func recoverFromDumpFile(dumpFile string) (*Cache, bool) {
 	return cache, true
 }
 
-func (c *Cache) Lookup(key string) (dates.Value, bool) {
-	return c.Get(key)
-}
-
 // Get 返回指定value 未找到则返回false
-func (c *Cache) Get(key string) (*Value, bool) {
+func (c *Cache) Get(key string) (iface.Value, bool) {
 	c.waitForDumping()
 	return c.segmentOf(key).get(key)
 }
 
 // Set 保存键值对到缓存
-func (c *Cache) Set(key string, value []byte, typ Type) error {
-	return c.SetWithTTL(key, value, NeverExpire, typ)
+func (c *Cache) Set(key string, value iface.Value, typ iface.Type) error {
+	return c.SetWithTTL(key, value.Bytes(), NeverExpire, typ)
 }
 
 func (c *Cache) SetInt(key string, value int, ttl int64) error {
-	return c.SetWithTTL(key, utils.IntToBytes(value), ttl, INT)
+	return c.SetWithTTL(key, utils.IntToBytes(value), ttl, iface.INT)
 }
 
 func (c *Cache) SetString(key string, value string, ttl int64) error {
-	return c.SetWithTTL(key, []byte(value), ttl, STRING)
+	return c.SetWithTTL(key, []byte(value), ttl, iface.STRING)
 }
 
 // SetWithTTL 添加到指定的数据到缓存中 设置相应有效期
-func (c *Cache) SetWithTTL(key string, value []byte, ttl int64, typ Type) error {
+func (c *Cache) SetWithTTL(key string, value []byte, ttl int64, typ iface.Type) error {
 	c.waitForDumping()
 	return c.segmentOf(key).set(key, value, ttl, typ)
 }

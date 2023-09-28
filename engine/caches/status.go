@@ -2,9 +2,9 @@ package caches
 
 // Status 缓存信息
 type Status struct {
-	Count     int   `json:"count"`     // 记录缓存数据个数
-	KeySize   int64 `json:"keySize"`   // 记录key占用空间大小
-	ValueSize int64 `json:"valueSize"` // 记录value占用空间大小
+	Count     int   // 记录缓存数据个数
+	KeySize   int64 // 记录key占用空间大小
+	ValueSize int64 // 记录value占用空间大小
 }
 
 // NewStatus 返回一个缓存信息对象指针

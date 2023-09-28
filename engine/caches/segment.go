@@ -1,16 +1,17 @@
 package caches
 
 import (
+	"TikCache/iface"
 	"errors"
 	"sync"
 )
 
 // 数据块
 type segment struct {
-	Data    map[string]*Value
-	Status  *Status
-	options *Options
-	mutex   *sync.RWMutex
+	Data    map[string]*Value // 哈希表存放数据
+	Status  *Status           // 状态信息
+	options *Options          // 配置信息
+	mutex   *sync.RWMutex     // 读写锁
 }
 
 // 返回一个使用options初始化过的segment实例
@@ -46,7 +47,7 @@ func (seg *segment) get(key string) (*Value, bool) {
 }
 
 // 将一个数据添加进segment
-func (seg *segment) set(key string, data []byte, ttl int64, typ Type) error {
+func (seg *segment) set(key string, data []byte, ttl int64, typ iface.Type) error {
 	// 对当前segment进行加锁
 	seg.mutex.Lock()
 	defer seg.mutex.Unlock()

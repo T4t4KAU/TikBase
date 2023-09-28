@@ -26,7 +26,7 @@ func newContext(w http.ResponseWriter, req *http.Request) *Context {
 	}
 }
 
-// 获取上下文参数
+// Param 获取上下文参数
 func (c *Context) Param(key string) string {
 	return c.Params.ByName(key)
 }
@@ -55,7 +55,7 @@ func (c *Context) String(code int, format string, values ...any) {
 	c.Writer.Write([]byte(fmt.Sprintf(format, values...)))
 }
 
-// JSON序列化
+// JSON JSON序列化
 func (c *Context) JSON(code int, obj any) {
 	c.setHeader("Content-Type", "application/json")
 	c.Status(code)
