@@ -1,6 +1,10 @@
 package utils
 
-import "encoding/binary"
+import (
+	"bytes"
+	"encoding/binary"
+	"time"
+)
 
 // Copy 数据复制
 func Copy(src []byte) []byte {
@@ -21,4 +25,13 @@ func IntToBytes(e int) []byte {
 
 func BytesToInt(b []byte) int {
 	return int(binary.BigEndian.Uint32(b))
+}
+
+func CompareKey(a, b string) int {
+	return bytes.Compare([]byte(a), []byte(b))
+}
+
+// NowSuffix 当前时间戳后缀
+func NowSuffix() string {
+	return "." + time.Now().Format("20060102150405")
 }

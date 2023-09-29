@@ -1,7 +1,7 @@
 package resp
 
 import (
-	"TikCache/iface"
+	"TikCache/pack/iface"
 	"bufio"
 	"errors"
 	"io"

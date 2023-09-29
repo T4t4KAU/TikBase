@@ -1,9 +1,8 @@
-package caches
+package values
 
 import (
-	"TikCache/iface"
+	"TikCache/pack/iface"
 	"TikCache/pack/utils"
-	"fmt"
 	"sync/atomic"
 	"time"
 )
@@ -19,8 +18,8 @@ type Value struct {
 	Type    iface.Type // 数据类型
 }
 
-// 返回一个封装好的数据
-func newValue(data []byte, ttl int64, typ iface.Type) *Value {
+// New 返回一个封装好的数据
+func New(data []byte, ttl int64, typ iface.Type) *Value {
 	return &Value{
 		Data:    utils.Copy(data),
 		TTL:     ttl,
@@ -37,8 +36,6 @@ func (v *Value) String() string {
 	switch v.Type {
 	case iface.STRING:
 		return v.toString()
-	case iface.INT:
-		return fmt.Sprintf("%d", v.toInt())
 	default:
 		panic("wrong type")
 	}
@@ -52,6 +49,10 @@ func (v *Value) Attr() iface.Type {
 	return v.Type
 }
 
+func (v *Value) Time() int64 {
+	return v.TTL
+}
+
 func (v *Value) toInt() int {
 	return utils.BytesToInt(v.data())
 }
@@ -60,8 +61,8 @@ func (v *Value) toString() string {
 	return string(v.data())
 }
 
-// 返回该数据是否存活
-func (v *Value) alive() bool {
+// Alive 返回该数据是否存活
+func (v *Value) Alive() bool {
 	return v.TTL == NeverExpire || time.Now().Unix()-v.Created < v.TTL
 }
 

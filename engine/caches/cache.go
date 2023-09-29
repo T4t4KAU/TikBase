@@ -1,8 +1,7 @@
 package caches
 
 import (
-	"TikCache/iface"
-	"TikCache/pack/utils"
+	"TikCache/pack/iface"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -16,8 +15,8 @@ type Cache struct {
 	dumping     int32      // 标识当前缓存是否处于持久化状态 处于持久化状态则所有更新操作自旋
 }
 
-// NewCache 返回默认配置的缓存对象
-func NewCache() *Cache {
+// New 返回默认配置的缓存对象
+func New() *Cache {
 	return NewCacheWith(DefaultOptions())
 }
 
@@ -75,29 +74,31 @@ func (c *Cache) Get(key string) (iface.Value, bool) {
 }
 
 // Set 保存键值对到缓存
-func (c *Cache) Set(key string, value iface.Value, typ iface.Type) error {
-	return c.SetWithTTL(key, value.Bytes(), NeverExpire, typ)
+func (c *Cache) Set(key string, value iface.Value) bool {
+	return c.SetWithTTL(key, value.Bytes(), value.Time(), value.Attr())
 }
 
-func (c *Cache) SetInt(key string, value int, ttl int64) error {
-	return c.SetWithTTL(key, utils.IntToBytes(value), ttl, iface.INT)
-}
-
-func (c *Cache) SetString(key string, value string, ttl int64) error {
+func (c *Cache) SetString(key string, value string, ttl int64) bool {
 	return c.SetWithTTL(key, []byte(value), ttl, iface.STRING)
 }
 
-// SetWithTTL 添加到指定的数据到缓存中 设置相应有效期
-func (c *Cache) SetWithTTL(key string, value []byte, ttl int64, typ iface.Type) error {
-	c.waitForDumping()
-	return c.segmentOf(key).set(key, value, ttl, typ)
+func (c *Cache) AddSetElem(key string, element string) bool {
+	// 支持集合类型
+	return true
 }
 
-// Delete 从缓存中删除指定键值对
-func (c *Cache) Delete(key string) error {
+// SetWithTTL 添加到指定的数据到缓存中 设置相应有效期
+func (c *Cache) SetWithTTL(key string, value []byte, ttl int64, typ iface.Type) bool {
+	c.waitForDumping()
+	err := c.segmentOf(key).set(key, value, ttl, typ)
+	return err == nil
+}
+
+// Del 从缓存中删除指定键值对
+func (c *Cache) Del(key string) bool {
 	c.waitForDumping()
 	c.segmentOf(key).delete(key)
-	return nil
+	return true
 }
 
 // Status 返回缓存当前状态

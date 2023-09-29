@@ -1,7 +1,8 @@
 package slist
 
 import (
-	"TikCache/iface"
+	"TikCache/pack/iface"
+	"TikCache/pack/utils"
 	"fmt"
 	"math/rand"
 	"time"
@@ -9,6 +10,7 @@ import (
 
 // SkipList
 
+// 是否向上延伸
 func isInsertUp() bool {
 	rand.Seed(time.Now().UnixNano())
 	n := rand.Intn(2)
@@ -17,13 +19,20 @@ func isInsertUp() bool {
 
 // Node 跳表节点
 type Node struct {
+	Key   string
 	Value iface.Value
 	Next  *Node // 指向后继结点
 	Down  *Node // 指向下方结点
 }
 
-func newNode(value iface.Value) *Node {
+// Compare 比较结点大小
+func (n *Node) Compare(node *Node) int {
+	return utils.CompareKey(n.Key, node.Key)
+}
+
+func newNode(key string, value iface.Value) *Node {
 	return &Node{
+		Key:   key,
 		Value: value,
 	}
 }
@@ -35,12 +44,17 @@ type List struct {
 // New 创建跳表
 func New() *List {
 	return &List{
-		Head: newNode(nil),
+		// 创建头结点
+		Head: newNode("", nil),
 	}
 }
 
 // Insert 插入值
-func (list *List) Insert(value iface.Value) {
+func (list *List) Insert(key string, val iface.Value) bool {
+	if list == nil || list.Head == nil {
+		return false
+	}
+
 	// 保存结点路径
 	path := make([]*Node, 0)
 	p := list.Head
@@ -48,10 +62,10 @@ func (list *List) Insert(value iface.Value) {
 	// 从下往上逐层遍历
 	// 找到插入值的前驱结点
 	for p != nil {
-		for p.Next != nil && p.Next.Value.Score() < value.Score() {
+		for p.Next != nil && utils.CompareKey(p.Next.Key, key) < 0 {
 			p = p.Next
 		}
-		// 将每层找到的结点存入
+		// 将每层找到的结点存入路径
 		path = append(path, p)
 		p = p.Down
 	}
@@ -60,9 +74,10 @@ func (list *List) Insert(value iface.Value) {
 	var insertUpFlag = true
 	var downNode *Node
 
+	node := newNode(key, val)
+
 	// 向当前层增加结点
 	for insertUpFlag && len(path) > 0 {
-		node := newNode(value)
 		prevNode := path[len(path)-1]
 		path = path[:len(path)-1]
 
@@ -78,13 +93,14 @@ func (list *List) Insert(value iface.Value) {
 
 	// 建立新的层
 	if len(path) <= 0 && isInsertUp() {
-		node := newNode(value)
 		node.Down = downNode
-		newHead := newNode(nil)
+		newHead := newNode("", nil)
 		newHead.Next = node
 		newHead.Down = list.Head
 		list.Head = newHead
 	}
+
+	return true
 }
 
 // Level 索引层数
@@ -105,7 +121,6 @@ func (list *List) Level() int {
 // Print 打印跳表
 func (list *List) Print() {
 	if list.Head == nil || list.Head.Next == nil {
-		fmt.Println("跳表为空")
 		return
 	}
 
@@ -118,7 +133,7 @@ func (list *List) Print() {
 
 		fmt.Printf("Level %d: ", level)
 		for node != nil {
-			fmt.Printf("%v -> ", node.Value)
+			fmt.Printf("%v -> ", node.Value.String())
 			node = node.Next
 		}
 		fmt.Println()
@@ -129,13 +144,16 @@ func (list *List) Print() {
 }
 
 // Remove 删除元素
-func (list *List) Remove(value iface.Value) bool {
+func (list *List) Remove(key string) bool {
 	p, ok := list.Head, false
 	for p != nil {
-		for p.Next != nil && p.Next.Value.Score() < value.Score() {
+		// 该层链表未到达末尾前 找到不大于key的最大结点
+		for p.Next != nil && utils.CompareKey(p.Next.Key, key) < 0 {
 			p = p.Next
 		}
-		if p.Next == nil || p.Next.Value.Score() < value.Score() {
+
+		// 该层链表到末尾或者到达最大key则下降
+		if p.Next == nil || utils.CompareKey(p.Next.Key, key) < 0 {
 			p = p.Down
 		} else {
 			p.Next = p.Next.Next
@@ -147,19 +165,39 @@ func (list *List) Remove(value iface.Value) bool {
 }
 
 // Search 搜索
-func (list *List) Search(value iface.Value) (*Node, bool) {
+func (list *List) Search(key string) (*Node, bool) {
 	p := list.Head
 	for p != nil {
-		for p.Next != nil && p.Next.Value.Score() < value.Score() {
+		for p.Next != nil && utils.CompareKey(p.Next.Key, key) < 0 {
 			p = p.Next
 		}
 
 		// 在该层搜索不到 下降到下一层
-		if p.Next == nil || p.Next.Value.Score() < value.Score() {
+		if p.Next == nil || utils.CompareKey(p.Next.Key, key) < 0 {
 			p = p.Down
 		} else {
 			return p.Next, true
 		}
 	}
 	return &Node{}, false
+}
+
+func (list *List) Update(key string, val iface.Value) bool {
+	p, ok := list.Head, false
+	for p != nil {
+		// 该层链表未到达末尾前 找到不大于key的最大结点
+		for p.Next != nil && utils.CompareKey(p.Next.Key, key) < 0 {
+			p = p.Next
+		}
+
+		// 该层链表到末尾或者到达最大key则下降
+		if p.Next == nil || utils.CompareKey(p.Next.Key, key) < 0 {
+			p = p.Down
+		} else {
+			p.Next.Value = val
+			p = p.Down
+			ok = true
+		}
+	}
+	return ok
 }

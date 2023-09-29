@@ -1,10 +1,37 @@
 package values
 
-import "strings"
+import (
+	"TikCache/pack/iface"
+	"bytes"
+	"encoding/gob"
+	"strings"
+)
 
 // Set 集合
 type Set struct {
 	dict *Dict
+}
+
+func (set *Set) Bytes() []byte {
+	var buff bytes.Buffer
+
+	encoder := gob.NewEncoder(&buff)
+	_ = encoder.Encode(set.Elements())
+	return buff.Bytes()
+}
+
+func (set *Set) Score() float32 {
+	return 0
+}
+
+func (set *Set) Attr() iface.Type {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (set *Set) Time() int64 {
+	//TODO implement me
+	panic("implement me")
 }
 
 func NewSet() *Set {
@@ -45,4 +72,8 @@ func (set *Set) String() string {
 
 	s = strings.TrimRight(s, ", ")
 	return "{" + s + "}"
+}
+
+func (set *Set) Elements() []string {
+	return set.dict.Keys()
 }

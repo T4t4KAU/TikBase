@@ -1,7 +1,7 @@
 package resp
 
 import (
-	"TikCache/iface"
+	"TikCache/pack/iface"
 	"bytes"
 	"strconv"
 )
@@ -132,10 +132,10 @@ func MakeSyntaxErrReply() *SyntaxErrReply {
 
 type WrongTypeErrReply struct{}
 
-var wrongTypeErrBytes = []byte("-WRONGTYPE Operation against a key holding the wrong kind of value\r\n")
+var wrongTypeErrBytes = []byte("-WRONGTYPE Operation against a key holding the wrong kind of values\r\n")
 
 func (r *WrongTypeErrReply) Error() string {
-	return "WRONGTYPE Operation against a key holding the wrong kind of value"
+	return "WRONGTYPE Operation against a key holding the wrong kind of values"
 }
 
 func (r *WrongTypeErrReply) ToBytes() []byte {

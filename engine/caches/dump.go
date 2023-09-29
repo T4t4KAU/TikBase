@@ -1,10 +1,10 @@
 package caches
 
 import (
+	"TikCache/pack/utils"
 	"encoding/gob"
 	"os"
 	"sync"
-	"time"
 )
 
 // 持久化结构体
@@ -28,14 +28,9 @@ func newDump(c *Cache) *dump {
 	}
 }
 
-// 当前时间戳后缀
-func nowSuffix() string {
-	return "." + time.Now().Format("20060102150405")
-}
-
 // 将dump实例持久化文件中
 func (d *dump) to(dumpFile string) error {
-	newDumpFile := dumpFile + nowSuffix()
+	newDumpFile := dumpFile + utils.NowSuffix()
 	file, err := os.OpenFile(newDumpFile,
 		os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {

@@ -1,23 +1,25 @@
 package caches
 
 import (
-	"TikCache/iface"
+	"TikCache/engine/values"
+	"TikCache/pack/iface"
+
 	"errors"
 	"sync"
 )
 
 // 数据块
 type segment struct {
-	Data    map[string]*Value // 哈希表存放数据
-	Status  *Status           // 状态信息
-	options *Options          // 配置信息
-	mutex   *sync.RWMutex     // 读写锁
+	Data    map[string]*values.Value // 哈希表存放数据
+	Status  *Status                  // 状态信息
+	options *Options                 // 配置信息
+	mutex   *sync.RWMutex            // 读写锁
 }
 
 // 返回一个使用options初始化过的segment实例
 func newSegment(options *Options) *segment {
 	return &segment{
-		Data:    make(map[string]*Value, options.MapSizeOfSegment),
+		Data:    make(map[string]*values.Value, options.MapSizeOfSegment),
 		Status:  NewStatus(),
 		options: options,
 		mutex:   &sync.RWMutex{},
@@ -25,7 +27,7 @@ func newSegment(options *Options) *segment {
 }
 
 // 返回指定key数据
-func (seg *segment) get(key string) (*Value, bool) {
+func (seg *segment) get(key string) (*values.Value, bool) {
 	// 对当前segment加读锁
 	seg.mutex.RLock()
 	defer seg.mutex.RUnlock()
@@ -36,7 +38,7 @@ func (seg *segment) get(key string) (*Value, bool) {
 	}
 
 	// 数据过期
-	if !v.alive() {
+	if !v.Alive() {
 		// 加写锁
 		seg.mutex.Lock()
 		seg.delete(key)
@@ -57,8 +59,8 @@ func (seg *segment) set(key string, data []byte, ttl int64, typ iface.Type) erro
 	}
 	// 检查数据是否超出容量
 	if !seg.checkEntryCapacity(key, data) {
-		if oldValue, ok := seg.Data[key]; ok {
-			seg.Status.addEntry(key, oldValue.Data)
+		if ov, ok := seg.Data[key]; ok {
+			seg.Status.addEntry(key, ov.Data)
 		}
 
 		// 超出单segment存储上限
@@ -67,7 +69,7 @@ func (seg *segment) set(key string, data []byte, ttl int64, typ iface.Type) erro
 
 	// 修改状态消息
 	seg.Status.addEntry(key, data)
-	seg.Data[key] = newValue(data, ttl, typ)
+	seg.Data[key] = values.New(data, ttl, typ)
 	return nil
 }
 
@@ -76,8 +78,8 @@ func (seg *segment) delete(key string) {
 	// 对当前segment加锁
 	seg.mutex.Lock()
 	defer seg.mutex.Unlock()
-	if oldValue, ok := seg.Data[key]; ok {
-		seg.Status.subEntry(key, oldValue.Data)
+	if v, ok := seg.Data[key]; ok {
+		seg.Status.subEntry(key, v.Data)
 		delete(seg.Data, key)
 	}
 }
@@ -104,7 +106,7 @@ func (seg *segment) gc() {
 
 	// 遍历segment中数据
 	for k, v := range seg.Data {
-		if !v.alive() {
+		if !v.Alive() {
 			seg.Status.subEntry(k, v.Data)
 			delete(seg.Data, k)
 			count++

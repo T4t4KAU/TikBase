@@ -1,23 +1,16 @@
 package caches
 
 import (
-	"fmt"
+	"TikCache/engine/values"
+	"TikCache/pack/iface"
+
 	"testing"
 )
 
 func TestCache_Set(t *testing.T) {
-	c := NewCache()
-	err := c.Set("key1", []byte("value"), STRING)
-	if err != nil {
-		t.Error(err.Error())
-	}
-	v, _ := c.Get("key1")
-	fmt.Printf("%v\n", v.String())
-
-	err = c.SetInt("key2", 100, 0)
-	if err != nil {
-		t.Error(err.Error())
-	}
-	v, _ = c.Get("key2")
-	fmt.Printf("%v\n", v.String())
+	c := New()
+	v := values.New([]byte("value"), 0, iface.STRING)
+	c.Set("key", v)
+	res, _ := c.Get("key")
+	println(res.String())
 }

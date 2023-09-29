@@ -1,7 +1,7 @@
 package resp
 
 import (
-	"TikCache/iface"
+	"TikCache/pack/iface"
 	"context"
 	"errors"
 	"io"
@@ -13,12 +13,12 @@ import (
 
 type Boolean uint32
 
-// Get reads the value atomically
+// Get reads the values atomically
 func (b *Boolean) Get() bool {
 	return atomic.LoadUint32((*uint32)(b)) != 0
 }
 
-// Set writes the value atomically
+// Set writes the values atomically
 func (b *Boolean) Set(v bool) {
 	if v {
 		atomic.StoreUint32((*uint32)(b), 1)
@@ -68,7 +68,10 @@ func (h *Handler) Handle(ctx context.Context, conn net.Conn) {
 			continue
 		}
 
-		// TODO: Execute command
+		_, ok := (payload).Data.(*MultiBulkReply)
+		if !ok {
+			continue
+		}
 	}
 }
 
@@ -79,7 +82,6 @@ func (h *Handler) Close() error {
 		c.Close()
 		return true
 	})
-	h.engine.Close()
 	return nil
 }
 
