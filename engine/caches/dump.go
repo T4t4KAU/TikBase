@@ -1,7 +1,8 @@
 package caches
 
 import (
-	"TikCache/pack/utils"
+	"TikBase/pack/iface"
+	"TikBase/pack/utils"
 	"encoding/gob"
 	"os"
 	"sync"
@@ -12,6 +13,14 @@ type dump struct {
 	SegmentSize int
 	Segments    []*segment
 	Options     *Options
+}
+
+func (d *dump) SaveTo(path string) error {
+	return d.to(path)
+}
+
+func (d *dump) LoadFrom(path string) (iface.KVStore, error) {
+	return d.from(path)
 }
 
 // 返回空持久化实例

@@ -1,7 +1,7 @@
 package caches
 
 import (
-	"TikCache/pack/iface"
+	"TikBase/pack/iface"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -78,12 +78,30 @@ func (c *Cache) Set(key string, value iface.Value) bool {
 	return c.SetWithTTL(key, value.Bytes(), value.Time(), value.Attr())
 }
 
+// Expire 设置超时时间
+func (c *Cache) Expire(key string, ttl int64) bool {
+	c.waitForDumping()
+	val, ok := c.segmentOf(key).get(key)
+	if !ok {
+		return false
+	}
+	val.TTL = ttl
+	return true
+}
+
+// Exist 检查键是否存在
+func (c *Cache) Exist(key string) bool {
+	c.waitForDumping()
+	_, ok := c.segmentOf(key).get(key)
+	return ok
+}
+
 func (c *Cache) SetString(key string, value string, ttl int64) bool {
 	return c.SetWithTTL(key, []byte(value), ttl, iface.STRING)
 }
 
 func (c *Cache) AddSetElem(key string, element string) bool {
-	// 支持集合类型
+	// TODO: 支持集合类型
 	return true
 }
 

@@ -1,7 +1,7 @@
 package values
 
 import (
-	"TikCache/pack/iface"
+	"TikBase/pack/iface"
 	"bytes"
 	"encoding/gob"
 	"strings"
@@ -25,13 +25,11 @@ func (set *Set) Score() float32 {
 }
 
 func (set *Set) Attr() iface.Type {
-	//TODO implement me
-	panic("implement me")
+	return iface.SET
 }
 
 func (set *Set) Time() int64 {
-	//TODO implement me
-	panic("implement me")
+	return 0
 }
 
 func NewSet() *Set {

@@ -12,6 +12,7 @@ const (
 
 	GET_STR
 	DEL_STR
+	EXPIRE
 )
 
 type Engine interface {

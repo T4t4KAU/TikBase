@@ -1,8 +1,8 @@
 package levels
 
 import (
-	"TikCache/pack/dates/slist"
-	"TikCache/pack/iface"
+	"TikBase/pack/dates/slist"
+	"TikBase/pack/iface"
 	"sync"
 )
 
@@ -49,4 +49,17 @@ func (ls *Levels) Exist(key string) bool {
 
 	_, ok := ls.Search(key)
 	return ok
+}
+
+func (ls *Levels) gc() {
+	keys := ls.FilterKey(func(node *slist.Node) bool {
+		return !node.Value.Alive()
+	})
+
+	ls.mutex.Lock()
+	defer ls.mutex.Unlock()
+
+	for _, key := range *keys {
+		ls.Remove(key)
+	}
 }

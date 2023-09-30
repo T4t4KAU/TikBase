@@ -1,8 +1,8 @@
 package values
 
 import (
-	"TikCache/pack/iface"
-	"TikCache/pack/utils"
+	"TikBase/pack/iface"
+	"TikBase/pack/utils"
 	"sync/atomic"
 	"time"
 )

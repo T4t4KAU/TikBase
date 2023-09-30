@@ -16,4 +16,5 @@ type Value interface {
 	Bytes() []byte
 	Attr() Type
 	Time() int64
+	Alive() bool
 }

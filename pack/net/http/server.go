@@ -1,9 +1,9 @@
 package http
 
 import (
-	"TikCache/engine/values"
-	"TikCache/pack/iface"
-	"TikCache/pack/net/http/router"
+	"TikBase/engine/values"
+	"TikBase/pack/iface"
+	"TikBase/pack/net/http/router"
 	"io"
 	"net/http"
 	"strconv"

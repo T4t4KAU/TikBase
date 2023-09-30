@@ -1,7 +1,7 @@
 package resp
 
 import (
-	"TikCache/pack/wait"
+	"TikBase/pack/wait"
 	"net"
 	"sync"
 	"time"

@@ -1,9 +1,9 @@
 package engine
 
 import (
-	"TikCache/engine/caches"
-	"TikCache/engine/values"
-	"TikCache/pack/iface"
+	"TikBase/engine/caches"
+	"TikBase/engine/values"
+	"TikBase/pack/iface"
 	"errors"
 )
 
@@ -52,27 +52,29 @@ func NewUnknownCacheResult() *CacheResult {
 	}
 }
 
-func (c *CacheEngine) Exec(ins iface.INS, args [][]byte) iface.Result {
+func (eng *CacheEngine) Exec(ins iface.INS, args [][]byte) iface.Result {
 	switch ins {
 	case iface.SET_STR:
-		return c.ExecSetString(args)
+		return eng.ExecSetString(args)
 	case iface.GET_STR:
-		return c.ExecGetString(args)
+		return eng.ExecGetString(args)
+	case iface.DEL_STR:
+		return eng.ExecDelKey(args)
 	default:
 		return NewUnknownCacheResult()
 	}
 }
 
-func (c *CacheEngine) ExecSetString(args [][]byte) *CacheResult {
+func (eng *CacheEngine) ExecSetString(args [][]byte) *CacheResult {
 	val := parseSetStringArgs(args)
 	key := string(args[0])
-	c.SetString(key, val, values.NeverExpire)
+	eng.SetString(key, val, values.NeverExpire)
 	return NewSuccCacheResult()
 }
 
-func (c *CacheEngine) ExecGetString(args [][]byte) *CacheResult {
+func (eng *CacheEngine) ExecGetString(args [][]byte) *CacheResult {
 	key := string(args[0])
-	val, ok := c.Get(key)
+	val, ok := eng.Get(key)
 	if !ok {
 		return &CacheResult{
 			succ: false,
@@ -81,5 +83,32 @@ func (c *CacheEngine) ExecGetString(args [][]byte) *CacheResult {
 	return &CacheResult{
 		succ: true,
 		data: [][]byte{val.Bytes()},
+	}
+}
+
+func (eng *CacheEngine) ExecDelKey(args [][]byte) *CacheResult {
+	key := string(args[0])
+	ok := eng.Del(key)
+	if !ok {
+		return &CacheResult{
+			succ: false,
+		}
+	}
+	return &CacheResult{
+		succ: true,
+	}
+}
+
+func (eng *CacheEngine) ExecExpire(args [][]byte) *CacheResult {
+	key := string(args[0])
+	ttl := parseExpireKeyArgs(args)
+	ok := eng.Expire(key, ttl)
+	if !ok {
+		return &CacheResult{
+			succ: false,
+		}
+	}
+	return &CacheResult{
+		succ: true,
 	}
 }

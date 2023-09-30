@@ -1,8 +1,8 @@
 package slist
 
 import (
-	"TikCache/pack/iface"
-	"TikCache/pack/utils"
+	"TikBase/pack/iface"
+	"TikBase/pack/utils"
 	"fmt"
 	"math/rand"
 	"time"
@@ -24,6 +24,8 @@ type Node struct {
 	Next  *Node // 指向后继结点
 	Down  *Node // 指向下方结点
 }
+
+type filter func(node *Node) bool
 
 // Compare 比较结点大小
 func (n *Node) Compare(node *Node) int {
@@ -74,10 +76,9 @@ func (list *List) Insert(key string, val iface.Value) bool {
 	var insertUpFlag = true
 	var downNode *Node
 
-	node := newNode(key, val)
-
 	// 向当前层增加结点
 	for insertUpFlag && len(path) > 0 {
+		node := newNode(key, val)
 		prevNode := path[len(path)-1]
 		path = path[:len(path)-1]
 
@@ -93,6 +94,7 @@ func (list *List) Insert(key string, val iface.Value) bool {
 
 	// 建立新的层
 	if len(path) <= 0 && isInsertUp() {
+		node := newNode(key, val)
 		node.Down = downNode
 		newHead := newNode("", nil)
 		newHead.Next = node
@@ -200,4 +202,38 @@ func (list *List) Update(key string, val iface.Value) bool {
 		}
 	}
 	return ok
+}
+
+func (list *List) FilterKey(f filter) *[]string {
+	p := list.Head
+	keys := make([]string, 0)
+
+	for p.Down != nil {
+		p = p.Down
+	}
+
+	for p.Next != nil {
+		if f(p.Next) {
+			keys = append(keys, p.Next.Key)
+		}
+		p = p.Next
+	}
+	return &keys
+}
+
+func (list *List) FilterNode(f filter) *[]*Node {
+	p := list.Head
+	nodes := make([]*Node, 0)
+
+	for p.Down != nil {
+		p = p.Down
+	}
+
+	for p.Next != nil {
+		if f(p.Next) {
+			nodes = append(nodes, p.Next)
+		}
+		p = p.Next
+	}
+	return &nodes
 }

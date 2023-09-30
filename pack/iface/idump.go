@@ -1,6 +1,6 @@
 package iface
 
 type Dump interface {
-	To(path string)
-	From(path string)
+	SaveTo(path string) error
+	LoadFrom(path string) (KVStore, error)
 }
