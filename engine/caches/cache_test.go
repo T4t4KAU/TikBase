@@ -1,9 +1,8 @@
 package caches
 
 import (
-	"TikCache/engine/values"
-	"TikCache/pack/iface"
-
+	"TikBase/engine/values"
+	"TikBase/pack/iface"
 	"testing"
 )
 
