@@ -53,10 +53,6 @@ func (v *Value) Time() int64 {
 	return v.TTL
 }
 
-func (v *Value) toInt() int {
-	return utils.BytesToInt(v.data())
-}
-
 func (v *Value) toString() string {
 	return string(v.data())
 }

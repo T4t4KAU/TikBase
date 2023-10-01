@@ -1,5 +1,7 @@
 package btree
 
+// B Tree
+
 type Node struct {
 }
 
