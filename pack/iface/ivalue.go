@@ -4,6 +4,7 @@ type Type uint8
 
 const (
 	NULL Type = iota
+	PING
 	STRING
 	SET
 	ZSET

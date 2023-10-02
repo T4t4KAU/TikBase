@@ -3,8 +3,8 @@ package iface
 import "context"
 
 type Connection interface {
-	Write([]byte) error
-	Close()
+	Write([]byte) (int, error)
+	Close() error
 }
 
 type Reply interface {
@@ -12,6 +12,6 @@ type Reply interface {
 }
 
 type Handler interface {
-	Handle(ctx context.Context, conn *Connection)
+	Handle(ctx context.Context, conn Connection)
 	Close() error
 }

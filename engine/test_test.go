@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"TikCache/pack/iface"
+	"TikBase/pack/iface"
 	"testing"
 )
 
