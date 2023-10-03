@@ -6,11 +6,11 @@ import (
 
 type Config struct {
 	Address    string
-	MaxConnect uint32
+	MaxConnect int32
 	Timeout    time.Duration
 }
 
-func NewConfig(addr string, num uint32, timeout time.Duration) *Config {
+func NewConfig(addr string, num int32, timeout time.Duration) *Config {
 	return &Config{
 		Address:    addr,
 		MaxConnect: num,

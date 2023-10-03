@@ -1,7 +1,5 @@
 package iface
 
-import "context"
-
 type Connection interface {
 	Write([]byte) (int, error)
 	Close() error
@@ -12,6 +10,6 @@ type Reply interface {
 }
 
 type Handler interface {
-	Handle(ctx context.Context, conn Connection)
+	Handle(conn Connection)
 	Close() error
 }

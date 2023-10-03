@@ -1,26 +1,39 @@
 package poll
 
 import (
+	"TikBase/iface"
 	conc "TikBase/pack/conc/pool"
-	"syscall"
+	"context"
+	"net"
 )
 
-type MainReactor struct {
-	selector       syscall.FdSet
-	subReactorPool *conc.Pool
-	ioThreadNum    int32
+type Reactor struct {
+	threadPool  *conc.Pool
+	ioThreadNum int32
+	errors      []error
 }
 
-func NewMainReactor(num int32) *MainReactor {
-	return &MainReactor{
-		subReactorPool: conc.NewPool("subReactors", num),
-		ioThreadNum:    num,
+func NewReactor(num int32) *Reactor {
+	return &Reactor{
+		threadPool:  conc.NewPool("subReactors", num),
+		ioThreadNum: num,
 	}
 }
 
-func (mr *MainReactor) Run() {
+func (mr *Reactor) Run(lis net.Listener, ch chan struct{}, handler iface.Handler) {
+	go func() {
+		<-ch
+		_ = lis.Close()
+		_ = handler.Close()
+	}()
 
-}
-
-type SubReactor struct {
+	for {
+		conn, err := lis.Accept()
+		if err != nil {
+			return
+		}
+		mr.threadPool.Run(context.Background(), func() {
+			handler.Handle(conn)
+		})
+	}
 }
