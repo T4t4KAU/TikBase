@@ -2,6 +2,7 @@ package iface
 
 type Connection interface {
 	Write([]byte) (int, error)
+	Read([]byte) (int, error)
 	Close() error
 }
 

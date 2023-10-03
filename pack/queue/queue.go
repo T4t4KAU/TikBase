@@ -1,6 +1,8 @@
 package queue
 
 import (
+	conc "TikBase/pack/conc/pool"
+	"context"
 	"sync"
 	"time"
 )
@@ -22,15 +24,18 @@ type MessageQueue struct {
 	topics   map[string][]chan Message
 	handlers map[string][]Handler
 	mutex    sync.RWMutex
+	pools    *conc.Pool // 线程池
 }
 
 func New() Pool {
 	return &MessageQueue{
 		topics:   make(map[string][]chan Message),
 		handlers: make(map[string][]Handler),
+		pools:    conc.NewPool("queue", 10),
 	}
 }
 
+// Publish 向指定主题发布消息
 func (q *MessageQueue) Publish(topic string, message Message) {
 	q.mutex.RLock()
 	subsChan, okChan := q.topics[topic]
@@ -50,7 +55,9 @@ func (q *MessageQueue) Publish(topic string, message Message) {
 
 	if okHandler {
 		for i := 0; i < len(subsHandler); i++ {
-			go subsHandler[i](message)
+			q.pools.Run(context.Background(), func() {
+				subsHandler[i](message)
+			})
 		}
 	}
 }

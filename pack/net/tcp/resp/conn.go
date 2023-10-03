@@ -33,6 +33,16 @@ func (c *Connection) Write(bytes []byte) (int, error) {
 	return c.conn.Write(bytes)
 }
 
+func (c *Connection) Read(bytes []byte) (int, error) {
+	c.mutex.Lock()
+	defer func() {
+		c.waiting.Done()
+		c.mutex.Unlock()
+	}()
+	c.waiting.Add(1)
+	return c.conn.Write(bytes)
+}
+
 func (c *Connection) Close() error {
 	c.waiting.WaitWithTimeout(10 * time.Second)
 	return c.conn.Close()
