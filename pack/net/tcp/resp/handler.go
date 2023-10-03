@@ -1,7 +1,7 @@
 package resp
 
 import (
-	iface2 "TikBase/iface"
+	"TikBase/iface"
 	"context"
 	"errors"
 	"io"
@@ -29,11 +29,11 @@ func (b *Boolean) Set(v bool) {
 
 type Handler struct {
 	activeConn sync.Map
-	engine     iface2.Engine
+	engine     iface.Engine
 	closing    Boolean
 }
 
-func NewHandler(eng iface2.Engine) *Handler {
+func NewHandler(eng iface.Engine) *Handler {
 	return &Handler{
 		engine: eng,
 	}
@@ -56,7 +56,7 @@ func (h *Handler) Handle(ctx context.Context, conn net.Conn) {
 				return
 			}
 			errReply := MakeErrReply(payload.Err.Error())
-			err := client.Write(errReply.ToBytes())
+			_, err := client.Write(errReply.ToBytes())
 			if err != nil {
 				h.closeClient(client)
 				return
@@ -78,15 +78,15 @@ func (h *Handler) Handle(ctx context.Context, conn net.Conn) {
 func (h *Handler) Close() error {
 	h.closing.Set(true)
 	h.activeConn.Range(func(key any, value any) bool {
-		c := key.(iface2.Connection)
-		c.Close()
+		c := key.(iface.Connection)
+		_ = c.Close()
 		return true
 	})
 	return nil
 }
 
-func (h *Handler) closeClient(cli iface2.Connection) {
-	cli.Close()
+func (h *Handler) closeClient(cli iface.Connection) {
+	_ = cli.Close()
 	h.activeConn.Delete(cli)
 }
 
