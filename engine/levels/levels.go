@@ -1,8 +1,8 @@
 package levels
 
 import (
+	"TikBase/iface"
 	"TikBase/pack/dates/slist"
-	"TikBase/pack/iface"
 	"sync"
 )
 

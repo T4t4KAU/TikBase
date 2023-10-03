@@ -1,7 +1,7 @@
 package slist
 
 import (
-	"TikBase/pack/iface"
+	"TikBase/iface"
 	"TikBase/pack/utils"
 	"fmt"
 	"math/rand"

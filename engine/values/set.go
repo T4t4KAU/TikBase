@@ -1,7 +1,7 @@
 package values
 
 import (
-	"TikBase/pack/iface"
+	"TikBase/iface"
 	"bytes"
 	"encoding/gob"
 	"strings"

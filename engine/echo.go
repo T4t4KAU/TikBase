@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"TikBase/pack/iface"
+	"TikBase/iface"
 )
 
 type EchoEngine struct{}

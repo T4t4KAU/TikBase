@@ -2,8 +2,8 @@ package levels
 
 import (
 	"TikBase/engine/values"
+	"TikBase/iface"
 	"TikBase/pack/dates/slist"
-	"TikBase/pack/iface"
 	"fmt"
 	"testing"
 )

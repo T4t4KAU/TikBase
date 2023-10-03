@@ -1,7 +1,7 @@
 package caches
 
 import (
-	"TikBase/pack/iface"
+	"TikBase/iface"
 	"TikBase/pack/utils"
 	"encoding/gob"
 	"os"

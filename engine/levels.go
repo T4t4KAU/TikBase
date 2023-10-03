@@ -3,7 +3,7 @@ package engine
 import (
 	"TikBase/engine/levels"
 	"TikBase/engine/values"
-	"TikBase/pack/iface"
+	iface2 "TikBase/iface"
 	"errors"
 )
 
@@ -52,13 +52,13 @@ func NewUnknownLevelResult() *LevelResult {
 	}
 }
 
-func (eng *LevelEngine) Exec(ins iface.INS, args [][]byte) iface.Result {
+func (eng *LevelEngine) Exec(ins iface2.INS, args [][]byte) iface2.Result {
 	switch ins {
-	case iface.SET_STR:
+	case iface2.SET_STR:
 		return eng.ExecSetString(args)
-	case iface.GET_STR:
+	case iface2.GET_STR:
 		return eng.ExecGetString(args)
-	case iface.DEL_STR:
+	case iface2.DEL_STR:
 		return eng.ExecDelKey(args)
 	default:
 		return NewUnknownLevelResult()
@@ -69,7 +69,7 @@ func (eng *LevelEngine) ExecSetString(args [][]byte) *LevelResult {
 	val := parseSetStringArgs(args)
 	key := string(args[0])
 
-	eng.Set(key, values.New([]byte(val), 0, iface.STRING))
+	eng.Set(key, values.New([]byte(val), 0, iface2.STRING))
 	return NewSuccLevelResult()
 }
 

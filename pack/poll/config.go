@@ -10,10 +10,10 @@ type Config struct {
 	Timeout    time.Duration
 }
 
-func NewConfig(addr string, n uint32, timeout time.Duration) *Config {
+func NewConfig(addr string, num uint32, timeout time.Duration) *Config {
 	return &Config{
 		Address:    addr,
-		MaxConnect: n,
+		MaxConnect: num,
 		Timeout:    timeout,
 	}
 }

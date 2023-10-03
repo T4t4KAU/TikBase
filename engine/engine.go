@@ -1,6 +1,8 @@
 package engine
 
-import "TikBase/pack/iface"
+import (
+	"TikBase/iface"
+)
 
 var engines = make(map[string]iface.Engine)
 

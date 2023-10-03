@@ -2,8 +2,7 @@ package caches
 
 import (
 	"TikBase/engine/values"
-	"TikBase/pack/iface"
-
+	"TikBase/iface"
 	"errors"
 	"sync"
 )

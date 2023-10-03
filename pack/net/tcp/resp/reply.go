@@ -1,7 +1,7 @@
 package resp
 
 import (
-	"TikBase/pack/iface"
+	"TikBase/iface"
 	"bytes"
 	"strconv"
 )

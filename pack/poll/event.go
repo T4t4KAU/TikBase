@@ -1,7 +1,7 @@
 package poll
 
 import (
-	"TikBase/pack/iface"
+	"TikBase/iface"
 	"context"
 	"net"
 	"os"

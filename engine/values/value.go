@@ -1,7 +1,7 @@
 package values
 
 import (
-	"TikBase/pack/iface"
+	"TikBase/iface"
 	"TikBase/pack/utils"
 	"sync/atomic"
 	"time"
