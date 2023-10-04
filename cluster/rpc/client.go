@@ -1,7 +1,7 @@
 package rpc
 
 import (
-	"TikBase/pack/cluster/rpc/codec"
+	"TikBase/cluster/rpc/codec"
 	"context"
 	"encoding/gob"
 	"errors"

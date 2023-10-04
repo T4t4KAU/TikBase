@@ -8,19 +8,19 @@ import (
 )
 
 type Reactor struct {
-	threadPool  *conc.Pool
-	ioThreadNum int32
-	errors      []error
+	workers *conc.Pool
+	nworker int32
+	errors  []error
 }
 
 func NewReactor(num int32) *Reactor {
 	return &Reactor{
-		threadPool:  conc.NewPool("subReactors", num),
-		ioThreadNum: num,
+		workers: conc.NewPool("subReactors", num),
+		nworker: num,
 	}
 }
 
-func (mr *Reactor) Run(lis net.Listener, ch chan struct{}, handler iface.Handler) {
+func (rec *Reactor) Run(lis net.Listener, ch chan struct{}, handler iface.Handler) {
 	go func() {
 		<-ch
 		_ = lis.Close()
@@ -32,7 +32,7 @@ func (mr *Reactor) Run(lis net.Listener, ch chan struct{}, handler iface.Handler
 		if err != nil {
 			return
 		}
-		mr.threadPool.Run(context.Background(), func() {
+		rec.workers.Run(context.Background(), func() {
 			handler.Handle(conn)
 		})
 	}

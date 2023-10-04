@@ -7,85 +7,74 @@ import (
 	"time"
 )
 
+type (
+	Subscriber chan *Message
+	Filter     func(msg *Message) bool
+	Consumer   func(ch Subscriber)
+)
+
 type Message struct {
 	Topic string
-	Data  []byte
+	Data  any
 }
 
-type Pool interface {
-	Publish(topic string, message Message)
-	Subscribe(topic string, num int) <-chan Message
-	Unsubscribe(topic string, ch <-chan Message)
+type Queue interface {
+	Publish(message *Message)
+	Subscribe(topic string, size int) (Subscriber, bool)
+	Evict(sub Subscriber)
 }
-
-type Handler func(message Message)
 
 type MessageQueue struct {
-	topics   map[string][]chan Message
-	handlers map[string][]Handler
-	mutex    sync.RWMutex
-	pools    *conc.Pool // 线程池
+	topics      map[string]Subscriber
+	mutex       sync.RWMutex
+	timeout     time.Duration
+	subscribers map[Subscriber]Filter
+	capacity    int
+	workers     *conc.Pool
 }
 
-func New() Pool {
+func New(config *Config) *MessageQueue {
 	return &MessageQueue{
-		topics:   make(map[string][]chan Message),
-		handlers: make(map[string][]Handler),
-		pools:    conc.NewPool("queue", 10),
+		topics:      make(map[string]Subscriber),
+		subscribers: make(map[Subscriber]Filter),
+		workers:     conc.NewPool("queue", config.nworker),
+		capacity:    config.capacity,
+		timeout:     config.timeout,
 	}
 }
 
-// Publish 向指定主题发布消息
-func (q *MessageQueue) Publish(topic string, message Message) {
-	q.mutex.RLock()
-	subsChan, okChan := q.topics[topic]
-	subsHandler, okHandler := q.handlers[topic]
-	q.mutex.RUnlock()
+func (mq *MessageQueue) Subscribe(filter Filter) Subscriber {
+	sub := make(Subscriber, mq.capacity)
+	mq.mutex.Lock()
+	mq.subscribers[sub] = filter
+	mq.mutex.Unlock()
+	return sub
+}
 
-	if okChan {
-		go func(ch []chan Message) {
-			for i := 0; i < len(ch); i++ {
-				select {
-				case subsChan[i] <- message:
-				case <-time.After(time.Second):
-				}
-			}
-		}(subsChan)
-	}
+func (mq *MessageQueue) Evict(sub Subscriber) {
+	mq.mutex.Lock()
+	defer mq.mutex.Unlock()
+	delete(mq.subscribers, sub)
+	close(sub)
+}
 
-	if okHandler {
-		for i := 0; i < len(subsHandler); i++ {
-			q.pools.Run(context.Background(), func() {
-				subsHandler[i](message)
-			})
-		}
+func (mq *MessageQueue) Publish(message *Message) {
+	mq.mutex.RLock()
+	defer mq.mutex.RUnlock()
+
+	for sub, f := range mq.subscribers {
+		mq.workers.Run(context.Background(), func() {
+			mq.send(sub, f, message)
+		})
 	}
 }
 
-func (q *MessageQueue) Subscribe(topic string, num int) <-chan Message {
-	ch := make(chan Message, num)
-	q.mutex.Lock()
-	q.topics[topic] = append(q.topics[topic], ch)
-	q.mutex.Unlock()
-	return ch
-}
-
-func (q *MessageQueue) Unsubscribe(topic string, ch <-chan Message) {
-	q.mutex.Lock()
-	defer q.mutex.Unlock()
-
-	subscribers, ok := q.topics[topic]
-	if !ok {
+func (mq *MessageQueue) send(sub Subscriber, filter Filter, message *Message) {
+	if filter != nil && !filter(message) {
 		return
 	}
-
-	var newSubs []chan Message
-	for _, subscriber := range subscribers {
-		if subscriber == ch {
-			continue
-		}
-		newSubs = append(newSubs, subscriber)
+	select {
+	case sub <- message:
+	case <-time.After(mq.timeout):
 	}
-
-	q.topics[topic] = newSubs
 }

@@ -1,7 +1,7 @@
 package rpc
 
 import (
-	"TikBase/pack/cluster/rpc/codec"
+	"TikBase/cluster/rpc/codec"
 	"encoding/gob"
 	"errors"
 	"fmt"
