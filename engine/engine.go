@@ -7,6 +7,11 @@ import (
 
 var engines = make(map[string]iface.Engine)
 
+var (
+	errKeyNotFound    = errors.New("key not found")
+	errExceedCapacity = errors.New("data exceeds capacity")
+)
+
 func RegisterEngine(name string, eng iface.Engine) {
 	engines[name] = eng
 }

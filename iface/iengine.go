@@ -11,7 +11,7 @@ const (
 	PUSH_LIST
 
 	GET_STR
-	DEL_STR
+	DEL
 	EXPIRE
 	NIL
 )

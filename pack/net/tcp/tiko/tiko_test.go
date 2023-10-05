@@ -52,6 +52,32 @@ func TestParseStream(t *testing.T) {
 		return
 	}
 	println(int(code), string(data))
+
+	_, err = writeDelRequest(conn, []byte("key"))
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+
+	code, data, err = parseReply(conn)
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+	println(int(code), string(data))
+
+	_, err = writeGetRequest(conn, []byte("key"))
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+
+	code, data, err = parseReply(conn)
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+	println(int(code), string(data))
 }
 
 func TestGetRequest_Bytes(t *testing.T) {

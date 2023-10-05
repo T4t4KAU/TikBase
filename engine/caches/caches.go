@@ -108,15 +108,13 @@ func (c *Cache) AddSetElem(key string, element string) bool {
 // SetWithTTL 添加到指定的数据到缓存中 设置相应有效期
 func (c *Cache) SetWithTTL(key string, value []byte, ttl int64, typ iface.Type) bool {
 	c.waitForDumping()
-	err := c.segmentOf(key).set(key, value, ttl, typ)
-	return err == nil
+	return c.segmentOf(key).set(key, value, ttl, typ)
 }
 
 // Del 从缓存中删除指定键值对
 func (c *Cache) Del(key string) bool {
 	c.waitForDumping()
-	c.segmentOf(key).delete(key)
-	return true
+	return c.segmentOf(key).delete(key)
 }
 
 // Status 返回缓存当前状态

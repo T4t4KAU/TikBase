@@ -58,7 +58,7 @@ func (eng *CacheEngine) Exec(ins iface.INS, args [][]byte) iface.Result {
 		return eng.ExecSetString(args)
 	case iface.GET_STR:
 		return eng.ExecGetString(args)
-	case iface.DEL_STR:
+	case iface.DEL:
 		return eng.ExecDelKey(args)
 	default:
 		return NewUnknownCacheResult()
@@ -66,9 +66,15 @@ func (eng *CacheEngine) Exec(ins iface.INS, args [][]byte) iface.Result {
 }
 
 func (eng *CacheEngine) ExecSetString(args [][]byte) *CacheResult {
-	val := parseSetStringArgs(args)
 	key := string(args[0])
-	eng.SetString(key, val, values.NeverExpire)
+	val := parseSetStringArgs(args)
+	ok := eng.SetString(key, val, values.NeverExpire)
+	if !ok {
+		return &CacheResult{
+			succ: false,
+			err:  errExceedCapacity,
+		}
+	}
 	return NewSuccCacheResult()
 }
 
@@ -78,6 +84,7 @@ func (eng *CacheEngine) ExecGetString(args [][]byte) *CacheResult {
 	if !ok {
 		return &CacheResult{
 			succ: false,
+			err:  errKeyNotFound,
 		}
 	}
 	return &CacheResult{
@@ -92,6 +99,7 @@ func (eng *CacheEngine) ExecDelKey(args [][]byte) *CacheResult {
 	if !ok {
 		return &CacheResult{
 			succ: false,
+			err:  errKeyNotFound,
 		}
 	}
 	return &CacheResult{
@@ -106,6 +114,7 @@ func (eng *CacheEngine) ExecExpire(args [][]byte) *CacheResult {
 	if !ok {
 		return &CacheResult{
 			succ: false,
+			err:  errKeyNotFound,
 		}
 	}
 	return &CacheResult{

@@ -3,7 +3,6 @@ package caches
 import (
 	"TikBase/engine/values"
 	"TikBase/iface"
-	"errors"
 	"sync"
 )
 
@@ -48,7 +47,7 @@ func (seg *segment) get(key string) (*values.Value, bool) {
 }
 
 // 将一个数据添加进segment
-func (seg *segment) set(key string, data []byte, ttl int64, typ iface.Type) error {
+func (seg *segment) set(key string, data []byte, ttl int64, typ iface.Type) bool {
 	// 对当前segment进行加锁
 	seg.mutex.Lock()
 	defer seg.mutex.Unlock()
@@ -63,23 +62,26 @@ func (seg *segment) set(key string, data []byte, ttl int64, typ iface.Type) erro
 		}
 
 		// 超出单segment存储上限
-		return errors.New("the entry size will exceed if you set this entry")
+		return false
 	}
 
 	// 修改状态消息
 	seg.Status.addEntry(key, data)
 	seg.Data[key] = values.New(data, ttl, typ)
-	return nil
+	return true
 }
 
 // 从segment中删除指定key
-func (seg *segment) delete(key string) {
+func (seg *segment) delete(key string) bool {
 	// 对当前segment加锁
 	seg.mutex.Lock()
 	defer seg.mutex.Unlock()
 	if v, ok := seg.Data[key]; ok {
 		seg.Status.subEntry(key, v.Data)
 		delete(seg.Data, key)
+		return true
+	} else {
+		return false
 	}
 }
 

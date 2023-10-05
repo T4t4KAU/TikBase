@@ -171,3 +171,32 @@ func writeSetRequest(writer io.Writer, key []byte, value []byte) (int, error) {
 func protocolError() error {
 	return errors.New("response " + errProtocolVersionMismatch.Error())
 }
+
+type DelRequest struct {
+	Key string
+}
+
+func MakeDelRequest(key string) *DelRequest {
+	return &DelRequest{
+		Key: key,
+	}
+}
+
+func (req *DelRequest) Bytes() []byte {
+	data := make([]byte, HeaderLength)
+	data[0] = Version
+	data[1] = deleteCommand
+	binary.BigEndian.PutUint32(data[2:], 1)
+
+	// 将参数添加到缓冲区
+	argLength := make([]byte, ArgLength)
+	binary.BigEndian.PutUint32(argLength, uint32(len([]byte(req.Key))))
+	data = append(data, argLength...)
+	data = append(data, req.Key...)
+
+	return data
+}
+
+func writeDelRequest(writer io.Writer, key []byte) (int, error) {
+	return writeRequest(writer, deleteCommand, [][]byte{key})
+}

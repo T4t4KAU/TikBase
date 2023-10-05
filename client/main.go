@@ -1,9 +1,7 @@
 package main
 
 import (
-	"TikBase/engine"
 	"TikBase/pack/net/tcp/tiko"
-	"TikBase/pack/poll"
 	"bufio"
 	"errors"
 	"fmt"
@@ -21,32 +19,22 @@ var cli *tiko.Client
 var (
 	errNumOfArguments = errors.New("invalid number of arguments")
 	errInvalidCommand = errors.New("invalid command")
+
+	address = "127.0.0.1:9999"
 )
 
-func startServer() {
-	eng := engine.NewCacheEngine()
-	p := poll.New(&poll.Config{
-		Address:    "127.0.0.1:9999",
-		MaxConnect: 20,
-		Timeout:    time.Second,
-	}, tiko.NewHandler(eng))
-	err := p.Run()
-	if err != nil {
-		panic(err)
-	}
-}
-
 func main() {
-	address := "127.0.0.1:9999"
 	reader := bufio.NewReader(os.Stdin)
 	time.Sleep(time.Second)
 
-	conn, err := net.Dial("tcp", "127.0.0.1:9999")
+	conn, err := net.Dial("tcp", address)
 	if err != nil {
 		panic(err)
 	}
 
+	// 创建客户端
 	cli = tiko.NewClient(conn)
+
 	println(logo)
 	println("connecting to: ", address)
 
@@ -68,7 +56,7 @@ func main() {
 
 		// 退出 REPL 程序
 		if input == "exit" {
-			fmt.Println("Goodbye!")
+			fmt.Println("bye!")
 			break
 		}
 
@@ -88,6 +76,10 @@ func parseLine(writer io.Writer, line string) {
 		parseSetCommand(writer, command)
 	case "get":
 		parseGetCommand(writer, command)
+	case "del":
+		parseDelCommand(writer, command)
+	default:
+		Error(writer, errInvalidCommand)
 	}
 }
 
@@ -97,16 +89,39 @@ func parseSetCommand(writer io.Writer, command []string) {
 		return
 	}
 	err := cli.Set(command[1], command[2])
-	if err == nil {
-		_, _ = fmt.Fprintln(writer, "[OK]")
+	if err != nil {
+		Error(writer, err)
+		return
 	}
+	_, _ = fmt.Fprintln(writer, "[OK]")
 }
 
 func parseGetCommand(writer io.Writer, command []string) {
 	if len(command) != 2 {
-		_, _ = fmt.Fprintln(writer, errNumOfArguments.Error())
+		Error(writer, errNumOfArguments)
 		return
 	}
-	val, _ := cli.Get(command[1])
+	val, err := cli.Get(command[1])
+	if err != nil {
+		Error(writer, err)
+		return
+	}
 	_, _ = fmt.Fprintln(writer, val)
+}
+
+func parseDelCommand(writer io.Writer, command []string) {
+	if len(command) != 2 {
+		Error(writer, errNumOfArguments)
+		return
+	}
+	err := cli.Del(command[1])
+	if err != nil {
+		Error(writer, err)
+		return
+	}
+	_, _ = fmt.Fprintln(writer, "[OK]")
+}
+
+func Error(writer io.Writer, err error) {
+	_, _ = fmt.Fprintln(writer, "["+strings.ToUpper(err.Error())+"]")
 }

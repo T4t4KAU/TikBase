@@ -18,6 +18,7 @@ func NewHandler(eng iface.Engine) *Handler {
 	}
 	handler.commands[getCommand] = iface.GET_STR
 	handler.commands[setCommand] = iface.SET_STR
+	handler.commands[deleteCommand] = iface.DEL
 	return handler
 }
 

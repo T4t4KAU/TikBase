@@ -2,6 +2,7 @@ package tiko
 
 import (
 	"TikBase/iface"
+	"errors"
 )
 
 type Client struct {
@@ -19,9 +20,12 @@ func (c *Client) Set(key string, value string) error {
 	if err != nil {
 		return err
 	}
-	code, _, err := parseReply(c.conn)
+	code, data, err := parseReply(c.conn)
+	if err != nil {
+		return err
+	}
 	if code != Success {
-		return errExecuteCommand
+		return errors.New(string(data))
 	}
 	return nil
 }
@@ -31,9 +35,27 @@ func (c *Client) Get(key string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	_, data, err := parseReply(c.conn)
+	code, data, err := parseReply(c.conn)
 	if err != nil {
 		return "", err
 	}
+	if code != Success {
+		return "", errors.New(string(data))
+	}
 	return string(data), nil
+}
+
+func (c *Client) Del(key string) error {
+	_, err := writeDelRequest(c.conn, []byte(key))
+	if err != nil {
+		return err
+	}
+	code, data, err := parseReply(c.conn)
+	if err != nil {
+		return err
+	}
+	if code != Success {
+		return errors.New(string(data))
+	}
+	return nil
 }

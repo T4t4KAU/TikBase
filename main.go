@@ -12,6 +12,9 @@ import (
 )
 
 var proto, name *string
+var logo = " _____ _ _    ____                 \n|_   _(_) | _| __ )  __ _ ___  ___ \n  | | | | |/ /  _ \\ / _` / __|/ _ \\\n  | | | |   <| |_) | (_| \\__ \\  __/\n  |_| |_|_|\\_\\____/ \\__,_|___/\\___|\n"
+
+const address = "127.0.0.1:9999"
 
 func init() {
 	// 定义命令行参数
@@ -51,7 +54,7 @@ func startServer() {
 	}
 
 	p := poll.New(&poll.Config{
-		Address:    "127.0.0.1:9999",
+		Address:    address,
 		MaxConnect: 20,
 		Timeout:    time.Second,
 	}, handler)
@@ -63,5 +66,7 @@ func startServer() {
 }
 
 func main() {
+	println(logo)
+	println("using protocol:", *proto, "\nusing engine:", *name, "\nstart server at", address)
 	startServer()
 }
