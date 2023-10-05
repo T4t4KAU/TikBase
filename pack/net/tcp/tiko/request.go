@@ -19,6 +19,7 @@ var (
 	errNotFound                  = errors.New("not found")
 	errProtocolVersionMismatch   = errors.New("protocol version between client and proto doesn't match")
 	errCommandNotFound           = errors.New("failed to find a handler of command")
+	errExecuteCommand            = errors.New("failed to execute command")
 )
 
 const (
@@ -129,7 +130,7 @@ func (req *GetRequest) Bytes() []byte {
 	return data
 }
 
-func WriteGetRequest(writer io.Writer, key []byte) (int, error) {
+func writeGetRequest(writer io.Writer, key []byte) (int, error) {
 	return writeRequest(writer, getCommand, [][]byte{key})
 }
 
@@ -163,7 +164,7 @@ func (req *SetRequest) Bytes() []byte {
 	return data
 }
 
-func WriteSetRequest(writer io.Writer, key []byte, value []byte) (int, error) {
+func writeSetRequest(writer io.Writer, key []byte, value []byte) (int, error) {
 	return writeRequest(writer, setCommand, [][]byte{key, value})
 }
 

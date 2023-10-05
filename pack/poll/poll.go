@@ -39,7 +39,7 @@ func (np *NetPoll) Run() error {
 		}
 	}()
 
-	go np.eventLoop()
+	np.eventLoop()
 	return nil
 }
 

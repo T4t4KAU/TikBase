@@ -32,7 +32,7 @@ func TestParseStream(t *testing.T) {
 		return
 	}
 
-	_, err = WriteSetRequest(conn, []byte("key"), []byte("value"))
+	_, err = writeSetRequest(conn, []byte("key"), []byte("value"))
 	if err != nil {
 		t.Error(err.Error())
 		return
@@ -40,7 +40,7 @@ func TestParseStream(t *testing.T) {
 	code, data, err := parseReply(conn)
 	println(int(code), string(data))
 
-	_, err = WriteGetRequest(conn, []byte("key"))
+	_, err = writeGetRequest(conn, []byte("key"))
 	if err != nil {
 		t.Error(err.Error())
 		return
