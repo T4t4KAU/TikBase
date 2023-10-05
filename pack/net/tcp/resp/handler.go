@@ -5,28 +5,10 @@ import (
 	"errors"
 	"io"
 	"strings"
-	"sync/atomic"
 )
-
-type Boolean uint32
-
-// Get reads the values atomically
-func (b *Boolean) Get() bool {
-	return atomic.LoadUint32((*uint32)(b)) != 0
-}
-
-// Set writes the values atomically
-func (b *Boolean) Set(v bool) {
-	if v {
-		atomic.StoreUint32((*uint32)(b), 1)
-	} else {
-		atomic.StoreUint32((*uint32)(b), 0)
-	}
-}
 
 type Handler struct {
 	engine   iface.Engine
-	closing  Boolean
 	keywords map[string]iface.INS
 }
 
@@ -69,10 +51,6 @@ func (h *Handler) handleReply(reply *MultiBulkReply, conn iface.Connection) {
 
 // Handle 请求处理
 func (h *Handler) Handle(conn iface.Connection) {
-	if h.closing.Get() {
-		_ = conn.Close()
-	}
-
 	ch := ParseStream(conn)
 	for payload := range ch {
 		if payload.Err != nil {

@@ -37,7 +37,6 @@ func parse0(rawReader io.Reader, ch chan<- *Payload) {
 		line, err := reader.ReadBytes('\n')
 		if err != nil {
 			ch <- &Payload{Err: err}
-
 			return
 		}
 		length := len(line)
