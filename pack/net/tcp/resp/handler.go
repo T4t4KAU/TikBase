@@ -2,12 +2,9 @@ package resp
 
 import (
 	"TikBase/iface"
-	"context"
 	"errors"
 	"io"
-	"net"
 	"strings"
-	"sync"
 	"sync/atomic"
 )
 
@@ -28,37 +25,65 @@ func (b *Boolean) Set(v bool) {
 }
 
 type Handler struct {
-	activeConn sync.Map
-	engine     iface.Engine
-	closing    Boolean
+	engine   iface.Engine
+	closing  Boolean
+	keywords map[string]iface.INS
+}
+
+func (h *Handler) BulkToIns(arg []byte) (iface.INS, bool) {
+	keyword := string(arg)
+	keyword = strings.ToLower(keyword)
+	ins, ok := h.keywords[keyword]
+	if !ok {
+		return iface.NIL, false
+	}
+	return ins, true
 }
 
 func NewHandler(eng iface.Engine) *Handler {
-	return &Handler{
-		engine: eng,
+	h := &Handler{
+		engine:   eng,
+		keywords: make(map[string]iface.INS),
+	}
+	h.keywords["set"] = iface.SET_STR
+	h.keywords["get"] = iface.GET_STR
+	return h
+}
+
+func (h *Handler) handleReply(reply *MultiBulkReply, conn iface.Connection) {
+	if ins, ok := h.BulkToIns(reply.Args[0]); ok {
+		res := h.engine.Exec(ins, reply.Args[1:])
+		if res.Success() {
+			if len(res.Data()) > 0 {
+				_, _ = conn.Write(MakeBulkReply(res.Data()[0]).ToBytes())
+			} else {
+				_, _ = conn.Write(MakeOkReply().ToBytes())
+			}
+		} else {
+			_, _ = conn.Write(MakeErrReply(res.Error()).ToBytes())
+		}
+	} else {
+		_, _ = conn.Write(MakeUnknownCommandErrReply(reply.Args[0]).ToBytes())
 	}
 }
 
 // Handle 请求处理
-func (h *Handler) Handle(ctx context.Context, conn net.Conn) {
+func (h *Handler) Handle(conn iface.Connection) {
 	if h.closing.Get() {
 		_ = conn.Close()
 	}
-
-	client := NewConn(conn)
-	h.activeConn.Store(client, struct{}{})
 
 	ch := ParseStream(conn)
 	for payload := range ch {
 		if payload.Err != nil {
 			if payload.Err == io.EOF || errors.Is(payload.Err, io.ErrUnexpectedEOF) || isClosedError(payload.Err) {
-				h.closeClient(client)
+				_ = conn.Close()
 				return
 			}
-			errReply := MakeErrReply(payload.Err.Error())
-			_, err := client.Write(errReply.ToBytes())
+			errReply := MakeErrReply(payload.Err)
+			_, err := conn.Write(errReply.ToBytes())
 			if err != nil {
-				h.closeClient(client)
+				_ = conn.Close()
 				return
 			}
 			continue
@@ -68,26 +93,13 @@ func (h *Handler) Handle(ctx context.Context, conn net.Conn) {
 			continue
 		}
 
-		_, ok := (payload).Data.(*MultiBulkReply)
+		// 接收到命令
+		reply, ok := (payload).Data.(*MultiBulkReply)
 		if !ok {
 			continue
 		}
+		h.handleReply(reply, conn)
 	}
-}
-
-func (h *Handler) Close() error {
-	h.closing.Set(true)
-	h.activeConn.Range(func(key any, value any) bool {
-		c := key.(iface.Connection)
-		_ = c.Close()
-		return true
-	})
-	return nil
-}
-
-func (h *Handler) closeClient(cli iface.Connection) {
-	_ = cli.Close()
-	h.activeConn.Delete(cli)
 }
 
 func isClosedError(err error) bool {

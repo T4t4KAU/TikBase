@@ -14,7 +14,7 @@ type (
 )
 
 type Message struct {
-	Topic string
+	Topic string // 主题
 	Data  any
 }
 
@@ -25,24 +25,23 @@ type Queue interface {
 }
 
 type MessageQueue struct {
-	topics      map[string]Subscriber
 	mutex       sync.RWMutex
 	timeout     time.Duration
 	subscribers map[Subscriber]Filter
-	capacity    int
-	workers     *conc.Pool
+	capacity    int        // 队列长度
+	workers     *conc.Pool // 超时时间
 }
 
 func New(config *Config) *MessageQueue {
 	return &MessageQueue{
-		topics:      make(map[string]Subscriber),
 		subscribers: make(map[Subscriber]Filter),
-		workers:     conc.NewPool("queue", config.nworker),
+		workers:     conc.NewPool("message queue", config.nworker),
 		capacity:    config.capacity,
 		timeout:     config.timeout,
 	}
 }
 
+// Subscribe 发起订阅
 func (mq *MessageQueue) Subscribe(filter Filter) Subscriber {
 	sub := make(Subscriber, mq.capacity)
 	mq.mutex.Lock()
@@ -51,6 +50,7 @@ func (mq *MessageQueue) Subscribe(filter Filter) Subscriber {
 	return sub
 }
 
+// Evict 取消订阅
 func (mq *MessageQueue) Evict(sub Subscriber) {
 	mq.mutex.Lock()
 	defer mq.mutex.Unlock()
@@ -58,6 +58,7 @@ func (mq *MessageQueue) Evict(sub Subscriber) {
 	close(sub)
 }
 
+// Publish 发布
 func (mq *MessageQueue) Publish(message *Message) {
 	mq.mutex.RLock()
 	defer mq.mutex.RUnlock()

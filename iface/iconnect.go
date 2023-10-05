@@ -12,5 +12,4 @@ type Reply interface {
 
 type Handler interface {
 	Handle(conn Connection)
-	Close() error
 }

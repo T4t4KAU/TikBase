@@ -39,7 +39,7 @@ func (ch *Channel) Close() {
 		return
 	}
 	ch.mq.Evict(ch.sub)
-	atomic.AddInt32(&ch.count, -1)
+	ch.DecCount()
 	if !ch.Available() {
 		ch.mq.Remove(ch.Name)
 	}
@@ -51,4 +51,8 @@ func (ch *Channel) Available() bool {
 
 func (ch *Channel) IncCount() {
 	atomic.AddInt32(&ch.count, 1)
+}
+
+func (ch *Channel) DecCount() {
+	atomic.AddInt32(&ch.count, -1)
 }

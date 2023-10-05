@@ -24,7 +24,6 @@ func (rec *Reactor) Run(lis net.Listener, ch chan struct{}, handler iface.Handle
 	go func() {
 		<-ch
 		_ = lis.Close()
-		_ = handler.Close()
 	}()
 
 	for {

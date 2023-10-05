@@ -3,6 +3,7 @@ package resp
 import (
 	"TikBase/iface"
 	"bytes"
+	"fmt"
 	"strconv"
 )
 
@@ -239,9 +240,23 @@ func (r *StandardErrReply) Error() string {
 	return r.Status
 }
 
-func MakeErrReply(status string) *StandardErrReply {
+func MakeErrReply(status error) *StandardErrReply {
 	return &StandardErrReply{
-		Status: status,
+		Status: status.Error(),
+	}
+}
+
+type UnknownCommandErrReply struct {
+	Command string
+}
+
+func (r *UnknownCommandErrReply) ToBytes() []byte {
+	return []byte(fmt.Sprintf("-ERR unknown command '%s'", r.Command))
+}
+
+func MakeUnknownCommandErrReply(command []byte) *UnknownCommandErrReply {
+	return &UnknownCommandErrReply{
+		Command: string(command),
 	}
 }
 

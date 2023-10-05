@@ -25,7 +25,7 @@ type Node struct {
 	Down  *Node // 指向下方结点
 }
 
-type filter func(node *Node) bool
+type Filter func(node *Node) bool
 
 // Compare 比较结点大小
 func (n *Node) Compare(node *Node) int {
@@ -204,7 +204,7 @@ func (list *List) Update(key string, val iface.Value) bool {
 	return ok
 }
 
-func (list *List) FilterKey(f filter) *[]string {
+func (list *List) FilterKey(f Filter) *[]string {
 	p := list.Head
 	keys := make([]string, 0)
 
@@ -221,7 +221,7 @@ func (list *List) FilterKey(f filter) *[]string {
 	return &keys
 }
 
-func (list *List) FilterNode(f filter) *[]*Node {
+func (list *List) FilterNode(filter Filter) *[]*Node {
 	p := list.Head
 	nodes := make([]*Node, 0)
 
@@ -230,7 +230,7 @@ func (list *List) FilterNode(f filter) *[]*Node {
 	}
 
 	for p.Next != nil {
-		if f(p.Next) {
+		if filter(p.Next) {
 			nodes = append(nodes, p.Next)
 		}
 		p = p.Next

@@ -4,20 +4,25 @@ import (
 	"TikBase/iface"
 	"TikBase/pack/queue"
 	"sync"
+	"time"
 )
 
+// LogQueue 日志队列
 type LogQueue struct {
 	channels map[string]*Channel
 	mutex    sync.RWMutex
 	*queue.MessageQueue
 }
 
-var once *LogQueue
+var (
+	once   *LogQueue
+	config = queue.NewConfig(time.Second*3, 20, 4)
+)
 
 func New(name string, consumer queue.Consumer) iface.Channel {
 	if once == nil {
 		once = &LogQueue{
-			MessageQueue: queue.New(queue.DefaultConfig),
+			MessageQueue: queue.New(config),
 			channels:     make(map[string]*Channel),
 		}
 	}

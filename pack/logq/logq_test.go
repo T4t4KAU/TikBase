@@ -4,12 +4,23 @@ import (
 	"TikBase/pack/queue"
 	"TikBase/pack/tlog"
 	"fmt"
+	"log"
+	"os"
 	"testing"
 	"time"
 )
 
 func LogConsumer(ch queue.Subscriber) {
 	for msg := range ch {
+		buff, err := os.OpenFile("test.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModePerm)
+
+		if err != nil {
+			log.Fatalln(err)
+		}
+		_, err = buff.Write(msg.Data.([]byte))
+		if err != nil {
+			log.Fatalln(err)
+		}
 		fmt.Print(string(msg.Data.([]byte)))
 	}
 }
