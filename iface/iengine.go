@@ -17,6 +17,23 @@ const (
 	NIL
 )
 
+func (ins INS) String() string {
+	switch ins {
+	case ECHO:
+		return "ECHO"
+	case SET_STR:
+		return "SET"
+	case GET_STR:
+		return "GET"
+	case DEL:
+		return "DEL"
+	case EXPIRE:
+		return "EXPIRE"
+	default:
+		return "UNKNOWN"
+	}
+}
+
 type Engine interface {
 	Exec(ins INS, args [][]byte) Result
 }

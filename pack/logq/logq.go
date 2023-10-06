@@ -16,9 +16,10 @@ type LogQueue struct {
 
 var (
 	once   *LogQueue
-	config = queue.NewConfig(time.Second*3, 20, 4)
+	config = queue.NewConfig(time.Second*3, 30, 4)
 )
 
+// New 创建主题和对应通道
 func New(name string, consumer queue.Consumer) iface.Channel {
 	if once == nil {
 		once = &LogQueue{
@@ -47,9 +48,12 @@ func New(name string, consumer queue.Consumer) iface.Channel {
 	ch.sub = once.Subscribe(func(msg *queue.Message) bool {
 		return msg.Topic == name
 	})
+
+	// 增加通道引用计数
 	ch.IncCount()
 
 	once.mutex.Lock()
+	// 注册通道
 	once.channels[name] = ch
 	once.mutex.Unlock()
 
