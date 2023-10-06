@@ -19,6 +19,7 @@ func NewHandler(eng iface.Engine) *Handler {
 	handler.commands[getCommand] = iface.GET_STR
 	handler.commands[setCommand] = iface.SET_STR
 	handler.commands[deleteCommand] = iface.DEL
+	handler.commands[expireCommand] = iface.EXPIRE
 	return handler
 }
 
@@ -51,13 +52,32 @@ func (h *Handler) Handle(conn iface.Connection) {
 
 		res := h.engine.Exec(ins, payload.Args)
 		if res.Success() {
-			if len(res.Data()) > 0 {
-				_, _ = writeReply(conn, Success, res.Data()[0])
+			n := len(res.Data())
+			if n == 1 {
+				_, err := writeReply(conn, Success, res.Data()[0])
+				if err != nil {
+					_ = conn.Close()
+					return
+				}
+			} else if n > 1 {
+				err := writeMultiReply(conn, Success, res.Data(), n)
+				if err != nil {
+					_ = conn.Close()
+					return
+				}
 			} else {
-				_, _ = writeReply(conn, Success, nil)
+				_, err := writeReply(conn, Success, nil)
+				if err != nil {
+					_ = conn.Close()
+					return
+				}
 			}
 		} else {
-			_, _ = writeErrorReply(conn, res.Error().Error())
+			_, err := writeErrorReply(conn, res.Error().Error())
+			if err != nil {
+				_ = conn.Close()
+				return
+			}
 		}
 	}
 }

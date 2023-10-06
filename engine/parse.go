@@ -7,5 +7,5 @@ func parseSetStringArgs(args [][]byte) string {
 }
 
 func parseExpireKeyArgs(args [][]byte) int64 {
-	return int64(utils.BytesToInt(args[1]))
+	return utils.BytesToInt64(args[1])
 }

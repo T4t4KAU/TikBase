@@ -89,6 +89,18 @@ func (c *Cache) Expire(key string, ttl int64) bool {
 	return true
 }
 
+func (c *Cache) Keys() [][]byte {
+	c.waitForDumping()
+
+	keys := make([][]byte, 0)
+	for _, seg := range c.segments {
+		for key, _ := range seg.Data {
+			keys = append(keys, []byte(key))
+		}
+	}
+	return keys
+}
+
 // Exist 检查键是否存在
 func (c *Cache) Exist(key string) bool {
 	c.waitForDumping()

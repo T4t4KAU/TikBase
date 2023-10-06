@@ -60,6 +60,8 @@ func (eng *CacheEngine) Exec(ins iface.INS, args [][]byte) iface.Result {
 		return eng.ExecGetString(args)
 	case iface.DEL:
 		return eng.ExecDelKey(args)
+	case iface.EXPIRE:
+		return eng.ExecExpire(args)
 	default:
 		return NewUnknownCacheResult()
 	}
@@ -119,5 +121,12 @@ func (eng *CacheEngine) ExecExpire(args [][]byte) *CacheResult {
 	}
 	return &CacheResult{
 		succ: true,
+	}
+}
+
+func (eng *CacheEngine) ExecKeys() *CacheResult {
+	return &CacheResult{
+		succ: true,
+		data: eng.Keys(),
 	}
 }

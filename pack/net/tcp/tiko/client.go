@@ -2,6 +2,7 @@ package tiko
 
 import (
 	"TikBase/iface"
+	"TikBase/pack/utils"
 	"errors"
 )
 
@@ -47,6 +48,21 @@ func (c *Client) Get(key string) (string, error) {
 
 func (c *Client) Del(key string) error {
 	_, err := writeDelRequest(c.conn, []byte(key))
+	if err != nil {
+		return err
+	}
+	code, data, err := parseReply(c.conn)
+	if err != nil {
+		return err
+	}
+	if code != Success {
+		return errors.New(string(data))
+	}
+	return nil
+}
+
+func (c *Client) Expire(key string, ttl int64) error {
+	_, err := writeExpireRequest(c.conn, []byte(key), utils.Int64ToBytes(ttl))
 	if err != nil {
 		return err
 	}

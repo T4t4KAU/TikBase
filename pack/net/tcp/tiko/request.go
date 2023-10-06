@@ -12,6 +12,7 @@ const (
 	setCommand    = byte(2)
 	deleteCommand = byte(3)
 	statusCommand = byte(4)
+	expireCommand = byte(5)
 )
 
 var (
@@ -199,4 +200,8 @@ func (req *DelRequest) Bytes() []byte {
 
 func writeDelRequest(writer io.Writer, key []byte) (int, error) {
 	return writeRequest(writer, deleteCommand, [][]byte{key})
+}
+
+func writeExpireRequest(writer io.Writer, key []byte, ttl []byte) (int, error) {
+	return writeRequest(writer, expireCommand, [][]byte{key, ttl})
 }

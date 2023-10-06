@@ -8,6 +8,7 @@ import (
 	"io"
 	"net"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -78,6 +79,8 @@ func parseLine(writer io.Writer, line string) {
 		parseGetCommand(writer, command)
 	case "del":
 		parseDelCommand(writer, command)
+	case "expire":
+		parseExpireCommand(writer, command)
 	default:
 		Error(writer, errInvalidCommand)
 	}
@@ -93,7 +96,7 @@ func parseSetCommand(writer io.Writer, command []string) {
 		Error(writer, err)
 		return
 	}
-	_, _ = fmt.Fprintln(writer, "[OK]")
+	OK(writer)
 }
 
 func parseGetCommand(writer io.Writer, command []string) {
@@ -119,9 +122,32 @@ func parseDelCommand(writer io.Writer, command []string) {
 		Error(writer, err)
 		return
 	}
-	_, _ = fmt.Fprintln(writer, "[OK]")
+	OK(writer)
+}
+
+func parseExpireCommand(writer io.Writer, command []string) {
+	if len(command) != 3 {
+		_, _ = fmt.Fprintln(writer, errNumOfArguments.Error())
+		return
+	}
+
+	ttl, err := strconv.Atoi(command[2])
+	if err != nil {
+		Error(writer, err)
+		return
+	}
+	err = cli.Expire(command[1], int64(ttl))
+	if err != nil {
+		Error(writer, err)
+		return
+	}
+	OK(writer)
 }
 
 func Error(writer io.Writer, err error) {
 	_, _ = fmt.Fprintln(writer, "["+strings.ToUpper(err.Error())+"]")
+}
+
+func OK(writer io.Writer) {
+	_, _ = fmt.Fprintln(writer, "[OK]")
 }

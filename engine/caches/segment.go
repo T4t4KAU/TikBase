@@ -28,20 +28,18 @@ func newSegment(options *Options) *segment {
 func (seg *segment) get(key string) (*values.Value, bool) {
 	// 对当前segment加读锁
 	seg.mutex.RLock()
-	defer seg.mutex.RUnlock()
+
 	// 获取从表中数据
 	v, ok := seg.Data[key]
 	if !ok {
 		return nil, false
 	}
+	seg.mutex.RUnlock()
 
 	// 数据过期
 	if !v.Alive() {
-		// 加写锁
-		seg.mutex.Lock()
 		seg.delete(key)
-		seg.mutex.Unlock()
-		return nil, false
+		return v, false
 	}
 	return v, true
 }

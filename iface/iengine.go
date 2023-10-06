@@ -13,6 +13,7 @@ const (
 	GET_STR
 	DEL
 	EXPIRE
+	KEYS
 	NIL
 )
 
