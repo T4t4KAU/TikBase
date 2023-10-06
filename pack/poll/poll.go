@@ -27,27 +27,28 @@ func New(config *Config, handler iface.Handler) *NetPoll {
 	}
 }
 
-func (np *NetPoll) Run() error {
-	signal.Notify(np.signalCh, syscall.SIGHUP, syscall.SIGTERM, syscall.SIGINT)
+func (p *NetPoll) Run() error {
+	signal.Notify(p.signalCh, syscall.SIGHUP, syscall.SIGTERM, syscall.SIGINT)
 
 	go func() {
-		sig := <-np.signalCh
+		sig := <-p.signalCh
 		switch sig {
 		// 注册通知信号
 		case syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT:
-			np.closeCh <- struct{}{}
+			p.closeCh <- struct{}{}
 		}
 	}()
 
-	np.eventLoop()
+	p.EventLoop()
+
 	return nil
 }
 
-func (np *NetPoll) eventLoop() {
-	lis, err := net.Listen("tcp", np.address)
+func (p *NetPoll) EventLoop() {
+	lis, err := net.Listen("tcp", p.address)
 	if err != nil {
 		return
 	}
-	reactor := NewReactor(np.nconnect)
-	reactor.Run(lis, np.closeCh, np.handler)
+	reactor := NewReactor(p.nconnect)
+	reactor.Run(lis, p.closeCh, p.handler)
 }

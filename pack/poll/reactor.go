@@ -13,10 +13,10 @@ type Reactor struct {
 	errors  []error
 }
 
-func NewReactor(num int32) *Reactor {
+func NewReactor(n int32) *Reactor {
 	return &Reactor{
-		workers: conc.NewPool("subReactors", num),
-		nworker: num,
+		workers: conc.NewPool("subReactors", n),
+		nworker: n,
 	}
 }
 
