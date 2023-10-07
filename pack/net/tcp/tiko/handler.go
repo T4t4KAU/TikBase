@@ -2,9 +2,9 @@ package tiko
 
 import (
 	"TikBase/iface"
-	"TikBase/pack/logq"
 	"TikBase/pack/queue"
 	"TikBase/pack/tlog"
+	"TikBase/pack/utils"
 	"errors"
 	"fmt"
 	"io"
@@ -19,7 +19,7 @@ type Handler struct {
 
 func consumer(sub queue.Subscriber) {
 	for msg := range sub {
-		fmt.Println(string(msg.Data.([]byte)))
+		fmt.Println(utils.BytesToString(msg.Data.([]byte)))
 	}
 }
 
@@ -27,10 +27,11 @@ func NewHandler(eng iface.Engine) *Handler {
 	handler := &Handler{
 		engine:   eng,
 		commands: make(map[byte]iface.INS),
-		channel:  logq.New("tiko handler", consumer),
+		// channel:  logq.New("tiko handler", consumer),
 	}
 
-	//handler.Logger = tlog.New(tlog.WithLevel(tlog.InfoLevel),
+	// 暂时不输出日志
+	//  handler.Logger = tlog.New(tlog.WithLevel(tlog.InfoLevel),
 	//	tlog.WithOutput(handler.channel),
 	//	tlog.WithFormatter(&tlog.TextFormatter{IgnoreBasicFields: false}),
 	//	tlog.WithLevel(tlog.WarnLevel),

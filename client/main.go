@@ -15,7 +15,7 @@ import (
 
 var logo = " _____ _ _    ____                 \n|_   _(_) | _| __ )  __ _ ___  ___ \n  | | | | |/ /  _ \\ / _` / __|/ _ \\\n  | | | |   <| |_) | (_| \\__ \\  __/\n  |_| |_|_|\\_\\____/ \\__,_|___/\\___|\n"
 
-var cli *tiko.Client
+var cli Client
 
 var (
 	errNumOfArguments = errors.New("invalid number of arguments")
@@ -23,6 +23,13 @@ var (
 
 	address = "127.0.0.1:9999"
 )
+
+type Client interface {
+	Get(key string) (string, error)
+	Set(key, value string) error
+	Del(key string) error
+	Expire(key string, ttl int64) error
+}
 
 func main() {
 	reader := bufio.NewReader(os.Stdin)
@@ -34,7 +41,7 @@ func main() {
 	}
 
 	// 创建客户端
-	cli = tiko.NewClient(conn)
+	cli = NewClient("tiko", conn)
 
 	println(logo)
 	println("connecting to: ", address)
@@ -150,4 +157,15 @@ func Error(writer io.Writer, err error) {
 
 func OK(writer io.Writer) {
 	_, _ = fmt.Fprintln(writer, "[OK]")
+}
+
+func NewClient(name string, conn net.Conn) Client {
+	name = strings.ToLower(name)
+
+	switch name {
+	case "tiko":
+		return tiko.NewClient(conn)
+	default:
+		panic("invalid name")
+	}
 }

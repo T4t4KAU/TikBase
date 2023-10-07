@@ -18,6 +18,17 @@ type task struct {
 	next *task
 }
 
+func (t *task) zero() {
+	t.ctx = nil
+	t.exec = nil
+	t.next = nil
+}
+
+func (t *task) Recycle() {
+	t.zero()
+	taskPool.Put(t)
+}
+
 func newTask() any {
 	return &task{}
 }

@@ -20,6 +20,8 @@ func NewEngine(name string) (iface.Engine, error) {
 	switch name {
 	case "cache":
 		return NewCacheEngine(), nil
+	case "level":
+		return NewLevelEngine(), nil
 	default:
 		return nil, errors.New("invalid engine")
 	}

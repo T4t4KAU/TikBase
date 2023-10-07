@@ -1,6 +1,7 @@
 package levels
 
 import (
+	"TikBase/engine/values"
 	"TikBase/iface"
 	"TikBase/pack/dates/slist"
 	"sync"
@@ -19,9 +20,19 @@ func New() *Levels {
 
 func (ls *Levels) Get(key string) (iface.Value, bool) {
 	ls.mutex.RLock()
-	defer ls.mutex.RUnlock()
-
 	node, ok := ls.Search(key)
+	ls.mutex.RUnlock()
+
+	if !ok {
+		return nil, false
+	}
+
+	if !node.Value.Alive() {
+		ls.mutex.Lock()
+		ls.Remove(node.Key)
+		ls.mutex.Unlock()
+		return nil, false
+	}
 	return node.Value, ok
 }
 
@@ -49,6 +60,18 @@ func (ls *Levels) Exist(key string) bool {
 
 	_, ok := ls.Search(key)
 	return ok
+}
+
+func (ls *Levels) Expire(key string, ttl int64) bool {
+	ls.mutex.Lock()
+	defer ls.mutex.Unlock()
+
+	node, ok := ls.Search(key)
+	if !ok {
+		return false
+	}
+	node.Value.(*values.Value).TTL = ttl
+	return true
 }
 
 func (ls *Levels) gc() {

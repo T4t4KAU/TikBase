@@ -3,7 +3,9 @@ package utils
 import (
 	"bytes"
 	"encoding/binary"
+	"reflect"
 	"time"
+	"unsafe"
 )
 
 // Copy 数据复制
@@ -44,4 +46,17 @@ func CompareKey(a, b string) int {
 // NowSuffix 当前时间戳后缀
 func NowSuffix() string {
 	return "." + time.Now().Format("20060102150405")
+}
+
+func StringToBytes(s string) (b []byte) {
+	bh := (*reflect.SliceHeader)(unsafe.Pointer(&b))
+	sh := (*reflect.StringHeader)(unsafe.Pointer(&s))
+	bh.Data = sh.Data
+	bh.Len = sh.Len
+	bh.Cap = sh.Len
+	return b
+}
+
+func BytesToString(b []byte) string {
+	return *(*string)(unsafe.Pointer(&b))
 }

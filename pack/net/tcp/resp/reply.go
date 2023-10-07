@@ -240,9 +240,9 @@ func (r *StandardErrReply) Error() string {
 	return r.Status
 }
 
-func MakeErrReply(status error) *StandardErrReply {
+func MakeErrReply(status string) *StandardErrReply {
 	return &StandardErrReply{
-		Status: status.Error(),
+		Status: status,
 	}
 }
 

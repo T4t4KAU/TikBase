@@ -38,11 +38,10 @@ func New(name string, consumer queue.Consumer) iface.Channel {
 	}
 
 	// 不存在则创建channel
-	ch = &Channel{
-		Name:     name,
-		mq:       once,
-		consumer: consumer,
-	}
+	ch = channelPool.Get().(*Channel)
+	ch.Name = name
+	ch.mq = once
+	ch.consumer = consumer
 
 	// 订阅指定topic
 	ch.sub = once.Subscribe(func(msg *queue.Message) bool {

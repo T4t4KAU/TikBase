@@ -70,7 +70,7 @@ func (s *Server) getHandler(ctx *router.Context) {
 
 func (s *Server) deleteHandler(ctx *router.Context) {
 	key := ctx.Params.ByName("key")
-	res := s.engine.Exec(iface.DEL_STR, [][]byte{[]byte(key)})
+	res := s.engine.Exec(iface.DEL, [][]byte{[]byte(key)})
 	if !res.Success() {
 		ctx.Writer.WriteHeader(http.StatusNotFound)
 		return

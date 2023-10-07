@@ -68,6 +68,59 @@ func startServer() {
 	}
 }
 
+func TestWriteGetRequest(t *testing.T) {
+	go startServer()
+	time.Sleep(time.Second)
+
+	conn, err := net.Dial("tcp", "127.0.0.1:9999")
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+	_, err = writeSetRequest(conn, []byte("key"), []byte("value"))
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+	b := make([]byte, 1024)
+	_, _ = conn.Read(b)
+	println(string(b))
+
+	_, err = writeGetRequest(conn, []byte("key"))
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+	b = make([]byte, 1024)
+	_, _ = conn.Read(b)
+	println(string(b))
+}
+
+func TestClient(t *testing.T) {
+	go startServer()
+	time.Sleep(time.Second)
+
+	conn, err := net.Dial("tcp", "127.0.0.1:9999")
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+	cli := NewClient(conn)
+	val, err := cli.Set("key", "value")
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+	println(val)
+
+	val, err = cli.Get("key")
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+	println(val)
+}
+
 func TestParseStream3(t *testing.T) {
 	go startServer()
 	time.Sleep(time.Second)
@@ -84,4 +137,18 @@ func TestParseStream3(t *testing.T) {
 	_, _ = conn.Write([]byte("get key\r\n"))
 	_, _ = conn.Read(b)
 	println(string(b))
+}
+
+func TestReadMultiBulk(t *testing.T) {
+	reqs := bytes.Buffer{}
+	reqs.Write([]byte("*3\r\n" + "$3\r\nSET\r\n" + "$3\r\nkey\r\n" + "$5\r\n" + "value\r\n")) // test text protocol
+	payloads := readLine(&reqs)
+
+	for _, payload := range payloads {
+		if payload.Err == nil {
+			println(string(payload.Data.ToBytes()))
+		} else {
+			println(payload.Err.Error())
+		}
+	}
 }

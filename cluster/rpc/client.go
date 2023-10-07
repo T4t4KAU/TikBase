@@ -31,7 +31,7 @@ func (call *Call) done() {
 type Client struct {
 	cc       codec.Codec
 	opt      *Option
-	sm       sync.Mutex // sm mutex
+	sm       sync.Mutex // sending mutex
 	header   codec.Header
 	cm       sync.Mutex // common mutex
 	seq      uint64

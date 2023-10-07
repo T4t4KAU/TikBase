@@ -1,6 +1,7 @@
 package chash
 
 import (
+	"TikBase/pack/utils"
 	"sort"
 	"strconv"
 )
@@ -16,7 +17,7 @@ type ConsistentHash struct {
 }
 
 var DefaultHash = func(key []byte) uint32 {
-	i, _ := strconv.Atoi(string(key))
+	i, _ := strconv.Atoi(utils.BytesToString(key))
 	return uint32(i)
 }
 

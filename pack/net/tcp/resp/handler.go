@@ -29,24 +29,38 @@ func NewHandler(eng iface.Engine) *Handler {
 	}
 	h.keywords["set"] = iface.SET_STR
 	h.keywords["get"] = iface.GET_STR
+	h.keywords["del"] = iface.DEL
 	return h
 }
 
-func (h *Handler) handleReply(reply *MultiBulkReply, conn iface.Connection) {
+func (h *Handler) handleReply(reply *MultiBulkReply, conn iface.Connection) (err error) {
 	if ins, ok := h.BulkToIns(reply.Args[0]); ok {
 		res := h.engine.Exec(ins, reply.Args[1:])
 		if res.Success() {
 			if len(res.Data()) > 0 {
-				_, _ = conn.Write(MakeBulkReply(res.Data()[0]).ToBytes())
+				_, err = conn.Write(MakeBulkReply(res.Data()[0]).ToBytes())
+				if err != nil {
+					_ = conn.Close()
+				}
 			} else {
-				_, _ = conn.Write(MakeOkReply().ToBytes())
+				_, err = conn.Write(MakeOkReply().ToBytes())
+				if err != nil {
+					_ = conn.Close()
+				}
 			}
 		} else {
-			_, _ = conn.Write(MakeErrReply(res.Error()).ToBytes())
+			_, err = conn.Write(MakeErrReply(res.Error().Error()).ToBytes())
+			if err != nil {
+				_ = conn.Close()
+			}
 		}
 	} else {
-		_, _ = conn.Write(MakeUnknownCommandErrReply(reply.Args[0]).ToBytes())
+		_, err = conn.Write(MakeUnknownCommandErrReply(reply.Args[0]).ToBytes())
+		if err != nil {
+			_ = conn.Close()
+		}
 	}
+	return nil
 }
 
 // Handle 请求处理
@@ -58,7 +72,7 @@ func (h *Handler) Handle(conn iface.Connection) {
 				_ = conn.Close()
 				return
 			}
-			errReply := MakeErrReply(payload.Err)
+			errReply := MakeErrReply(payload.Err.Error())
 			_, err := conn.Write(errReply.ToBytes())
 			if err != nil {
 				_ = conn.Close()
@@ -76,7 +90,10 @@ func (h *Handler) Handle(conn iface.Connection) {
 		if !ok {
 			continue
 		}
-		h.handleReply(reply, conn)
+		err := h.handleReply(reply, conn)
+		if err != nil {
+			return
+		}
 	}
 }
 

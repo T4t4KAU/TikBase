@@ -25,13 +25,24 @@ func (w *worker) work() {
 			t := w.pool.tasks.Pop()
 			if t == nil {
 				w.close()
+				w.Recycle()
 				return
 			}
 			t.exec()
+			t.Recycle()
 		}
 	}()
 }
 
 func (w *worker) close() {
 	atomic.AddInt32(&w.pool.nworker, -1)
+}
+
+func (w *worker) zero() {
+	w.pool = nil
+}
+
+func (w *worker) Recycle() {
+	w.zero()
+	workerPool.Put(w)
 }

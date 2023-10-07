@@ -63,5 +63,5 @@ func writeMultiReply(writer io.Writer, code byte, body [][]byte, n int) error {
 
 // 向writer写入错误信息
 func writeErrorReply(writer io.Writer, msg string) (int, error) {
-	return writeReply(writer, Error, []byte(msg))
+	return writeReply(writer, Error, utils.StringToBytes(msg))
 }

@@ -79,6 +79,7 @@ func (eng *LevelEngine) ExecGetString(args [][]byte) *LevelResult {
 	if !ok {
 		return &LevelResult{
 			succ: false,
+			err:  errKeyNotFound,
 		}
 	}
 	return &LevelResult{
