@@ -24,7 +24,7 @@ func (h *testHandler) Close() error {
 }
 
 func startNetPoll() {
-	config := &Config{
+	config := Config{
 		Address:    "127.0.0.1:9999",
 		MaxConnect: 20,
 		Timeout:    10 * time.Second,

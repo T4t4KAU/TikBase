@@ -8,8 +8,8 @@ type Status struct {
 }
 
 // NewStatus 返回一个缓存信息对象指针
-func NewStatus() *Status {
-	return &Status{
+func NewStatus() Status {
+	return Status{
 		Count:     0,
 		KeySize:   0,
 		ValueSize: 0,

@@ -19,8 +19,8 @@ type Value struct {
 }
 
 // New 返回一个封装好的数据
-func New(data []byte, ttl int64, typ iface.Type) *Value {
-	return &Value{
+func New(data []byte, ttl int64, typ iface.Type) Value {
+	return Value{
 		Data:    utils.Copy(data),
 		TTL:     ttl,
 		Created: time.Now().Unix(),

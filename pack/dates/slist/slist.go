@@ -51,6 +51,21 @@ func New() *List {
 	}
 }
 
+// Level 索引层数
+func (list *List) Level() int {
+	if list.Head == nil {
+		return 0
+	}
+
+	var level int
+	p := list.Head
+	for p != nil {
+		level++
+		p = p.Down
+	}
+	return level - 1
+}
+
 // Insert 插入值
 func (list *List) Insert(key string, val iface.Value) bool {
 	if list == nil || list.Head == nil {
@@ -103,21 +118,6 @@ func (list *List) Insert(key string, val iface.Value) bool {
 	}
 
 	return true
-}
-
-// Level 索引层数
-func (list *List) Level() int {
-	if list.Head == nil {
-		return 0
-	}
-
-	var level int
-	p := list.Head
-	for p != nil {
-		level++
-		p = p.Down
-	}
-	return level - 1
 }
 
 // Print 打印跳表

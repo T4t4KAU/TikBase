@@ -31,7 +31,7 @@ func (ch *Channel) Write(data []byte) (int, error) {
 	if !ch.Available() {
 		return 0, errors.New("channel already closed")
 	}
-	ch.mq.Publish(&queue.Message{
+	ch.mq.Publish(queue.Message{
 		Topic: ch.Name,
 		Data:  data,
 	})
@@ -54,7 +54,7 @@ func (ch *Channel) Close() {
 	if !ch.Available() {
 		ch.mq.Remove(ch.Name)
 	}
-	channelPool.Put(ch)
+	ch.Recycle()
 }
 
 func (ch *Channel) Available() bool {
@@ -67,4 +67,13 @@ func (ch *Channel) IncCount() {
 
 func (ch *Channel) DecCount() {
 	atomic.AddInt32(&ch.count, -1)
+}
+
+func (ch *Channel) Recycle() {
+	ch.mq = nil
+	ch.sub = nil
+	ch.consumer = nil
+	ch.closed = nil
+	ch.Name = ""
+	channelPool.Put(ch)
 }

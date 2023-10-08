@@ -11,7 +11,7 @@ import (
 // 持久化结构体
 type dump struct {
 	SegmentSize int
-	Segments    []*segment
+	Segments    *[]segment
 	Options     *Options
 }
 
@@ -32,7 +32,7 @@ func newEmptyDump() *dump {
 func newDump(c *Cache) *dump {
 	return &dump{
 		SegmentSize: c.segmentSize,
-		Segments:    c.segments,
+		Segments:    &c.segments,
 		Options:     c.options,
 	}
 }
@@ -72,13 +72,13 @@ func (d *dump) from(dumpFile string) (*Cache, error) {
 	}
 
 	// 初始化对象
-	for _, seg := range d.Segments {
-		seg.options = d.Options
+	for _, seg := range *d.Segments {
+		seg.options = *d.Options
 		seg.mutex = &sync.RWMutex{}
 	}
 	return &Cache{
 		segmentSize: d.SegmentSize,
-		segments:    d.Segments,
+		segments:    *d.Segments,
 		options:     d.Options,
 		dumping:     0,
 	}, nil

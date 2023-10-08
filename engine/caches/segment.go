@@ -8,16 +8,16 @@ import (
 
 // 数据块
 type segment struct {
-	Data    map[string]*values.Value // 哈希表存放数据
-	Status  *Status                  // 状态信息
-	options *Options                 // 配置信息
-	mutex   *sync.RWMutex            // 读写锁
+	Data    map[string]values.Value // 哈希表存放数据
+	Status  Status                  // 状态信息
+	options Options                 // 配置信息
+	mutex   *sync.RWMutex           // 读写锁
 }
 
 // 返回一个使用options初始化过的segment实例
-func newSegment(options *Options) *segment {
-	return &segment{
-		Data:    make(map[string]*values.Value, options.MapSizeOfSegment),
+func newSegment(options Options) segment {
+	return segment{
+		Data:    make(map[string]values.Value, options.MapSizeOfSegment),
 		Status:  NewStatus(),
 		options: options,
 		mutex:   &sync.RWMutex{},
@@ -39,9 +39,9 @@ func (seg *segment) get(key string) (*values.Value, bool) {
 	// 数据过期
 	if !v.Alive() {
 		seg.delete(key)
-		return v, false
+		return &v, false
 	}
-	return v, true
+	return &v, true
 }
 
 // 将一个数据添加进segment
@@ -87,7 +87,7 @@ func (seg *segment) delete(key string) bool {
 func (seg *segment) status() Status {
 	seg.mutex.RLock()
 	defer seg.mutex.RUnlock()
-	return *seg.Status
+	return seg.Status
 }
 
 // 判断segment数据容量是否已经到了设定的上限

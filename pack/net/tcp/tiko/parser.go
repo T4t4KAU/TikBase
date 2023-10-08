@@ -14,7 +14,7 @@ type Payload struct {
 }
 
 func ParseStream(reader io.Reader) chan *Payload {
-	ch := make(chan *Payload)
+	ch := make(chan *Payload, 1)
 	go parse0(reader, ch)
 	return ch
 }

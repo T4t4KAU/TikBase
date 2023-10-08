@@ -11,6 +11,7 @@ type Reactor struct {
 	workers *conc.Pool
 	nworker int32
 	errors  []error
+	handler iface.Handler
 }
 
 func NewReactor(n int32) *Reactor {
@@ -20,7 +21,7 @@ func NewReactor(n int32) *Reactor {
 	}
 }
 
-func (rec *Reactor) Run(lis net.Listener, ch chan struct{}, handler iface.Handler) {
+func (rec *Reactor) Run(lis net.Listener, ch chan struct{}) {
 	go func() {
 		<-ch
 		_ = lis.Close()
@@ -32,7 +33,7 @@ func (rec *Reactor) Run(lis net.Listener, ch chan struct{}, handler iface.Handle
 			return
 		}
 		rec.workers.Run(context.Background(), func() {
-			handler.Handle(conn)
+			rec.handler.Handle(conn)
 		})
 	}
 }

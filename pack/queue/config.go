@@ -8,14 +8,14 @@ type Config struct {
 	nworker  int32
 }
 
-var DefaultConfig = &Config{
+var DefaultConfig = Config{
 	timeout:  time.Second,
 	capacity: 10,
 	nworker:  5,
 }
 
-func NewConfig(timeout time.Duration, capacity int, nworker int32) *Config {
-	return &Config{
+func NewConfig(timeout time.Duration, capacity int, nworker int32) Config {
+	return Config{
 		timeout:  timeout,
 		capacity: capacity,
 		nworker:  nworker,

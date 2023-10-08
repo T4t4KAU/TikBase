@@ -69,7 +69,8 @@ func (eng *LevelEngine) ExecSetString(args [][]byte) *LevelResult {
 	val := parseSetStringArgs(args)
 	key := string(args[0])
 
-	eng.Set(key, values.New([]byte(val), 0, iface.STRING))
+	v := values.New([]byte(val), 0, iface.STRING)
+	eng.Set(key, &v)
 	return NewSuccLevelResult()
 }
 

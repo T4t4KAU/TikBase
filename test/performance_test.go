@@ -74,9 +74,9 @@ func TestHTTPServer(t *testing.T) {
 
 func startServer() {
 	eng := engine.NewCacheEngine()
-	p := poll.New(&poll.Config{
+	p := poll.New(poll.Config{
 		Address:    "127.0.0.1:9999",
-		MaxConnect: 20,
+		MaxConnect: 1000,
 		Timeout:    time.Second,
 	}, tiko.NewHandler(eng))
 	err := p.Run()
@@ -111,8 +111,8 @@ func TestTCPServer(t *testing.T) {
 	time.Sleep(3 * time.Second)
 	readTime := testTask(func(no int) {
 		data := strconv.Itoa(no)
-		_, err = client.Get(data)
-		if err != nil {
+		res, err := client.Get(data)
+		if err != nil || res != data {
 			t.Fatal(err)
 		}
 	})
@@ -145,8 +145,8 @@ func TestRespServer(t *testing.T) {
 	time.Sleep(3 * time.Second)
 	readTime := testTask(func(no int) {
 		data := strconv.Itoa(no)
-		_, err = cli.Get(data)
-		if err != nil {
+		res, err := cli.Get(data)
+		if err != nil || res != data {
 			t.Fatal(err)
 		}
 	})

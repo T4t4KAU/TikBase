@@ -8,8 +8,8 @@ import (
 )
 
 type (
-	Subscriber chan *Message
-	Filter     func(msg *Message) bool
+	Subscriber chan Message
+	Filter     func(msg Message) bool
 	Consumer   func(ch Subscriber)
 )
 
@@ -19,7 +19,7 @@ type Message struct {
 }
 
 type Queue interface {
-	Publish(message *Message)
+	Publish(message Message)
 	Subscribe(topic string, size int) (Subscriber, bool)
 	Evict(sub Subscriber)
 }
@@ -59,7 +59,7 @@ func (mq *MessageQueue) Evict(sub Subscriber) {
 }
 
 // Publish 发布
-func (mq *MessageQueue) Publish(message *Message) {
+func (mq *MessageQueue) Publish(message Message) {
 	mq.mutex.RLock()
 	defer mq.mutex.RUnlock()
 
@@ -70,7 +70,7 @@ func (mq *MessageQueue) Publish(message *Message) {
 	}
 }
 
-func (mq *MessageQueue) send(sub Subscriber, filter Filter, message *Message) {
+func (mq *MessageQueue) send(sub Subscriber, filter Filter, message Message) {
 	if filter != nil && !filter(message) {
 		return
 	}

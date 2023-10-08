@@ -9,10 +9,10 @@ import (
 
 // Cache 代表缓存结构体
 type Cache struct {
-	segmentSize int        // segment数量
-	segments    []*segment // 存储segment实例
-	options     *Options   // 缓存配置
-	dumping     int32      // 标识当前缓存是否处于持久化状态 处于持久化状态则所有更新操作自旋
+	segmentSize int       // segment数量
+	segments    []segment // 存储segment实例
+	options     *Options  // 缓存配置
+	dumping     int32     // 标识当前缓存是否处于持久化状态 处于持久化状态则所有更新操作自旋
 }
 
 // New 返回默认配置的缓存对象
@@ -27,15 +27,15 @@ func NewCacheWith(options Options) *Cache {
 	}
 	return &Cache{
 		segmentSize: options.SegmentSize,
-		segments:    newSegments(&options), // 初始化所有segment
+		segments:    newSegments(options), // 初始化所有segment
 		options:     &options,
 		dumping:     0,
 	}
 }
 
 // 创建segment
-func newSegments(options *Options) []*segment {
-	segments := make([]*segment, options.SegmentSize)
+func newSegments(options Options) []segment {
+	segments := make([]segment, options.SegmentSize)
 	for i := 0; i < options.SegmentSize; i++ {
 		segments[i] = newSegment(options)
 	}
@@ -55,7 +55,7 @@ func index(key string) int {
 
 // 返回key对应的segment
 func (c *Cache) segmentOf(key string) *segment {
-	return c.segments[index(key)&(c.segmentSize-1)]
+	return &c.segments[index(key)&(c.segmentSize-1)]
 }
 
 // 从dump文件中恢复缓存
@@ -94,7 +94,7 @@ func (c *Cache) Keys() [][]byte {
 
 	keys := make([][]byte, 0)
 	for _, seg := range c.segments {
-		for key, _ := range seg.Data {
+		for key := range seg.Data {
 			keys = append(keys, []byte(key))
 		}
 	}
@@ -138,7 +138,7 @@ func (c *Cache) Status() Status {
 		result.KeySize += status.KeySize
 		result.ValueSize += status.ValueSize
 	}
-	return *result
+	return result
 }
 
 // 清理缓存中过期数据
@@ -147,7 +147,7 @@ func (c *Cache) gc() {
 	wg := &sync.WaitGroup{}
 	for _, seg := range c.segments {
 		wg.Add(1)
-		go func(s *segment) {
+		go func(s segment) {
 			defer wg.Done()
 			s.gc()
 		}(seg)

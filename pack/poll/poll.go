@@ -17,7 +17,7 @@ type NetPoll struct {
 	nconnect int32
 }
 
-func New(config *Config, handler iface.Handler) *NetPoll {
+func New(config Config, handler iface.Handler) *NetPoll {
 	return &NetPoll{
 		reactor:  NewReactor(config.MaxConnect),
 		closeCh:  make(chan struct{}),
@@ -50,5 +50,6 @@ func (p *NetPoll) EventLoop() {
 		return
 	}
 	reactor := NewReactor(p.nconnect)
-	reactor.Run(lis, p.closeCh, p.handler)
+	reactor.handler = p.handler
+	reactor.Run(lis, p.closeCh)
 }
