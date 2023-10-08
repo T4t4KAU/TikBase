@@ -6,7 +6,6 @@ import (
 	"TikBase/pack/net/tcp/resp"
 	"TikBase/pack/net/tcp/tiko"
 	"TikBase/pack/poll"
-	"github.com/go-redis/redis"
 	"net"
 	"net/http"
 	"strconv"
@@ -147,34 +146,6 @@ func TestRespServer(t *testing.T) {
 		data := strconv.Itoa(no)
 		res, err := cli.Get(data)
 		if err != nil || res != data {
-			t.Fatal(err)
-		}
-	})
-	t.Logf("consume read time: %s\n", readTime)
-}
-
-func TestRedisServer(t *testing.T) {
-	// 创建 Redis 客户端
-	client := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379", // Redis 服务器地址和端口
-		Password: "",               // Redis 服务器密码
-		DB:       0,                // Redis 数据库索引
-	})
-
-	writeTime := testTask(func(no int) {
-		data := strconv.Itoa(no)
-		err := client.Set(data, data, 0).Err()
-		if err != nil {
-			t.Fatal(err)
-		}
-	})
-
-	t.Logf("consume write time: %s\n", writeTime)
-	time.Sleep(3 * time.Second)
-	readTime := testTask(func(no int) {
-		data := strconv.Itoa(no)
-		_, err := client.Get(data).Result()
-		if err != nil {
 			t.Fatal(err)
 		}
 	})

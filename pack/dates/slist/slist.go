@@ -3,7 +3,6 @@ package slist
 import (
 	"TikBase/iface"
 	"TikBase/pack/utils"
-	"fmt"
 	"math/rand"
 	"time"
 )
@@ -118,31 +117,6 @@ func (list *List) Insert(key string, val iface.Value) bool {
 	}
 
 	return true
-}
-
-// Print 打印跳表
-func (list *List) Print() {
-	if list.Head == nil || list.Head.Next == nil {
-		return
-	}
-
-	// 从顶层开始打印
-	level := list.Level()
-	curr := list.Head
-
-	for level >= 0 {
-		node := curr.Next
-
-		fmt.Printf("Level %d: ", level)
-		for node != nil {
-			fmt.Printf("%v -> ", node.Value.String())
-			node = node.Next
-		}
-		fmt.Println()
-
-		curr = curr.Down
-		level--
-	}
 }
 
 // Remove 删除元素

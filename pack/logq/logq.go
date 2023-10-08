@@ -44,7 +44,7 @@ func New(name string, consumer queue.Consumer) iface.Channel {
 	ch.consumer = consumer
 
 	// 订阅指定topic
-	ch.sub = once.Subscribe(func(msg *queue.Message) bool {
+	ch.sub = once.Subscribe(func(msg queue.Message) bool {
 		return msg.Topic == name
 	})
 

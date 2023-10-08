@@ -32,7 +32,7 @@ type MessageQueue struct {
 	workers     *conc.Pool // 超时时间
 }
 
-func New(config *Config) *MessageQueue {
+func New(config Config) *MessageQueue {
 	return &MessageQueue{
 		subscribers: make(map[Subscriber]Filter),
 		workers:     conc.NewPool("message queue", config.nworker),
