@@ -2,6 +2,37 @@
 
 基于 Go 语言开发，学习存储方面的知识
 
+服务端启动方式(占用9999端口)：
+```bash
+go run main.go -proto tiko -name cache
+```
+
+客户端启动方式：
+```bash
+go run client/main.go
+```
+
+命令行操作：
+```bash
+ _____ _ _    ____                 
+|_   _(_) | _| __ )  __ _ ___  ___ 
+  | | | | |/ /  _ \ / _` / __|/ _ \
+  | | | |   <| |_) | (_| \__ \  __/
+  |_| |_|_|\_\____/ \__,_|___/\___|
+
+connecting to:  127.0.0.1:9999
+> set key value   # 设置键值对
+[OK]
+> get key
+value
+> expire key 3   # 设置过期时间
+[OK]
+> del key        # 删除键值对
+[OK]
+> get key        # 获取键值对
+[KEY NOT FOUND]
+```
+
 ## 已经支持
 1. 基本功能：单机KV存储
 2. 线程池：可达百万并发量
