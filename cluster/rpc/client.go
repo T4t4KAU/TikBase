@@ -16,11 +16,11 @@ import (
 // Call represents an active RPC.
 type Call struct {
 	Seq           uint64
-	ServiceMethod string      // format "<service>.<method>"
-	Args          interface{} // arguments to the function
-	Reply         interface{} // reply from the function
-	Error         error       // if error occurs, it will be set
-	Done          chan *Call  // Strobes when call is complete.
+	ServiceMethod string      // 调用格式为"服务名.方法名"
+	Args          interface{} // 函数参数
+	Reply         interface{} // 回复
+	Error         error       // 错误
+	Done          chan *Call  // 调用
 }
 
 // 通知调用完成
@@ -29,15 +29,15 @@ func (call *Call) done() {
 }
 
 type Client struct {
-	cc       codec.Codec
+	cc       codec.Codec // 编解码器
 	opt      *Option
 	sm       sync.Mutex // sending mutex
 	header   codec.Header
 	cm       sync.Mutex // common mutex
 	seq      uint64
-	pending  map[uint64]*Call
-	closing  bool
+	pending  map[uint64]*Call // 就绪	closing  bool
 	shutdown bool
+	closing  bool
 }
 
 var _ io.Closer = (*Client)(nil)

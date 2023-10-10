@@ -1,4 +1,4 @@
-package chash
+package cluster
 
 import (
 	"testing"

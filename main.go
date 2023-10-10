@@ -63,7 +63,7 @@ func StartServer(name, proto string) {
 		panic(err)
 	}
 
-	p := poll.New(&poll.Config{
+	p := poll.New(poll.Config{
 		Address:    address,
 		MaxConnect: 20,
 		Timeout:    time.Second,
