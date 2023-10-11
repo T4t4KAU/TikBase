@@ -40,7 +40,7 @@ func TestSendLog(t *testing.T) {
 	q := queue.New(queue.DefaultConfig)
 
 	go func() {
-		ch := q.Subscribe(func(msg *queue.Message) bool {
+		ch := q.Subscribe(func(msg queue.Message) bool {
 			return msg.Topic == "test"
 		})
 
@@ -51,7 +51,7 @@ func TestSendLog(t *testing.T) {
 
 	for i := 0; i < 50; i++ {
 		logger.Info("test log")
-		q.Publish(&queue.Message{
+		q.Publish(queue.Message{
 			Topic: "test",
 			Data:  buff.String(),
 		})
