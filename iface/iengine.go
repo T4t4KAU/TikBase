@@ -50,3 +50,9 @@ type Result interface {
 	Status() int
 	Data() [][]byte
 }
+
+type Indexer interface {
+	Get(key string) (Value, bool)
+	Set(key string, value Value) bool
+	Del(key string) bool
+}

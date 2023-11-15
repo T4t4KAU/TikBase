@@ -6,7 +6,6 @@ import (
 	"TikBase/pack/utils"
 	"bufio"
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"runtime/debug"
@@ -15,7 +14,7 @@ import (
 )
 
 var (
-	errProtocolError = errors.New(fmt.Sprintf("protocol error"))
+	errProtocolError = fmt.Errorf("protocol error")
 )
 
 type Payload struct {
@@ -301,6 +300,6 @@ func readMultiBulk(header []byte, reader *bufio.Reader, payloads *[]*Payload) er
 }
 
 func protocolError(ch chan<- *Payload, msg []byte) {
-	err := errors.New(fmt.Sprintf("protocol error: %s", string(msg)))
+	err := fmt.Errorf("protocol error: %s", string(msg))
 	ch <- &Payload{Err: err}
 }
