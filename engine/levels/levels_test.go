@@ -11,11 +11,11 @@ import (
 func TestLevels_Get(t *testing.T) {
 	c := New()
 	v := values.New([]byte("value1"), 0, iface.STRING)
-	c.Set("key1", v)
+	c.Set("key1", &v)
 	res, _ := c.Get("key1")
 	println(res.String())
 	v = values.New([]byte("value2"), 0, iface.STRING)
-	c.Set("key2", v)
+	c.Set("key2", &v)
 	res, _ = c.Get("key2")
 	println(res.String())
 

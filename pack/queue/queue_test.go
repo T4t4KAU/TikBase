@@ -6,13 +6,13 @@ import (
 )
 
 func TestMessageQueue_Publish(t *testing.T) {
-	q := New(&Config{
+	q := New(Config{
 		timeout:  time.Second,
 		capacity: 10,
 		nworker:  5,
 	})
 
-	ch := q.Subscribe(func(msg *Message) bool {
+	ch := q.Subscribe(func(msg Message) bool {
 		return msg.Topic == "test"
 	})
 
@@ -23,7 +23,7 @@ func TestMessageQueue_Publish(t *testing.T) {
 	}()
 
 	for i := 1; i <= 50; i++ {
-		ch <- &Message{
+		ch <- Message{
 			Topic: "test",
 			Data:  i,
 		}
@@ -33,13 +33,13 @@ func TestMessageQueue_Publish(t *testing.T) {
 }
 
 func TestMessageQueue_Subscribe(t *testing.T) {
-	q := New(&Config{
+	q := New(Config{
 		timeout:  time.Second,
 		capacity: 10,
 		nworker:  5,
 	})
 
-	ch := q.Subscribe(func(msg *Message) bool {
+	ch := q.Subscribe(func(msg Message) bool {
 		return msg.Topic == "test"
 	})
 
@@ -50,7 +50,7 @@ func TestMessageQueue_Subscribe(t *testing.T) {
 	}()
 
 	for i := 1; i <= 50; i++ {
-		q.Publish(&Message{
+		q.Publish(Message{
 			Topic: "test",
 			Data:  time.Now().Format("2006-01-02 15:04:05"),
 		})
