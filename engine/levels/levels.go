@@ -12,10 +12,10 @@ type Levels struct {
 	*slist.List
 }
 
-func New() *Levels {
+func New() (*Levels, error) {
 	return &Levels{
 		List: slist.New(),
-	}
+	}, nil
 }
 
 func (ls *Levels) Get(key string) (iface.Value, bool) {

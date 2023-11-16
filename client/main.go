@@ -21,7 +21,7 @@ var (
 	errNumOfArguments = errors.New("invalid number of arguments")
 	errInvalidCommand = errors.New("invalid command")
 
-	address = "127.0.0.1:9999"
+	address = "127.0.0.1:9096"
 )
 
 type Client interface {

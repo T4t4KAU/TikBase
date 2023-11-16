@@ -8,7 +8,7 @@ import (
 )
 
 func TestCache_Set(t *testing.T) {
-	c := New()
+	c, _ := New()
 	v := values.New([]byte("value"), 0, iface.STRING)
 	c.Set("key", &v)
 	res, _ := c.Get("key")
@@ -16,7 +16,7 @@ func TestCache_Set(t *testing.T) {
 }
 
 func TestCache_Expire(t *testing.T) {
-	c := New()
+	c, _ := New()
 	v := values.New([]byte("value"), 0, iface.STRING)
 	c.Set("key", &v)
 	res, _ := c.Get("key")

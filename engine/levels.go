@@ -4,6 +4,7 @@ import (
 	"TikBase/engine/levels"
 	"TikBase/engine/values"
 	"TikBase/iface"
+	"TikBase/pack/errorx"
 	"errors"
 )
 
@@ -11,10 +12,15 @@ type LevelEngine struct {
 	*levels.Levels
 }
 
-func NewLevelEngine() *LevelEngine {
-	return &LevelEngine{
-		levels.New(),
+func NewLevelEngine() (*LevelEngine, error) {
+	ls, err := levels.New()
+	if err != nil {
+		return nil, err
 	}
+
+	return &LevelEngine{
+		Levels: ls,
+	}, nil
 }
 
 type LevelResult struct {
@@ -80,7 +86,7 @@ func (eng *LevelEngine) ExecGetString(args [][]byte) *LevelResult {
 	if !ok {
 		return &LevelResult{
 			succ: false,
-			err:  errKeyNotFound,
+			err:  errorx.ErrKeyNotFound,
 		}
 	}
 	return &LevelResult{
@@ -95,7 +101,7 @@ func (eng *LevelEngine) ExecDelKey(args [][]byte) *LevelResult {
 	if !ok {
 		return &LevelResult{
 			succ: false,
-			err:  errKeyNotFound,
+			err:  errorx.ErrKeyNotFound,
 		}
 	}
 	return &LevelResult{

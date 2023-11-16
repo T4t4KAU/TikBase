@@ -9,7 +9,7 @@ import (
 )
 
 func TestLevels_Get(t *testing.T) {
-	c := New()
+	c, _ := New()
 	v := values.New([]byte("value1"), 0, iface.STRING)
 	c.Set("key1", &v)
 	res, _ := c.Get("key1")

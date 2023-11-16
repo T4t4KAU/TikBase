@@ -3,10 +3,13 @@ package utils
 import (
 	"bytes"
 	"encoding/binary"
+	"math/rand"
 	"reflect"
 	"time"
 	"unsafe"
 )
+
+const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 // Copy 数据复制
 func Copy(src []byte) []byte {
@@ -59,4 +62,15 @@ func StringToBytes(s string) (b []byte) {
 
 func BytesToString(b []byte) string {
 	return *(*string)(unsafe.Pointer(&b))
+}
+
+func GenerateRandomString(length int) string {
+	rand.Seed(time.Now().UnixNano())
+
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = charset[rand.Intn(len(charset))]
+	}
+
+	return string(b)
 }

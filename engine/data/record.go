@@ -84,3 +84,15 @@ func DecodeLogRecordHeader(buf []byte) (*LogRecordHeader, int64) {
 
 	return header, int64(index)
 }
+
+func getLogRecordCRC(rec *LogRecord, header []byte) uint32 {
+	if rec == nil {
+		return 0
+	}
+
+	crc := crc32.ChecksumIEEE(header[:])
+	crc = crc32.Update(crc, crc32.IEEETable, rec.Key)
+	crc = crc32.Update(crc, crc32.IEEETable, rec.Value)
+
+	return crc
+}

@@ -4,6 +4,7 @@ import (
 	"TikBase/engine/caches"
 	"TikBase/engine/values"
 	"TikBase/iface"
+	"TikBase/pack/errorx"
 	"errors"
 )
 
@@ -11,10 +12,14 @@ type CacheEngine struct {
 	*caches.Cache
 }
 
-func NewCacheEngine() *CacheEngine {
-	return &CacheEngine{
-		caches.New(),
+func NewCacheEngine() (*CacheEngine, error) {
+	c, err := caches.New()
+	if err != nil {
+		return nil, err
 	}
+	return &CacheEngine{
+		Cache: c,
+	}, nil
 }
 
 type CacheResult struct {
@@ -77,7 +82,7 @@ func (eng *CacheEngine) ExecSetString(args [][]byte) *CacheResult {
 	if !ok {
 		return &CacheResult{
 			succ: false,
-			err:  errExceedCapacity,
+			err:  errorx.ErrExceedCapacity,
 		}
 	}
 	return NewSuccCacheResult()
@@ -89,7 +94,7 @@ func (eng *CacheEngine) ExecGetString(args [][]byte) *CacheResult {
 	if !ok {
 		return &CacheResult{
 			succ: false,
-			err:  errKeyNotFound,
+			err:  errorx.ErrKeyNotFound,
 		}
 	}
 	return &CacheResult{
@@ -104,7 +109,7 @@ func (eng *CacheEngine) ExecDelKey(args [][]byte) *CacheResult {
 	if !ok {
 		return &CacheResult{
 			succ: false,
-			err:  errKeyNotFound,
+			err:  errorx.ErrKeyNotFound,
 		}
 	}
 	return &CacheResult{
@@ -119,7 +124,7 @@ func (eng *CacheEngine) ExecExpire(args [][]byte) *CacheResult {
 	if !ok {
 		return &CacheResult{
 			succ: false,
-			err:  errKeyNotFound,
+			err:  errorx.ErrKeyNotFound,
 		}
 	}
 	return &CacheResult{

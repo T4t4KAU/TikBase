@@ -50,7 +50,7 @@ func (d *dump) to(dumpFile string) error {
 	// 使用Gob编码
 	err = gob.NewEncoder(file).Encode(d)
 	if err != nil {
-		os.Remove(newDumpFile)
+		_ = os.Remove(newDumpFile)
 		return err
 	}
 

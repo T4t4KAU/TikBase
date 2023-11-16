@@ -15,7 +15,7 @@ import (
 var proto, name *string
 var logo = " _____ _ _    ____                 \n|_   _(_) | _| __ )  __ _ ___  ___ \n  | | | | |/ /  _ \\ / _` / __|/ _ \\\n  | | | |   <| |_) | (_| \\__ \\  __/\n  |_| |_|_|\\_\\____/ \\__,_|___/\\___|\n"
 
-const address = "127.0.0.1:9999"
+const address = "127.0.0.1:9096"
 
 func init() {
 	// 定义命令行参数
@@ -51,8 +51,12 @@ func StartServer(name, proto string) {
 	}
 
 	if proto == "http" {
-		s := http.NewServer(engine.NewCacheEngine())
-		err = s.Run(":9999")
+		eng, err = engine.NewCacheEngine()
+		if err != nil {
+			panic(err)
+		}
+		s := http.NewServer(eng)
+		err = s.Run(":9096")
 		if err != nil {
 			panic(err)
 		}

@@ -1,6 +1,6 @@
 package iface
 
-type Type uint8
+type Type byte
 
 const (
 	NULL Type = iota

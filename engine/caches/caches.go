@@ -16,21 +16,21 @@ type Cache struct {
 }
 
 // New 返回默认配置的缓存对象
-func New() *Cache {
+func New() (*Cache, error) {
 	return NewCacheWith(DefaultOptions())
 }
 
 // NewCacheWith 返回一个指定配置的缓存对象
-func NewCacheWith(options Options) *Cache {
+func NewCacheWith(options Options) (*Cache, error) {
 	if cache, ok := recoverFromDumpFile(options.DumpFile); ok {
-		return cache
+		return cache, nil
 	}
 	return &Cache{
 		segmentSize: options.SegmentSize,
 		segments:    newSegments(options), // 初始化所有segment
 		options:     &options,
 		dumping:     0,
-	}
+	}, nil
 }
 
 // 创建segment

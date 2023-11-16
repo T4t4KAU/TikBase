@@ -28,7 +28,8 @@ func testTask(task func(no int)) string {
 }
 
 func startHTTPServer() {
-	s := http2.NewServer(engine.NewCacheEngine())
+	eng, _ := engine.NewCacheEngine()
+	s := http2.NewServer(eng)
 	err := s.Run(":9999")
 	if err != nil {
 		panic(err)
@@ -72,7 +73,7 @@ func TestHTTPServer(t *testing.T) {
 }
 
 func startServer() {
-	eng := engine.NewCacheEngine()
+	eng, _ := engine.NewCacheEngine()
 	p := poll.New(poll.Config{
 		Address:    "127.0.0.1:9999",
 		MaxConnect: 1000,

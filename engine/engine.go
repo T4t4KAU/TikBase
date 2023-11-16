@@ -7,11 +7,6 @@ import (
 
 var engines = make(map[string]iface.Engine)
 
-var (
-	errKeyNotFound    = errors.New("key not found")
-	errExceedCapacity = errors.New("data exceeds capacity")
-)
-
 func RegisterEngine(name string, eng iface.Engine) {
 	engines[name] = eng
 }
@@ -19,9 +14,11 @@ func RegisterEngine(name string, eng iface.Engine) {
 func NewEngine(name string) (iface.Engine, error) {
 	switch name {
 	case "cache":
-		return NewCacheEngine(), nil
+		return NewCacheEngine()
 	case "level":
-		return NewLevelEngine(), nil
+		return NewLevelEngine()
+	case "base":
+		return NewBaseEngine()
 	default:
 		return nil, errors.New("invalid engine")
 	}
