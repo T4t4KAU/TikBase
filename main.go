@@ -3,35 +3,17 @@ package main
 import (
 	"TikBase/engine"
 	"TikBase/iface"
+	"TikBase/pack/config"
 	"TikBase/pack/net/http"
 	"TikBase/pack/net/tcp/resp"
 	"TikBase/pack/net/tcp/tiko"
 	"TikBase/pack/poll"
 	"errors"
-	"flag"
+	"strconv"
 	"time"
 )
 
-var proto, name *string
 var logo = " _____ _ _    ____                 \n|_   _(_) | _| __ )  __ _ ___  ___ \n  | | | | |/ /  _ \\ / _` / __|/ _ \\\n  | | | |   <| |_) | (_| \\__ \\  __/\n  |_| |_|_|\\_\\____/ \\__,_|___/\\___|\n"
-
-const address = "127.0.0.1:9096"
-
-func init() {
-	// 定义命令行参数
-	proto = flag.String("proto", "tiko", "Protocol")
-	name = flag.String("name", "cache", "Engine")
-
-	// 解析命令行参数
-	flag.Parse()
-
-	if proto == nil {
-		*proto = "tiko"
-	}
-	if name == nil {
-		*name = "cache"
-	}
-}
 
 func NewHandler(name string, eng iface.Engine) (iface.Handler, error) {
 	switch name {
@@ -44,13 +26,13 @@ func NewHandler(name string, eng iface.Engine) (iface.Handler, error) {
 	}
 }
 
-func StartServer(name, proto string) {
-	eng, err := engine.NewEngine(name)
+func startServer(config config.Config) {
+	eng, err := engine.NewEngine(config.Type)
 	if err != nil {
 		panic(err)
 	}
 
-	if proto == "http" {
+	if config.Protocol == "http" {
 		eng, err = engine.NewCacheEngine()
 		if err != nil {
 			panic(err)
@@ -62,14 +44,14 @@ func StartServer(name, proto string) {
 		}
 	}
 
-	handler, err := NewHandler(proto, eng)
+	handler, err := NewHandler(config.Protocol, eng)
 	if err != nil {
 		panic(err)
 	}
 
 	p := poll.New(poll.Config{
-		Address:    address,
-		MaxConnect: 20,
+		Address:    ":" + strconv.Itoa(config.TcpPort),
+		MaxConnect: int32(config.MaxConn),
 		Timeout:    time.Second,
 	}, handler)
 
@@ -81,6 +63,11 @@ func StartServer(name, proto string) {
 
 func main() {
 	println(logo)
-	println("using protocol:", *proto, "\nusing engine:", *name, "\nstart server at", address)
-	StartServer(*name, *proto)
+	c, err := config.ReadConfigFile("config.json")
+	if err != nil {
+		panic(err)
+	}
+
+	println("using protocol:", c.Protocol, "\nusing engine:", c.Type, "\nstart server at", c.Host)
+	startServer(*c)
 }
