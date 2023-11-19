@@ -10,6 +10,7 @@ type LogRecordType = byte
 const (
 	LogRecordNormal LogRecordType = iota
 	LogRecordDeleted
+	LogRecordTxnFinished
 )
 
 const maxLogRecordHeaderSize = binary.MaxVarintLen32*2 + 5
@@ -30,6 +31,37 @@ type LogRecordHeader struct {
 type LogRecordPos struct {
 	Fid    uint32
 	Offset int64
+}
+
+type TxRecord struct {
+	Record *LogRecord
+	Pos    *LogRecordPos
+}
+
+// DecodeLogRecordHeader 对字节数组中的 Header 信息进行解码
+func DecodeLogRecordHeader(buf []byte) (*LogRecordHeader, int64) {
+	if len(buf) <= 4 {
+		return nil, 0
+	}
+
+	header := &LogRecordHeader{
+		crc:        binary.LittleEndian.Uint32(buf[:4]),
+		recordType: buf[4],
+	}
+
+	var index = 5
+
+	// 取出实际的 key size
+	keySize, n := binary.Varint(buf[index:])
+	header.keySize = uint32(keySize)
+	index += n
+
+	// 取出实际的 value size
+	valueSize, n := binary.Varint(buf[index:])
+	header.valueSize = uint32(valueSize)
+	index += n
+
+	return header, int64(index)
 }
 
 func EncodeLogRecord(rec *LogRecord) ([]byte, int64) {
@@ -57,32 +89,6 @@ func EncodeLogRecord(rec *LogRecord) ([]byte, int64) {
 	binary.LittleEndian.PutUint32(encBytes[:4], crc)
 
 	return encBytes, int64(size)
-}
-
-// DecodeLogRecordHeader 对字节数组中的 Header 信息进行解码
-func DecodeLogRecordHeader(buf []byte) (*LogRecordHeader, int64) {
-	if len(buf) <= 4 {
-		return nil, 0
-	}
-
-	header := &LogRecordHeader{
-		crc:        binary.LittleEndian.Uint32(buf[:4]),
-		recordType: buf[4],
-	}
-
-	var index = 5
-
-	// 取出实际的 key size
-	keySize, n := binary.Varint(buf[index:])
-	header.keySize = uint32(keySize)
-	index += n
-
-	// 取出实际的 value size
-	valueSize, n := binary.Varint(buf[index:])
-	header.valueSize = uint32(valueSize)
-	index += n
-
-	return header, int64(index)
 }
 
 func getLogRecordCRC(rec *LogRecord, header []byte) uint32 {

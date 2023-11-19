@@ -14,14 +14,17 @@ func NewFileIOManager(name string) (*FileIO, error) {
 	return &FileIO{fd: fd}, nil
 }
 
+// 读取偏移处数据
 func (fio *FileIO) Read(b []byte, offset int64) (int, error) {
 	return fio.fd.ReadAt(b, offset)
 }
 
+// 向偏移处写入数据
 func (fio *FileIO) Write(b []byte) (int, error) {
 	return fio.fd.Write(b)
 }
 
+// Sync 持久化
 func (fio *FileIO) Sync() error {
 	return fio.fd.Sync()
 }

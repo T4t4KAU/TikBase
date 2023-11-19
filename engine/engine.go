@@ -2,6 +2,7 @@ package engine
 
 import (
 	"TikBase/iface"
+	"TikBase/pack/utils"
 	"errors"
 )
 
@@ -22,4 +23,12 @@ func NewEngine(name string) (iface.Engine, error) {
 	default:
 		return nil, errors.New("invalid engine")
 	}
+}
+
+func parseSetStringArgs(args [][]byte) string {
+	return string(args[1])
+}
+
+func parseExpireKeyArgs(args [][]byte) int64 {
+	return utils.BytesToInt64(args[1])
 }

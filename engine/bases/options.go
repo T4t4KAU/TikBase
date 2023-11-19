@@ -1,6 +1,8 @@
 package bases
 
-import "os"
+import (
+	"os"
+)
 
 const (
 	BT IndexerType = iota + 1
@@ -30,4 +32,24 @@ var DefaultOptions = Options{
 	DataFileSize: 256 * 1024 * 1024, // 256MB
 	SyncWrites:   false,
 	IndexType:    BT,
+}
+
+type IteratorOptions struct {
+	Prefix  []byte
+	Reverse bool
+}
+
+type WriteBatchOptions struct {
+	MaxBatchNum uint // 一个批次当中最大的数据量
+	SyncWriters bool // 提交时是否Sync持久化
+}
+
+var DefaultIteratorOptions = IteratorOptions{
+	Prefix:  nil,
+	Reverse: false,
+}
+
+var DefaultWriteBatchOptions = WriteBatchOptions{
+	MaxBatchNum: 10000,
+	SyncWriters: true,
 }

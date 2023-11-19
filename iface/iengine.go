@@ -1,5 +1,7 @@
 package iface
 
+import "TikBase/engine/data"
+
 type INS int
 
 const (
@@ -55,4 +57,22 @@ type Indexer interface {
 	Get(key string) (Value, bool)
 	Set(key string, value Value) bool
 	Del(key string) bool
+}
+
+type Iterator interface {
+	// 回到起点
+	Rewind()
+
+	// 根据传入的key查找到第一个大于或小于等于的目标key
+	Seek(key []byte)
+
+	// 跳转到下一个key
+	Next()
+
+	// Valid 是否有效 即是否已经遍历完了所有key
+	Valid() bool
+
+	Key() []byte
+	Value() *data.LogRecordPos
+	Close()
 }

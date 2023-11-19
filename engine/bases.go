@@ -72,6 +72,13 @@ func (eng *BaseEngine) Exec(ins iface.INS, args [][]byte) iface.Result {
 }
 
 func (eng *BaseEngine) ExecSetString(args [][]byte) iface.Result {
+	if len(args[0]) <= 0 {
+		return &BaseResult{
+			succ: false,
+			err:  errorx.ErrKeyIsEmpty,
+		}
+	}
+
 	val := values.New(args[1], 0, iface.STRING)
 	ok := eng.SetBytes(args[0], &val)
 	if !ok {
@@ -84,6 +91,13 @@ func (eng *BaseEngine) ExecSetString(args [][]byte) iface.Result {
 }
 
 func (eng *BaseEngine) ExecGetString(args [][]byte) iface.Result {
+	if len(args[0]) <= 0 {
+		return &BaseResult{
+			succ: false,
+			err:  errorx.ErrKeyIsEmpty,
+		}
+	}
+
 	val, ok := eng.Get(utils.BytesToString(args[0]))
 	if !ok {
 		return &BaseResult{
@@ -98,6 +112,13 @@ func (eng *BaseEngine) ExecGetString(args [][]byte) iface.Result {
 }
 
 func (eng *BaseEngine) ExecDelKey(args [][]byte) iface.Result {
+	if len(args[0]) <= 0 {
+		return &BaseResult{
+			succ: false,
+			err:  errorx.ErrKeyIsEmpty,
+		}
+	}
+
 	ok := eng.Del(utils.BytesToString(args[0]))
 	if !ok {
 		return &BaseResult{

@@ -2,8 +2,10 @@ package btree
 
 import (
 	"TikBase/engine/data"
+	"TikBase/iface"
 	"bytes"
 	"github.com/google/btree"
+	"sort"
 	"sync"
 )
 
@@ -54,4 +56,89 @@ func (tree *Tree) Delete(key []byte) bool {
 		return false
 	}
 	return true
+}
+
+func (tree *Tree) Size() int {
+	return tree.tree.Len()
+}
+
+func (tree *Tree) Close() error {
+	return nil
+}
+
+type iterator struct {
+	currIndex int
+	reverse   bool
+	values    []*Item
+}
+
+func (it *iterator) Rewind() {
+	it.currIndex = 0
+}
+
+func (it *iterator) Seek(key []byte) {
+	if it.reverse {
+		it.currIndex = sort.Search(len(it.values), func(i int) bool {
+			return bytes.Compare(it.values[i].key, key) <= 0
+		})
+	} else {
+		it.currIndex = sort.Search(len(it.values), func(i int) bool {
+			return bytes.Compare(it.values[i].key, key) >= 0
+		})
+	}
+}
+
+func (it *iterator) Next() {
+	it.currIndex += 1
+}
+
+func (it *iterator) Valid() bool {
+	return it.currIndex < len(it.values)
+}
+
+func (it *iterator) Key() []byte {
+	return it.values[it.currIndex].key
+}
+
+func (it *iterator) Value() *data.LogRecordPos {
+	return it.values[it.currIndex].pos
+}
+
+func (it *iterator) Close() {
+	it.values = nil
+}
+
+func (tree *Tree) Iterator(reverse bool) iface.Iterator {
+	if tree.tree == nil {
+		return nil
+	}
+	tree.mutex.RLock()
+	defer tree.mutex.RLock()
+
+	return newBTreeIterator(tree.tree, reverse)
+}
+
+func newBTreeIterator(tree *btree.BTree, reverse bool) *iterator {
+	var idx int
+
+	values := make([]*Item, tree.Len())
+
+	// 将所有数据放到数组中
+	f := func(it btree.Item) bool {
+		values[idx] = it.(*Item)
+		idx++
+		return true
+	}
+
+	if reverse {
+		tree.Descend(f)
+	} else {
+		tree.Ascend(f)
+	}
+
+	return &iterator{
+		currIndex: 0,
+		reverse:   reverse,
+		values:    values,
+	}
 }
