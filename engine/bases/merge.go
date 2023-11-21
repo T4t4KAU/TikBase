@@ -160,7 +160,7 @@ func (b *Base) Merge() error {
 func (b *Base) getMergePath() string {
 	dir := path.Dir(path.Clean(b.options.DirPath))
 	base := path.Base(b.options.DirPath)
-	return filepath.Join(dir, base+"")
+	return filepath.Join(dir, base+mergeDirName)
 }
 
 func (b *Base) logMergeFiles() error {

@@ -66,7 +66,9 @@ func TestBase_NewIterator(t *testing.T) {
 
 func TestBase_Multi_Values(t *testing.T) {
 	opts := DefaultOptions
-	dir, _ := os.MkdirTemp("", "temp1")
+	dir, err := os.MkdirTemp("", "tikbase")
+	assert.Nil(t, err)
+
 	opts.DirPath = dir
 	base, err := NewBaseWith(opts)
 

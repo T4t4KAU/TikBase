@@ -24,9 +24,21 @@ const (
 	mergeFinishedKey = "merge.finished"
 )
 
+// NewIndexer 根据类型初始化索引
+func NewIndexer(typ IndexerType) iface.Indexer {
+	switch typ {
+	case BT:
+		return btree.New()
+	case ART:
+		return nil
+	default:
+		panic("unsupported index type")
+	}
+}
+
 // Base 存储引擎
 type Base struct {
-	index      *btree.Tree
+	index      iface.Indexer
 	mutex      sync.RWMutex
 	activeFile *data.File
 	olderFiles map[uint32]*data.File
@@ -58,7 +70,7 @@ func NewBaseWith(options Options) (*Base, error) {
 	base := &Base{
 		options:    options,
 		olderFiles: make(map[uint32]*data.File),
-		index:      btree.New(),
+		index:      NewIndexer(options.IndexType),
 	}
 
 	// 加载merge数据目录
@@ -301,7 +313,7 @@ func (b *Base) LoadIndexFromDataFiles() error {
 	// 检查是否已经merge
 	hasMerge, nonMergeFileId := false, uint32(0)
 	mergeFinFileName := filepath.Join(b.options.DirPath, data.MergeFinishedFileName)
-	if _, err := os.Stat(mergeFinFileName); err != nil {
+	if _, err := os.Stat(mergeFinFileName); err == nil {
 		fid, err := b.getNonMergeFileId(b.options.DirPath)
 		if err != nil {
 			return err
