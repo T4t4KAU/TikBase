@@ -33,7 +33,7 @@ func parse0(rawReader io.Reader, ch chan<- *Payload) {
 	defer func() {
 		close(ch)
 		if err := recover(); err != nil {
-			tlog.Error(err, utils.BytesToString(debug.Stack()))
+			tlog.Error(err, utils.B2S(debug.Stack()))
 		}
 	}()
 	reader := bufio.NewReader(rawReader)
@@ -53,14 +53,14 @@ func parse0(rawReader io.Reader, ch chan<- *Payload) {
 		switch line[0] {
 		case '+':
 			ch <- &Payload{
-				Data: MakeStatusReply(utils.BytesToString(line[1:])),
+				Data: MakeStatusReply(utils.B2S(line[1:])),
 			}
 		case '-':
 			ch <- &Payload{
-				Err: MakeErrReply(utils.BytesToString(line[1:])),
+				Err: MakeErrReply(utils.B2S(line[1:])),
 			}
 		case ':':
-			value, err := strconv.ParseInt(utils.BytesToString(line[1:]), 10, 64)
+			value, err := strconv.ParseInt(utils.B2S(line[1:]), 10, 64)
 			if err != nil {
 				protocolError(ch, line)
 				continue
@@ -112,13 +112,13 @@ func readLine(rawReader io.Reader) (payloads []*Payload) {
 		line = bytes.TrimSuffix(line, []byte{'\r', '\n'})
 		switch line[0] {
 		case '+':
-			payload.Data = MakeStatusReply(utils.BytesToString(line[1:]))
+			payload.Data = MakeStatusReply(utils.B2S(line[1:]))
 			goto END
 		case '-':
-			payload.Err = MakeErrReply(utils.BytesToString(line[1:]))
+			payload.Err = MakeErrReply(utils.B2S(line[1:]))
 			goto END
 		case ':':
-			value, err := strconv.ParseInt(utils.BytesToString(line[1:]), 10, 64)
+			value, err := strconv.ParseInt(utils.B2S(line[1:]), 10, 64)
 			if err != nil {
 				payload.Err = err
 				goto END
@@ -152,7 +152,7 @@ func readLine(rawReader io.Reader) (payloads []*Payload) {
 
 func parseBulk(header []byte, reader *bufio.Reader, ch chan<- *Payload) error {
 	// 获取字符串长度
-	strLen, err := strconv.ParseInt(utils.BytesToString(header[1:]), 10, 64)
+	strLen, err := strconv.ParseInt(utils.B2S(header[1:]), 10, 64)
 	if err != nil || strLen < -1 {
 		protocolError(ch, header)
 		return nil
@@ -183,7 +183,7 @@ func readBulk(header []byte, reader *bufio.Reader, payloads []*Payload) error {
 	}()
 
 	// 获取字符串长度
-	strLen, err := strconv.ParseInt(utils.BytesToString(header[1:]), 10, 64)
+	strLen, err := strconv.ParseInt(utils.B2S(header[1:]), 10, 64)
 	if err != nil {
 		payload.Err = err
 		return nil
@@ -205,7 +205,7 @@ func readBulk(header []byte, reader *bufio.Reader, payloads []*Payload) error {
 // example: *3\r\n$3\r\nSET\r\n$3\r\nkey\r\n$5\r\nvalue\r\n
 func parseMultiBulk(header []byte, reader *bufio.Reader, ch chan<- *Payload) error {
 	// 获取数组元素个数
-	n, err := strconv.ParseInt(utils.BytesToString(header[1:]), 10, 64)
+	n, err := strconv.ParseInt(utils.B2S(header[1:]), 10, 64)
 	if err != nil || n < 0 {
 		protocolError(ch, header)
 		return nil
@@ -230,7 +230,7 @@ func parseMultiBulk(header []byte, reader *bufio.Reader, ch chan<- *Payload) err
 		}
 
 		// 读取单个字符串长度
-		strLen, err := strconv.ParseInt(utils.BytesToString(line[1:length-2]), 10, 64)
+		strLen, err := strconv.ParseInt(utils.B2S(line[1:length-2]), 10, 64)
 		if err != nil || strLen < -1 {
 			protocolError(ch, header)
 			break
@@ -255,7 +255,7 @@ func readMultiBulk(header []byte, reader *bufio.Reader, payloads *[]*Payload) er
 	payload := &Payload{}
 
 	// 获取数组元素个数
-	n, err := strconv.ParseInt(utils.BytesToString(header[1:]), 10, 64)
+	n, err := strconv.ParseInt(utils.B2S(header[1:]), 10, 64)
 	if err != nil || n < 0 {
 		payload.Err = err
 		*payloads = append(*payloads, payload)
@@ -279,7 +279,7 @@ func readMultiBulk(header []byte, reader *bufio.Reader, payloads *[]*Payload) er
 		}
 
 		// 读取单个字符串长度
-		strLen, err := strconv.ParseInt(utils.BytesToString(line[1:length-2]), 10, 64)
+		strLen, err := strconv.ParseInt(utils.B2S(line[1:length-2]), 10, 64)
 		if err != nil || strLen < -1 {
 			payload.Err = err
 			break

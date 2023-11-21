@@ -22,7 +22,7 @@ func ParseStream(reader io.Reader) chan *Payload {
 func parse0(reader io.Reader, ch chan *Payload) {
 	defer func() {
 		if err := recover(); err != nil {
-			tlog.Error(err, utils.BytesToString(debug.Stack()))
+			tlog.Error(err, utils.B2S(debug.Stack()))
 		}
 	}()
 

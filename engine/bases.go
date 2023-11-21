@@ -98,7 +98,7 @@ func (eng *BaseEngine) ExecGetString(args [][]byte) iface.Result {
 		}
 	}
 
-	val, ok := eng.Get(utils.BytesToString(args[0]))
+	val, ok := eng.Get(utils.B2S(args[0]))
 	if !ok {
 		return &BaseResult{
 			succ: false,
@@ -119,7 +119,7 @@ func (eng *BaseEngine) ExecDelKey(args [][]byte) iface.Result {
 		}
 	}
 
-	ok := eng.Del(utils.BytesToString(args[0]))
+	ok := eng.Del(utils.B2S(args[0]))
 	if !ok {
 		return &BaseResult{
 			succ: false,

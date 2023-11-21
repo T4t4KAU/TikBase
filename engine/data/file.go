@@ -14,8 +14,9 @@ var (
 )
 
 const (
-	FileNameSuffix = ".data"
-	HintFileName
+	FileNameSuffix        = ".data"
+	HintFileName          = "hint-index"
+	MergeFinishedFileName = "merge-finished"
 )
 
 type File struct {
@@ -39,6 +40,18 @@ func OpenDataFile(dirPath string, fid uint32) (*File, error) {
 		WriteOff:  0,
 		IOManager: iom,
 	}, nil
+}
+
+// OpenHintFile 打开Hint索引文件
+func OpenHintFile(dirPath string) (*File, error) {
+	fileName := filepath.Join(dirPath, HintFileName)
+	return newDataFile(fileName, 0)
+}
+
+// OpenMergeFinishedFile 打开标识merge完成的文件
+func OpenMergeFinishedFile(dirPath string) (*File, error) {
+	fileName := filepath.Join(dirPath, MergeFinishedFileName)
+	return newDataFile(fileName, 0)
 }
 
 // ReadLogRecord 从数据文件读取LogRecord
@@ -95,6 +108,32 @@ func (f *File) ReadLogRecord(offset int64) (*LogRecord, int64, error) {
 		return nil, 0, ErrInvalidCRC
 	}
 	return rec, recordSize, nil
+}
+
+func GetDataFileName(dirPath string, fileId uint32) string {
+	return filepath.Join(dirPath, fmt.Sprintf("%09d", fileId)+FileNameSuffix)
+}
+
+func newDataFile(fileName string, fileId uint32) (*File, error) {
+	iom, err := fio.NewIOManager(fileName)
+	if err != nil {
+		return nil, err
+	}
+	return &File{
+		FileId:    fileId,
+		WriteOff:  0,
+		IOManager: iom,
+	}, nil
+}
+
+func (f *File) WriteHintRecord(key []byte, pos *LogRecordPos) error {
+	hintRecord := &LogRecord{
+		Key:   key,
+		Value: EncodeLogRecordPos(pos),
+	}
+
+	encRecord, _ := EncodeLogRecord(hintRecord)
+	return f.Write(encRecord)
 }
 
 func (f *File) Write(buf []byte) error {

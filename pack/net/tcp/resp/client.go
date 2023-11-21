@@ -18,7 +18,7 @@ func NewClient(conn net.Conn) *Client {
 }
 
 func (c *Client) Get(key string) (string, error) {
-	_, err := writeGetRequest(c.conn, utils.StringToBytes(key))
+	_, err := writeGetRequest(c.conn, utils.S2B(key))
 	if err != nil {
 		return "", err
 	}
@@ -40,7 +40,7 @@ func (c *Client) Get(key string) (string, error) {
 }
 
 func (c *Client) Set(key string, value string) (string, error) {
-	_, err := writeSetRequest(c.conn, utils.StringToBytes(key), utils.StringToBytes(value))
+	_, err := writeSetRequest(c.conn, utils.S2B(key), utils.S2B(value))
 	if err != nil {
 		return "", err
 	}

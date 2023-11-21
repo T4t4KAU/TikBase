@@ -19,7 +19,7 @@ type Handler struct {
 
 func consumer(sub queue.Subscriber) {
 	for msg := range sub {
-		fmt.Println(utils.BytesToString(msg.Data.([]byte)))
+		fmt.Println(utils.B2S(msg.Data.([]byte)))
 	}
 }
 

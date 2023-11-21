@@ -17,7 +17,7 @@ type ConsistentHash struct {
 }
 
 var DefaultHash = func(key []byte) uint32 {
-	i, _ := strconv.Atoi(utils.BytesToString(key))
+	i, _ := strconv.Atoi(utils.B2S(key))
 	return uint32(i)
 }
 

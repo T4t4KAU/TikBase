@@ -62,13 +62,13 @@ func (wb *WriteBatch) Delete(key []byte) error {
 	if pos == nil {
 		// 不存在则从pending中删除
 		if wb.pending[string(key)] != nil {
-			delete(wb.pending, utils.BytesToString(key))
+			delete(wb.pending, utils.B2S(key))
 		}
 		return nil
 	}
 
 	rec := &data.LogRecord{Key: key, Type: data.LogRecordDeleted}
-	wb.pending[utils.BytesToString(key)] = rec // 存储pending表
+	wb.pending[utils.B2S(key)] = rec // 存储pending表
 
 	return nil
 }
@@ -98,7 +98,7 @@ func (wb *WriteBatch) Commit() error {
 	positions := make(map[string]*data.LogRecordPos)
 	for _, rec := range wb.pending {
 		pos, err := wb.base.AppendLogRecord(&data.LogRecord{
-			Key:   logRecordKeyWithSeqNo(rec.Key, seqNo), // 标记序列号
+			Key:   LogRecordKeyWithSeqNo(rec.Key, seqNo), // 标记序列号
 			Value: rec.Value,
 			Type:  rec.Type,
 		})
@@ -107,12 +107,12 @@ func (wb *WriteBatch) Commit() error {
 		}
 
 		// 记录位置信息 key -> pos
-		positions[utils.BytesToString(rec.Key)] = pos
+		positions[utils.B2S(rec.Key)] = pos
 	}
 
 	// 标识事务完成
 	finishedRecord := &data.LogRecord{
-		Key:  logRecordKeyWithSeqNo(txnFinKey, seqNo),
+		Key:  LogRecordKeyWithSeqNo(txnFinKey, seqNo),
 		Type: data.LogRecordTxnFinished,
 	}
 
@@ -130,7 +130,7 @@ func (wb *WriteBatch) Commit() error {
 
 	// 持久化已完成 二次遍历待提交日志 更新索引
 	for _, rec := range wb.pending {
-		key := utils.BytesToString(rec.Key)
+		key := utils.B2S(rec.Key)
 		pos := positions[key] // 获取位置
 
 		// 在索引中更新数据
@@ -150,7 +150,7 @@ func (wb *WriteBatch) Commit() error {
 	return nil
 }
 
-func logRecordKeyWithSeqNo(key []byte, seqNo uint64) []byte {
+func LogRecordKeyWithSeqNo(key []byte, seqNo uint64) []byte {
 	seq := make([]byte, binary.MaxVarintLen64)
 	n := binary.PutUvarint(seq[:], seqNo)
 

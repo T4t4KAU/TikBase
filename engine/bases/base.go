@@ -8,13 +8,20 @@ import (
 	"TikBase/pack/errorx"
 	"TikBase/pack/utils"
 	"errors"
-	"github.com/gofrs/flock"
 	"io"
 	"os"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/gofrs/flock"
+)
+
+const (
+	mergeDirName     = "-merge"
+	mergeFinishedKey = "merge.finished"
 )
 
 // Base 存储引擎
@@ -27,6 +34,7 @@ type Base struct {
 	fileIds    []int        // 加载索引时使用
 	fileLock   *flock.Flock // 文件锁
 	seqNo      uint64
+	merging    bool
 }
 
 func New() (*Base, error) {
@@ -53,8 +61,17 @@ func NewBaseWith(options Options) (*Base, error) {
 		index:      btree.New(),
 	}
 
+	// 加载merge数据目录
+	if err := base.LoadMergeFiles(); err != nil {
+		return nil, err
+	}
+
 	// 加载数据文件
 	if err := base.LoadDataFiles(); err != nil {
+		return nil, err
+	}
+
+	if err := base.LoadIndexFromHintFile(); err != nil {
 		return nil, err
 	}
 
@@ -75,7 +92,7 @@ func (b *Base) Get(key string) (*values.Value, bool) {
 		return nil, false
 	}
 
-	keyBytes := utils.StringToBytes(key)
+	keyBytes := utils.S2B(key)
 
 	// 从索引中获取key位置
 	pos := b.index.Get(keyBytes)
@@ -109,9 +126,9 @@ func (b *Base) Get(key string) (*values.Value, bool) {
 }
 
 func (b *Base) Set(key string, value iface.Value) bool {
-	keyBytes := utils.StringToBytes(key)
+	keyBytes := utils.S2B(key)
 	rec := data.LogRecord{
-		Key:   logRecordKeyWithSeqNo(keyBytes, nonTransactionSeqNo),
+		Key:   LogRecordKeyWithSeqNo(keyBytes, nonTransactionSeqNo),
 		Value: value.Bytes(),
 		Type:  data.LogRecordNormal,
 	}
@@ -131,7 +148,7 @@ func (b *Base) Set(key string, value iface.Value) bool {
 
 func (b *Base) SetBytes(key []byte, value iface.Value) bool {
 	rec := data.LogRecord{
-		Key:   logRecordKeyWithSeqNo(key, nonTransactionSeqNo),
+		Key:   LogRecordKeyWithSeqNo(key, nonTransactionSeqNo),
 		Value: value.Bytes(),
 		Type:  data.LogRecordNormal,
 	}
@@ -149,7 +166,7 @@ func (b *Base) SetBytes(key []byte, value iface.Value) bool {
 }
 
 func (b *Base) Del(key string) bool {
-	keyBytes := utils.StringToBytes(key)
+	keyBytes := utils.S2B(key)
 
 	// 从索引中检查key是否存在
 	if pos := b.index.Get(keyBytes); pos == nil {
@@ -158,7 +175,7 @@ func (b *Base) Del(key string) bool {
 
 	// 构造LogRecord 标记墓碑值
 	rec := &data.LogRecord{
-		Key:  logRecordKeyWithSeqNo(keyBytes, nonTransactionSeqNo),
+		Key:  LogRecordKeyWithSeqNo(keyBytes, nonTransactionSeqNo),
 		Type: data.LogRecordDeleted,
 	}
 	_, err := b.AppendLogRecordWithLock(rec)
@@ -281,6 +298,18 @@ func (b *Base) LoadIndexFromDataFiles() error {
 		return nil
 	}
 
+	// 检查是否已经merge
+	hasMerge, nonMergeFileId := false, uint32(0)
+	mergeFinFileName := filepath.Join(b.options.DirPath, data.MergeFinishedFileName)
+	if _, err := os.Stat(mergeFinFileName); err != nil {
+		fid, err := b.getNonMergeFileId(b.options.DirPath)
+		if err != nil {
+			return err
+		}
+		hasMerge = true
+		nonMergeFileId = fid
+	}
+
 	// 更新索引信息
 	updateIndex := func(key []byte, typ data.LogRecordType, pos *data.LogRecordPos) {
 		var ok bool
@@ -304,6 +333,12 @@ func (b *Base) LoadIndexFromDataFiles() error {
 	// 遍历文件ID列表
 	for i, fid := range b.fileIds {
 		var fileId = uint32(fid)
+
+		// 已经从Hint文件中加载过 跳过
+		if hasMerge && fileId < nonMergeFileId {
+			continue
+		}
+
 		var dataFile *data.File
 
 		if fileId == b.activeFile.FileId {
@@ -392,6 +427,17 @@ func (b *Base) getValueByPosition(pos *data.LogRecordPos) ([]byte, error) {
 	}
 
 	return rec.Value, nil
+}
+
+func (b *Base) Sync() error {
+	if b.activeFile == nil {
+		return nil
+	}
+
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+
+	return b.activeFile.Sync()
 }
 
 func (b *Base) Close() error {

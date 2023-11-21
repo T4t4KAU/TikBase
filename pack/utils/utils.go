@@ -51,7 +51,7 @@ func NowSuffix() string {
 	return "." + time.Now().Format("20060102150405")
 }
 
-func StringToBytes(s string) (b []byte) {
+func S2B(s string) (b []byte) {
 	bh := (*reflect.SliceHeader)(unsafe.Pointer(&b))
 	sh := (*reflect.StringHeader)(unsafe.Pointer(&s))
 	bh.Data = sh.Data
@@ -60,7 +60,7 @@ func StringToBytes(s string) (b []byte) {
 	return b
 }
 
-func BytesToString(b []byte) string {
+func B2S(b []byte) string {
 	return *(*string)(unsafe.Pointer(&b))
 }
 

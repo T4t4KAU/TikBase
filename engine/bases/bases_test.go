@@ -138,9 +138,9 @@ func TestBase_WriteBatch2(t *testing.T) {
 
 	wb := b1.NewWriteBatch()
 
-	//v2 := values.New([]byte("value2"), 0, iface.STRING)
-	//err = wb.Put([]byte("key2"), v2.Bytes())
-	//assert.Nil(t, err)
+	v2 := values.New([]byte("value2"), 0, iface.STRING)
+	err = wb.Put([]byte("key2"), v2.Bytes())
+	assert.Nil(t, err)
 
 	err = wb.Delete([]byte("key1"))
 	assert.Nil(t, err)
@@ -156,4 +156,14 @@ func TestBase_WriteBatch2(t *testing.T) {
 
 	_, ok := b2.Get("key1")
 	assert.False(t, ok)
+}
+
+func TestBase_Merge(t *testing.T) {
+	opts := DefaultOptions
+	dir := "/tmp/merge"
+	opts.DirPath = dir
+	opts.DataFileSize = 64 * 1024 * 1024
+	base, err := NewBaseWith(opts)
+	assert.Nil(t, err)
+	assert.NotNil(t, base)
 }

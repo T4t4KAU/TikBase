@@ -57,7 +57,8 @@ func SendGetReq(key string) (int, []byte, error) {
 }
 
 func startServer() error {
-	s := NewServer(engine.NewCacheEngine())
+	eng, _ := engine.NewCacheEngine()
+	s := NewServer(eng)
 	err := s.Run(":9096")
 	if err != nil {
 		log.Fatalln("server start failed:", err)

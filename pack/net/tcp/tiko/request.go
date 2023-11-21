@@ -125,7 +125,7 @@ func (req *GetRequest) Bytes() []byte {
 
 	// 将参数添加到缓冲区
 	argLength := make([]byte, ArgLength)
-	binary.BigEndian.PutUint32(argLength, uint32(len(utils.StringToBytes(req.Key))))
+	binary.BigEndian.PutUint32(argLength, uint32(len(utils.S2B(req.Key))))
 	data = append(data, argLength...)
 	data = append(data, req.Key...)
 
@@ -156,10 +156,10 @@ func (req *SetRequest) Bytes() []byte {
 
 	// 将参数添加到缓冲区
 	argLength := make([]byte, ArgLength)
-	binary.BigEndian.PutUint32(argLength, uint32(len(utils.StringToBytes(req.Key))))
+	binary.BigEndian.PutUint32(argLength, uint32(len(utils.S2B(req.Key))))
 	data = append(data, argLength...)
 	data = append(data, req.Key...)
-	binary.BigEndian.PutUint32(argLength, uint32(len(utils.StringToBytes(req.Value))))
+	binary.BigEndian.PutUint32(argLength, uint32(len(utils.S2B(req.Value))))
 	data = append(data, argLength...)
 	data = append(data, req.Value...)
 
@@ -192,7 +192,7 @@ func (req *DelRequest) Bytes() []byte {
 
 	// 将参数添加到缓冲区
 	argLength := make([]byte, ArgLength)
-	binary.BigEndian.PutUint32(argLength, uint32(len(utils.StringToBytes(req.Key))))
+	binary.BigEndian.PutUint32(argLength, uint32(len(utils.S2B(req.Key))))
 	data = append(data, argLength...)
 	data = append(data, req.Key...)
 

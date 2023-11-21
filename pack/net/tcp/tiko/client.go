@@ -17,7 +17,7 @@ func NewClient(conn iface.Connection) *Client {
 }
 
 func (c *Client) Set(key string, value string) error {
-	_, err := writeSetRequest(c.conn, utils.StringToBytes(key), utils.StringToBytes(value))
+	_, err := writeSetRequest(c.conn, utils.S2B(key), utils.S2B(value))
 	if err != nil {
 		return err
 	}
@@ -26,13 +26,13 @@ func (c *Client) Set(key string, value string) error {
 		return err
 	}
 	if code != Success {
-		return errors.New(utils.BytesToString(data))
+		return errors.New(utils.B2S(data))
 	}
 	return nil
 }
 
 func (c *Client) Get(key string) (string, error) {
-	_, err := writeGetRequest(c.conn, utils.StringToBytes(key))
+	_, err := writeGetRequest(c.conn, utils.S2B(key))
 	if err != nil {
 		return "", err
 	}
@@ -41,13 +41,13 @@ func (c *Client) Get(key string) (string, error) {
 		return "", err
 	}
 	if code != Success {
-		return "", errors.New(utils.BytesToString(data))
+		return "", errors.New(utils.B2S(data))
 	}
 	return string(data), nil
 }
 
 func (c *Client) Del(key string) error {
-	_, err := writeDelRequest(c.conn, utils.StringToBytes(key))
+	_, err := writeDelRequest(c.conn, utils.S2B(key))
 	if err != nil {
 		return err
 	}
@@ -56,13 +56,13 @@ func (c *Client) Del(key string) error {
 		return err
 	}
 	if code != Success {
-		return errors.New(utils.BytesToString(data))
+		return errors.New(utils.B2S(data))
 	}
 	return nil
 }
 
 func (c *Client) Expire(key string, ttl int64) error {
-	_, err := writeExpireRequest(c.conn, utils.StringToBytes(key), utils.Int64ToBytes(ttl))
+	_, err := writeExpireRequest(c.conn, utils.S2B(key), utils.Int64ToBytes(ttl))
 	if err != nil {
 		return err
 	}
