@@ -63,7 +63,7 @@ func startServer(config config.Config) {
 
 func main() {
 	println(logo)
-	c, err := config.ReadConfigFile("config.json")
+	c, err := config.ReadConfigFile("config.yaml")
 	if err != nil {
 		panic(err)
 	}

@@ -4,6 +4,7 @@ import (
 	"TikBase/iface"
 	"TikBase/pack/utils"
 	"math/rand"
+	"sync"
 	"time"
 )
 
@@ -39,7 +40,8 @@ func newNode(key string, value iface.Value) *Node {
 }
 
 type List struct {
-	Head *Node
+	Head  *Node
+	mutex sync.RWMutex
 }
 
 // New 创建跳表
@@ -73,6 +75,10 @@ func (list *List) Insert(key string, val iface.Value) bool {
 
 	// 保存结点路径
 	path := make([]*Node, 0)
+
+	list.mutex.Lock()
+	defer list.mutex.Unlock()
+
 	p := list.Head
 
 	// 从下往上逐层遍历
@@ -122,6 +128,10 @@ func (list *List) Insert(key string, val iface.Value) bool {
 // Remove 删除元素
 func (list *List) Remove(key string) bool {
 	p, ok := list.Head, false
+
+	list.mutex.Lock()
+	defer list.mutex.Unlock()
+
 	for p != nil {
 		// 该层链表未到达末尾前 找到不大于key的最大结点
 		for p.Next != nil && utils.CompareKey(p.Next.Key, key) < 0 {
@@ -143,6 +153,10 @@ func (list *List) Remove(key string) bool {
 // Search 搜索
 func (list *List) Search(key string) (*Node, bool) {
 	p := list.Head
+
+	list.mutex.RLock()
+	defer list.mutex.RUnlock()
+
 	for p != nil {
 		for p.Next != nil && utils.CompareKey(p.Next.Key, key) < 0 {
 			p = p.Next
@@ -160,6 +174,10 @@ func (list *List) Search(key string) (*Node, bool) {
 
 func (list *List) Update(key string, val iface.Value) bool {
 	p, ok := list.Head, false
+
+	list.mutex.Lock()
+	defer list.mutex.Unlock()
+
 	for p != nil {
 		// 该层链表未到达末尾前 找到不大于key的最大结点
 		for p.Next != nil && utils.CompareKey(p.Next.Key, key) < 0 {
@@ -182,6 +200,9 @@ func (list *List) FilterKey(f Filter) *[]string {
 	p := list.Head
 	keys := make([]string, 0)
 
+	list.mutex.RLock()
+	defer list.mutex.RUnlock()
+
 	for p.Down != nil {
 		p = p.Down
 	}
@@ -198,6 +219,9 @@ func (list *List) FilterKey(f Filter) *[]string {
 func (list *List) FilterNode(filter Filter) *[]*Node {
 	p := list.Head
 	nodes := make([]*Node, 0)
+
+	list.mutex.RLock()
+	defer list.mutex.RUnlock()
 
 	for p.Down != nil {
 		p = p.Down

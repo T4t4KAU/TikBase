@@ -1,0 +1,13 @@
+# 示例配置文件
+
+database:
+  type: base
+  directory: ""
+  indexer: "art"
+  filesize: 1024
+
+server:
+  port: 9096
+  timeout: 60
+  threads: 20
+

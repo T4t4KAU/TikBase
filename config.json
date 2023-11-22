@@ -1,8 +1,0 @@
-{
-  "Name": "base",
-  "Host": "127.0.0.1",
-  "TcpPort": 9096,
-  "MaxConn": 10,
-  "Protocol": "tiko",
-  "Type": "cache"
-}

@@ -12,6 +12,11 @@ import (
 	"strconv"
 )
 
+const (
+	mergeDirName     = "-merge"
+	mergeFinishedKey = "merge.finished"
+)
+
 // Merge 合并
 func (b *Base) Merge() error {
 	if b.activeFile == nil {

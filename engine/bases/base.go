@@ -19,11 +19,6 @@ import (
 	"github.com/gofrs/flock"
 )
 
-const (
-	mergeDirName     = "-merge"
-	mergeFinishedKey = "merge.finished"
-)
-
 // NewIndexer 根据类型初始化索引
 func NewIndexer(typ IndexerType) iface.Indexer {
 	switch typ {
