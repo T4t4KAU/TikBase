@@ -4,10 +4,13 @@ import (
 	"TikBase/engine/data"
 	"TikBase/engine/values"
 	"TikBase/iface"
+	"TikBase/pack/dates/artree"
 	"TikBase/pack/dates/btree"
-	"TikBase/pack/errorx"
+	"TikBase/pack/errno"
+	"TikBase/pack/fio"
 	"TikBase/pack/utils"
 	"errors"
+	"github.com/gofrs/flock"
 	"io"
 	"os"
 	"path/filepath"
@@ -15,8 +18,11 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+)
 
-	"github.com/gofrs/flock"
+const (
+	SeqNoKey     = "seq.no"
+	fileLockName = "flock"
 )
 
 // NewIndexer 根据类型初始化索引
@@ -25,7 +31,7 @@ func NewIndexer(typ IndexerType) iface.Indexer {
 	case BT:
 		return btree.New()
 	case ART:
-		return nil
+		return artree.New()
 	default:
 		panic("unsupported index type")
 	}
@@ -33,15 +39,24 @@ func NewIndexer(typ IndexerType) iface.Indexer {
 
 // Base 存储引擎
 type Base struct {
-	index      iface.Indexer
-	mutex      sync.RWMutex
-	activeFile *data.File
-	olderFiles map[uint32]*data.File
-	options    Options
-	fileIds    []int        // 加载索引时使用
-	fileLock   *flock.Flock // 文件锁
-	seqNo      uint64
-	merging    bool
+	index           iface.Indexer // 索引 保存key和日志的映射
+	mutex           sync.RWMutex
+	activeFile      *data.File            // 活跃文件
+	olderFiles      map[uint32]*data.File // 旧文件
+	options         Options
+	fileIds         []int        // 加载索引时使用
+	fileLock        *flock.Flock // 文件锁
+	seqNo           uint64       // 序列化
+	merging         bool         // 标记是否正在merge
+	bytesWrite      uint         // 累积写入字节数
+	reclaimableSize int64        // 可回收磁盘空间容量
+}
+
+type Stat struct {
+	keyNum          uint  // key的数量
+	DataFileNum     uint  // 数据文件个数
+	ReclaimableSize int64 // 数据可回收的空间 字节为单位
+	DiskSize        int64 // 所占磁盘空间大小
 }
 
 func New() (*Base, error) {
@@ -61,6 +76,16 @@ func NewBaseWith(options Options) (*Base, error) {
 		}
 	}
 
+	// 创建文件锁
+	fileLock := flock.New(filepath.Join(options.DirPath, fileLockName))
+	hold, err := fileLock.TryLock() // 加锁
+	if err != nil {
+		return nil, err
+	}
+	if !hold {
+		return nil, errno.ErrDatabaseIsUsing
+	}
+
 	// 初始化数据结构
 	base := &Base{
 		options:    options,
@@ -78,6 +103,7 @@ func NewBaseWith(options Options) (*Base, error) {
 		return nil, err
 	}
 
+	// 从Hint文件加载索引
 	if err := base.LoadIndexFromHintFile(); err != nil {
 		return nil, err
 	}
@@ -85,6 +111,12 @@ func NewBaseWith(options Options) (*Base, error) {
 	// 从数据文件加载索引
 	if err := base.LoadIndexFromDataFiles(); err != nil {
 		return nil, err
+	}
+
+	if base.options.MMapAtStartup {
+		if err = base.resetDataFileIoType(); err != nil {
+			return nil, err
+		}
 	}
 
 	return base, nil
@@ -98,7 +130,6 @@ func (b *Base) Get(key string) (*values.Value, bool) {
 	if len(key) == 0 {
 		return nil, false
 	}
-
 	keyBytes := utils.S2B(key)
 
 	// 从索引中获取key位置
@@ -198,6 +229,28 @@ func (b *Base) Del(key string) bool {
 	return true
 }
 
+// Stat 返回数据库统计信息
+func (b *Base) Stat() *Stat {
+	b.mutex.RLock()
+	defer b.mutex.RUnlock()
+
+	var dataFilesNum = uint(len(b.olderFiles))
+	if b.activeFile != nil {
+		dataFilesNum++
+	}
+	dirSize, err := utils.DirSize(b.options.DirPath)
+	if err != nil {
+		panic(err)
+	}
+
+	return &Stat{
+		keyNum:          uint(b.index.Size()),
+		DataFileNum:     dataFilesNum,
+		ReclaimableSize: b.reclaimableSize,
+		DiskSize:        dirSize,
+	}
+}
+
 // 设置当前活跃文件
 // 访问此方法前要持有互斥锁
 func (b *Base) setActiveDataFile() error {
@@ -208,10 +261,11 @@ func (b *Base) setActiveDataFile() error {
 	}
 
 	// 打开数据文件
-	dataFile, err := data.OpenDataFile(b.options.DirPath, initFileId)
+	dataFile, err := data.OpenDataFile(b.options.DirPath, initFileId, fio.StandardFIO)
 	if err != nil {
 		return err
 	}
+
 	b.activeFile = dataFile
 	return nil
 }
@@ -225,6 +279,7 @@ func (b *Base) AppendLogRecord(rec *data.LogRecord) (*data.LogRecordPos, error) 
 		}
 	}
 
+	// 编码日志记录
 	encRecord, size := data.EncodeLogRecord(rec)
 
 	// 如果写入的数据已经到达活跃文件的阈值 则关闭活跃文件 打开新文件
@@ -244,8 +299,14 @@ func (b *Base) AppendLogRecord(rec *data.LogRecord) (*data.LogRecordPos, error) 
 		return nil, err
 	}
 
-	// 根据用户配置决定是否持久化
-	if b.options.SyncWrites {
+	var needSync = b.options.SyncWrites
+
+	// 如果累计写入字节数大于设定值 则进行持久化
+	if !needSync && b.options.BytesPerSync > 0 && b.bytesWrite >= b.options.BytesPerSync {
+		needSync = true
+	}
+
+	if needSync {
 		if err := b.activeFile.Sync(); err != nil {
 			return nil, err
 		}
@@ -254,6 +315,7 @@ func (b *Base) AppendLogRecord(rec *data.LogRecord) (*data.LogRecordPos, error) 
 	return &data.LogRecordPos{Fid: b.activeFile.FileId, Offset: writeOff}, nil
 }
 
+// LoadDataFiles 加载数据文件
 func (b *Base) LoadDataFiles() error {
 	// 读取目录项 找到以.data结尾的文件
 	entries, err := os.ReadDir(b.options.DirPath)
@@ -270,7 +332,7 @@ func (b *Base) LoadDataFiles() error {
 			splitNames := strings.Split(entry.Name(), ".")
 			fileId, err := strconv.Atoi(splitNames[0])
 			if err != nil {
-				return errorx.ErrDataDirectoryCorrupted
+				return errno.ErrDataDirectoryCorrupted
 			}
 			fileIds = append(fileIds, fileId)
 		}
@@ -282,7 +344,11 @@ func (b *Base) LoadDataFiles() error {
 
 	// 遍历每个文件ID 打开对应数据文件
 	for i, fid := range fileIds {
-		dataFile, err := data.OpenDataFile(b.options.DirPath, uint32(fid))
+		ioType := fio.StandardFIO
+		if b.options.MMapAtStartup {
+			ioType = fio.MemoryMap
+		}
+		dataFile, err := data.OpenDataFile(b.options.DirPath, uint32(fid), ioType)
 		if err != nil {
 			return err
 		}
@@ -327,7 +393,7 @@ func (b *Base) LoadIndexFromDataFiles() error {
 		}
 
 		if !ok {
-			panic(errorx.ErrIndexUpdateFailed)
+			panic(errno.ErrIndexUpdateFailed)
 		}
 	}
 
@@ -412,8 +478,17 @@ func (b *Base) LoadIndexFromDataFiles() error {
 	return nil
 }
 
+func (b *Base) Backup(dir string) error {
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+
+	return utils.CopyDir(b.options.DirPath, dir, []string{fileLockName})
+}
+
+// 获取value
 func (b *Base) getValueByPosition(pos *data.LogRecordPos) ([]byte, error) {
 	var dataFile *data.File
+
 	if b.activeFile.FileId == pos.Fid {
 		dataFile = b.activeFile
 	} else {
@@ -421,16 +496,18 @@ func (b *Base) getValueByPosition(pos *data.LogRecordPos) ([]byte, error) {
 	}
 
 	if dataFile == nil {
-		return nil, errorx.ErrDataFileNotFound
+		return nil, errno.ErrDataFileNotFound
 	}
 
+	// 读取指定位置的记录
 	rec, _, err := dataFile.ReadLogRecord(pos.Offset)
 	if err != nil {
 		return nil, err
 	}
 
+	// 已删除日志
 	if rec.Type == data.LogRecordDeleted {
-		return nil, errorx.ErrKeyNotFound
+		return nil, errno.ErrKeyNotFound
 	}
 
 	return rec.Value, nil
@@ -448,6 +525,12 @@ func (b *Base) Sync() error {
 }
 
 func (b *Base) Close() error {
+	defer func() {
+		if err := b.fileLock.Unlock(); err != nil {
+			panic("failed to unlock the director: " + err.Error())
+		}
+	}()
+
 	if b.activeFile == nil {
 		return nil
 	}
@@ -455,10 +538,31 @@ func (b *Base) Close() error {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 
+	// 保存当前事务号
+	seqNoFile, err := data.OpenSeqNoFile(b.options.DirPath)
+	if err != nil {
+		return err
+	}
+
+	rec := &data.LogRecord{
+		Key:   []byte(SeqNoKey),
+		Value: []byte(strconv.FormatUint(b.seqNo, 10)),
+	}
+
+	encRecord, _ := data.EncodeLogRecord(rec)
+	if err := seqNoFile.Write(encRecord); err != nil {
+		return err
+	}
+	if err := seqNoFile.Sync(); err != nil {
+		return err
+	}
+
+	// 关闭当前活跃文件
 	if err := b.activeFile.Close(); err != nil {
 		return err
 	}
 
+	// 关闭旧数据文件
 	for _, file := range b.olderFiles {
 		if err := file.Close(); err != nil {
 			return err
@@ -505,6 +609,24 @@ func (b *Base) AppendLogRecordWithLock(rec *data.LogRecord) (*data.LogRecordPos,
 	defer b.mutex.Unlock()
 
 	return b.AppendLogRecord(rec)
+}
+
+// 重置文件IO类型
+func (b *Base) resetDataFileIoType() error {
+	if b.activeFile == nil {
+		return nil
+	}
+
+	if err := b.activeFile.SetIOManager(b.options.DirPath, fio.StandardFIO); err != nil {
+		return err
+	}
+	for _, dataFile := range b.olderFiles {
+		if err := dataFile.SetIOManager(b.options.DirPath, fio.StandardFIO); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func checkOptions(options Options) error {

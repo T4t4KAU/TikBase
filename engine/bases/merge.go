@@ -2,7 +2,7 @@ package bases
 
 import (
 	"TikBase/engine/data"
-	"TikBase/pack/errorx"
+	"TikBase/pack/errno"
 	"TikBase/pack/utils"
 	"io"
 	"os"
@@ -29,14 +29,36 @@ func (b *Base) Merge() error {
 	// 如果merge正在进行 那么退出当前merge
 	if b.merging {
 		b.mutex.Unlock()
-		return errorx.ErrMergeIsProgress
+		return errno.ErrMergeIsProgress
 	}
 
-	// 标记正在merge
+	// 标记状态
 	b.merging = true
 	defer func() {
 		b.merging = false
 	}()
+
+	totalSize, err := utils.DirSize(b.options.DirPath)
+	if err != nil {
+		b.mutex.Unlock()
+		return err
+	}
+
+	if float32(b.reclaimableSize)/float32(totalSize) < b.options.DataFileMergeRatio {
+		b.mutex.Unlock()
+		return errno.ErrMergeRatioUnreached
+	}
+
+	// 检查剩余空间是否可以容纳 Merge 后的数据
+	availableDiskSize, err := utils.AvailableDiskSize()
+	if err != nil {
+		b.mutex.Unlock()
+		return err
+	}
+	if uint64(totalSize-b.reclaimableSize) >= availableDiskSize {
+		b.mutex.Unlock()
+		return err
+	}
 
 	// 持久化当前活跃文件
 	if err := b.activeFile.Sync(); err != nil {
@@ -67,18 +89,19 @@ func (b *Base) Merge() error {
 
 	// 初始化临时目录 用于merge
 	mergePath := b.getMergePath()
-	if _, err := os.Stat(mergePath); err != nil {
-		if err := os.RemoveAll(mergePath); err != nil {
+	if _, err = os.Stat(mergePath); err != nil {
+		if err = os.RemoveAll(mergePath); err != nil {
 			return err
 		}
 	}
-	if err := os.MkdirAll(mergePath, os.ModePerm); err != nil {
+	if err = os.MkdirAll(mergePath, os.ModePerm); err != nil {
 		return err
 	}
 
-	// 初始化merge选项
 	mergeOptions := b.options
 	mergeOptions.SyncWrites = false
+
+	// 指定merge目录
 	mergeOptions.DirPath = mergePath
 	mergeDB, err := NewBaseWith(mergeOptions)
 	if err != nil {
@@ -149,12 +172,12 @@ func (b *Base) Merge() error {
 
 	// 将finish记录编码并写入finish文件
 	encRecord, _ := data.EncodeLogRecord(mergeFinRecord)
-	if err := mergeFinFile.Write(encRecord); err != nil {
+	if err = mergeFinFile.Write(encRecord); err != nil {
 		return err
 	}
 
 	// 将merge finish文件持久化
-	if err := mergeFinFile.Sync(); err != nil {
+	if err = mergeFinFile.Sync(); err != nil {
 		return err
 	}
 
@@ -166,60 +189,6 @@ func (b *Base) getMergePath() string {
 	dir := path.Dir(path.Clean(b.options.DirPath))
 	base := path.Base(b.options.DirPath)
 	return filepath.Join(dir, base+mergeDirName)
-}
-
-func (b *Base) logMergeFiles() error {
-	mergePath := b.getMergePath()
-	if _, err := os.Stat(mergePath); os.IsNotExist(err) {
-		return nil
-	}
-
-	defer func() {
-		_ = os.RemoveAll(mergePath)
-	}()
-
-	dirEntries, err := os.ReadDir(mergePath)
-	if err != nil {
-		return err
-	}
-
-	var mergeFinished bool
-	var fileNames []string
-	for _, entry := range dirEntries {
-		if entry.Name() == data.MergeFinishedFileName {
-			mergeFinished = true
-		}
-		fileNames = append(fileNames, entry.Name())
-	}
-
-	if !mergeFinished {
-		return nil
-	}
-
-	nonMergeFileId, err := b.getNonMergeFileId(mergePath)
-	if err != nil {
-		return err
-	}
-
-	var fileId uint32 = 0
-	for ; fileId < nonMergeFileId; fileId++ {
-		fileName := data.GetDataFileName(b.options.DirPath, fileId)
-		if _, err := os.Stat(fileName); err == nil {
-			if err := os.Remove(fileName); err != nil {
-				return err
-			}
-		}
-	}
-
-	for _, fileName := range fileNames {
-		srcPath := filepath.Join(mergePath, fileName)
-		destPath := filepath.Join(b.options.DirPath, fileName)
-		if err := os.Rename(srcPath, destPath); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 // LoadIndexFromHintFile 从Hint文件中加载索引
@@ -256,6 +225,7 @@ func (b *Base) LoadIndexFromHintFile() error {
 	return nil
 }
 
+// 获取未被merge的文件ID
 func (b *Base) getNonMergeFileId(dirPath string) (uint32, error) {
 	mergeFinishedFile, err := data.OpenMergeFinishedFile(dirPath)
 	if err != nil {
@@ -305,7 +275,7 @@ func (b *Base) LoadMergeFiles() error {
 		fileNames = append(fileNames, entry.Name())
 	}
 
-	// merge未完成则退出
+	// merge 未完成则退出
 	if !mergeFinished {
 		return nil
 	}

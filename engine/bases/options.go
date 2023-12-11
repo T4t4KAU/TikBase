@@ -7,8 +7,8 @@ import (
 const (
 	BT IndexerType = iota + 1
 
-	// ART  自适应基数树索引
-	ART
+	ART // 自适应基数树
+	SL  // 跳表
 )
 
 type Options struct {
@@ -23,15 +23,24 @@ type Options struct {
 
 	// 索引类型
 	IndexType IndexerType
+
+	// 每多少字节进行持久化
+	BytesPerSync uint
+
+	// 启动时是否使用MMap
+	MMapAtStartup bool
+
+	DataFileMergeRatio float32
 }
 
 type IndexerType = int8
 
 var DefaultOptions = Options{
-	DirPath:      os.TempDir(),
-	DataFileSize: 256 * 1024 * 1024, // 256MB
-	SyncWrites:   false,
-	IndexType:    BT,
+	DirPath:       os.TempDir(),
+	DataFileSize:  256 * 1024 * 1024, // 256MB
+	SyncWrites:    false,
+	IndexType:     ART,
+	MMapAtStartup: true,
 }
 
 type IteratorOptions struct {

@@ -2,7 +2,7 @@ package bases
 
 import (
 	"TikBase/engine/data"
-	"TikBase/pack/errorx"
+	"TikBase/pack/errno"
 	"TikBase/pack/utils"
 	"encoding/binary"
 	"sync"
@@ -38,7 +38,7 @@ func (b *Base) NewWriteBatchWith(options WriteBatchOptions) *WriteBatch {
 // Put 插入数据
 func (wb *WriteBatch) Put(key []byte, value []byte) error {
 	if len(key) <= 0 {
-		return errorx.ErrKeyIsEmpty
+		return errno.ErrKeyIsEmpty
 	}
 
 	wb.mutex.Lock()
@@ -49,9 +49,10 @@ func (wb *WriteBatch) Put(key []byte, value []byte) error {
 	return nil
 }
 
+// Delete 删除数据
 func (wb *WriteBatch) Delete(key []byte) error {
 	if len(key) <= 0 {
-		return errorx.ErrKeyIsEmpty
+		return errno.ErrKeyIsEmpty
 	}
 
 	wb.mutex.Lock()
@@ -84,7 +85,7 @@ func (wb *WriteBatch) Commit() error {
 
 	// 待提交日志数量大于上限
 	if uint(len(wb.pending)) > wb.options.MaxBatchNum {
-		return errorx.ErrExceedMaxBatchNum
+		return errno.ErrExceedMaxBatchNum
 	}
 
 	// 存储引擎 加锁保证事务串行化
@@ -150,6 +151,7 @@ func (wb *WriteBatch) Commit() error {
 	return nil
 }
 
+// LogRecordKeyWithSeqNo 将Key和事务号编码
 func LogRecordKeyWithSeqNo(key []byte, seqNo uint64) []byte {
 	seq := make([]byte, binary.MaxVarintLen64)
 	n := binary.PutUvarint(seq[:], seqNo)
@@ -161,6 +163,7 @@ func LogRecordKeyWithSeqNo(key []byte, seqNo uint64) []byte {
 	return encKey
 }
 
+// 解析LogRecord的keu 获取实际的key和事务序列号
 func parseLogRecordKey(key []byte) ([]byte, uint64) {
 	seqNo, n := binary.Uvarint(key)
 	realKey := key[n:]

@@ -4,7 +4,7 @@ import (
 	"TikBase/engine/caches"
 	"TikBase/engine/values"
 	"TikBase/iface"
-	"TikBase/pack/errorx"
+	"TikBase/pack/errno"
 	"errors"
 )
 
@@ -82,7 +82,7 @@ func (eng *CacheEngine) ExecSetString(args [][]byte) *CacheResult {
 	if !ok {
 		return &CacheResult{
 			succ: false,
-			err:  errorx.ErrExceedCapacity,
+			err:  errno.ErrExceedCapacity,
 		}
 	}
 	return NewSuccCacheResult()
@@ -94,7 +94,7 @@ func (eng *CacheEngine) ExecGetString(args [][]byte) *CacheResult {
 	if !ok {
 		return &CacheResult{
 			succ: false,
-			err:  errorx.ErrKeyNotFound,
+			err:  errno.ErrKeyNotFound,
 		}
 	}
 	return &CacheResult{
@@ -109,7 +109,7 @@ func (eng *CacheEngine) ExecDelKey(args [][]byte) *CacheResult {
 	if !ok {
 		return &CacheResult{
 			succ: false,
-			err:  errorx.ErrKeyNotFound,
+			err:  errno.ErrKeyNotFound,
 		}
 	}
 	return &CacheResult{
@@ -124,7 +124,7 @@ func (eng *CacheEngine) ExecExpire(args [][]byte) *CacheResult {
 	if !ok {
 		return &CacheResult{
 			succ: false,
-			err:  errorx.ErrKeyNotFound,
+			err:  errno.ErrKeyNotFound,
 		}
 	}
 	return &CacheResult{

@@ -9,6 +9,7 @@ import (
 	"sync"
 )
 
+// ARTree 自适应平衡树
 type ARTree struct {
 	tree  goart.Tree
 	mutex sync.RWMutex
@@ -20,6 +21,7 @@ func New() *ARTree {
 	}
 }
 
+// Get 获取日志数据
 func (tree *ARTree) Get(key []byte) *data.LogRecordPos {
 	tree.mutex.RLock()
 	defer tree.mutex.RUnlock()
@@ -32,6 +34,7 @@ func (tree *ARTree) Get(key []byte) *data.LogRecordPos {
 	return val.(*data.LogRecordPos)
 }
 
+// Delete 删除数据
 func (tree *ARTree) Delete(key []byte) bool {
 	tree.mutex.Lock()
 	_, deleted := tree.tree.Delete(key)

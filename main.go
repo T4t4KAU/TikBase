@@ -4,10 +4,10 @@ import (
 	"TikBase/engine"
 	"TikBase/iface"
 	"TikBase/pack/config"
-	"TikBase/pack/net/http"
 	"TikBase/pack/net/tcp/resp"
 	"TikBase/pack/net/tcp/tiko"
 	"TikBase/pack/poll"
+	"TikBase/pack/web"
 	"errors"
 	"strconv"
 	"time"
@@ -28,21 +28,8 @@ func NewHandler(name string, eng iface.Engine) (iface.Handler, error) {
 
 func startServer(config config.Config) {
 	eng, err := engine.NewEngine(config.Type)
-	if err != nil {
-		panic(err)
-	}
 
-	if config.Protocol == "http" {
-		eng, err = engine.NewCacheEngine()
-		if err != nil {
-			panic(err)
-		}
-		s := http.NewServer(eng)
-		err = s.Run(":9096")
-		if err != nil {
-			panic(err)
-		}
-	}
+	go web.StartServer(eng)
 
 	handler, err := NewHandler(config.Protocol, eng)
 	if err != nil {

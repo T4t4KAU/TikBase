@@ -9,6 +9,7 @@ const (
 	SET
 	ZSET
 	MAP
+	LOG_POS
 )
 
 type Value interface {

@@ -4,7 +4,7 @@ import (
 	"TikBase/engine/levels"
 	"TikBase/engine/values"
 	"TikBase/iface"
-	"TikBase/pack/errorx"
+	"TikBase/pack/errno"
 	"errors"
 )
 
@@ -86,7 +86,7 @@ func (eng *LevelEngine) ExecGetString(args [][]byte) *LevelResult {
 	if !ok {
 		return &LevelResult{
 			succ: false,
-			err:  errorx.ErrKeyNotFound,
+			err:  errno.ErrKeyNotFound,
 		}
 	}
 	return &LevelResult{
@@ -101,7 +101,7 @@ func (eng *LevelEngine) ExecDelKey(args [][]byte) *LevelResult {
 	if !ok {
 		return &LevelResult{
 			succ: false,
-			err:  errorx.ErrKeyNotFound,
+			err:  errno.ErrKeyNotFound,
 		}
 	}
 	return &LevelResult{

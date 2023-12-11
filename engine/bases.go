@@ -4,7 +4,7 @@ import (
 	"TikBase/engine/bases"
 	"TikBase/engine/values"
 	"TikBase/iface"
-	"TikBase/pack/errorx"
+	"TikBase/pack/errno"
 	"TikBase/pack/utils"
 	"errors"
 )
@@ -75,7 +75,7 @@ func (eng *BaseEngine) ExecSetString(args [][]byte) iface.Result {
 	if len(args[0]) <= 0 {
 		return &BaseResult{
 			succ: false,
-			err:  errorx.ErrKeyIsEmpty,
+			err:  errno.ErrKeyIsEmpty,
 		}
 	}
 
@@ -84,7 +84,7 @@ func (eng *BaseEngine) ExecSetString(args [][]byte) iface.Result {
 	if !ok {
 		return &BaseResult{
 			succ: false,
-			err:  errorx.ErrExceedCapacity,
+			err:  errno.ErrExceedCapacity,
 		}
 	}
 	return NewSuccBaseResult()
@@ -94,7 +94,7 @@ func (eng *BaseEngine) ExecGetString(args [][]byte) iface.Result {
 	if len(args[0]) <= 0 {
 		return &BaseResult{
 			succ: false,
-			err:  errorx.ErrKeyIsEmpty,
+			err:  errno.ErrKeyIsEmpty,
 		}
 	}
 
@@ -102,7 +102,7 @@ func (eng *BaseEngine) ExecGetString(args [][]byte) iface.Result {
 	if !ok {
 		return &BaseResult{
 			succ: false,
-			err:  errorx.ErrKeyNotFound,
+			err:  errno.ErrKeyNotFound,
 		}
 	}
 	return &BaseResult{
@@ -115,7 +115,7 @@ func (eng *BaseEngine) ExecDelKey(args [][]byte) iface.Result {
 	if len(args[0]) <= 0 {
 		return &BaseResult{
 			succ: false,
-			err:  errorx.ErrKeyIsEmpty,
+			err:  errno.ErrKeyIsEmpty,
 		}
 	}
 
@@ -123,7 +123,7 @@ func (eng *BaseEngine) ExecDelKey(args [][]byte) iface.Result {
 	if !ok {
 		return &BaseResult{
 			succ: false,
-			err:  errorx.ErrKeyNotFound,
+			err:  errno.ErrKeyNotFound,
 		}
 	}
 

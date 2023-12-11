@@ -1,9 +1,12 @@
 package values
 
-import "testing"
+import (
+	"TikBase/engine/types"
+	"testing"
+)
 
 func TestSet_Add(t *testing.T) {
-	s := NewSet()
+	s := types.NewSet()
 	s.Add("a")
 	s.Add("a")
 	s.Add("b")
@@ -12,7 +15,7 @@ func TestSet_Add(t *testing.T) {
 }
 
 func TestSet_Remove(t *testing.T) {
-	s := NewSet()
+	s := types.NewSet()
 	s.Add("a")
 	s.Add("a")
 	s.Add("b")
@@ -22,7 +25,7 @@ func TestSet_Remove(t *testing.T) {
 }
 
 func TestSet_Len(t *testing.T) {
-	s := NewSet()
+	s := types.NewSet()
 	s.Add("a")
 	s.Add("b")
 

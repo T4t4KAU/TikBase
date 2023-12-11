@@ -2,6 +2,7 @@ package fio
 
 import (
 	"github.com/stretchr/testify/assert"
+	"io"
 	"os"
 	"path/filepath"
 	"testing"
@@ -90,4 +91,38 @@ func TestFileIO_Close(t *testing.T) {
 
 	err = fio.Close()
 	assert.Nil(t, err)
+}
+
+func TestMMap_Read(t *testing.T) {
+	path := filepath.Join("/tmp", "a.data")
+	defer destroyFile(path)
+
+	m1, err := NewMMapIOManager(path)
+	assert.Nil(t, err)
+
+	b := make([]byte, 10)
+	n1, err := m1.Read(b, 0)
+	assert.Equal(t, 0, n1)
+	assert.Equal(t, io.EOF, err)
+
+	fio, err := NewFileIOManager(path)
+	assert.Nil(t, err)
+	_, err = fio.Write([]byte("abc"))
+	assert.Nil(t, err)
+	_, err = fio.Write([]byte("bac"))
+	assert.Nil(t, err)
+	_, err = fio.Write([]byte("cba"))
+	assert.Nil(t, err)
+
+	m2, err := NewMMapIOManager(path)
+	assert.Nil(t, err)
+	n2, err := m2.Size()
+	assert.Nil(t, err)
+	assert.Equal(t, int64(9), n2)
+
+	b3 := make([]byte, 2)
+	n3, err := m2.Read(b3, 0)
+	t.Log(n3)
+	t.Log(err)
+	t.Log(string(b3))
 }

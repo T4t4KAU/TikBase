@@ -19,6 +19,7 @@ const (
 	MergeFinishedFileName = "merge-finished"
 )
 
+// File 文件管理结构
 type File struct {
 	FileId    uint32        // 文件编号
 	WriteOff  int64         //文件写偏移 记录文件写入位置
@@ -26,10 +27,10 @@ type File struct {
 }
 
 // OpenDataFile 打开新的数据文件
-func OpenDataFile(dirPath string, fid uint32) (*File, error) {
+func OpenDataFile(dirPath string, fid uint32, ioType fio.FileIOType) (*File, error) {
 	// 拼接文件路径
 	name := filepath.Join(dirPath, fmt.Sprintf("%09d", fid)+FileNameSuffix)
-	iom, err := fio.NewIOManager(name) // 初始化文件IO管理器
+	iom, err := fio.NewIOManager(name, ioType) // 初始化文件IO管理器
 	if err != nil {
 		return nil, err
 	}
@@ -45,13 +46,19 @@ func OpenDataFile(dirPath string, fid uint32) (*File, error) {
 // OpenHintFile 打开Hint索引文件
 func OpenHintFile(dirPath string) (*File, error) {
 	fileName := filepath.Join(dirPath, HintFileName)
-	return newDataFile(fileName, 0)
+	return newDataFile(fileName, 0, fio.StandardFIO)
 }
 
 // OpenMergeFinishedFile 打开标识merge完成的文件
 func OpenMergeFinishedFile(dirPath string) (*File, error) {
 	fileName := filepath.Join(dirPath, MergeFinishedFileName)
-	return newDataFile(fileName, 0)
+	return newDataFile(fileName, 0, fio.StandardFIO)
+}
+
+// OpenSeqNoFile 储存事务序列号的文件
+func OpenSeqNoFile(dirPath string) (*File, error) {
+	fileName := filepath.Join(dirPath, MergeFinishedFileName)
+	return newDataFile(fileName, 0, fio.StandardFIO)
 }
 
 // ReadLogRecord 从数据文件读取LogRecord
@@ -114,8 +121,8 @@ func GetDataFileName(dirPath string, fileId uint32) string {
 	return filepath.Join(dirPath, fmt.Sprintf("%09d", fileId)+FileNameSuffix)
 }
 
-func newDataFile(fileName string, fileId uint32) (*File, error) {
-	iom, err := fio.NewIOManager(fileName)
+func newDataFile(fileName string, fileId uint32, ioType fio.FileIOType) (*File, error) {
+	iom, err := fio.NewIOManager(fileName, ioType)
 	if err != nil {
 		return nil, err
 	}
@@ -158,4 +165,17 @@ func (f *File) readNBytes(n int64, offset int64) ([]byte, error) {
 	b := make([]byte, n)
 	_, err := f.IOManager.Read(b, offset)
 	return b, err
+}
+
+// SetIOManager 设置新的IO管理器
+func (f *File) SetIOManager(dirPath string, ioType fio.FileIOType) error {
+	if err := f.IOManager.Close(); err != nil {
+		return err
+	}
+	iom, err := fio.NewIOManager(GetDataFileName(dirPath, f.FileId), ioType)
+	if err != nil {
+		return err
+	}
+	f.IOManager = iom
+	return nil
 }

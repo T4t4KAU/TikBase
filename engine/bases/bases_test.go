@@ -169,3 +169,17 @@ func TestBase_Merge(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, base)
 }
+
+func TestBase_FileLock(t *testing.T) {
+	opts := DefaultOptions
+	dir, _ := os.MkdirTemp("", "test")
+	opts.DirPath = dir
+	base1, err := NewBaseWith(opts)
+	defer destroyDB(base1)
+	assert.Nil(t, err)
+	assert.NotNil(t, base1)
+
+	base2, err := NewBaseWith(opts)
+	t.Log(base2)
+	t.Log(err)
+}

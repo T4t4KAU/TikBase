@@ -49,10 +49,12 @@ func (seg *segment) set(key string, data []byte, ttl int64, typ iface.Type) bool
 	// 对当前segment进行加锁
 	seg.mutex.Lock()
 	defer seg.mutex.Unlock()
+
 	// 检查是否以及存在
 	if v, ok := seg.Data[key]; ok {
 		seg.Status.subEntry(key, v.Data)
 	}
+
 	// 检查数据是否超出容量
 	if !seg.checkEntryCapacity(key, data) {
 		if ov, ok := seg.Data[key]; ok {
