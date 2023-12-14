@@ -52,6 +52,7 @@ type Base struct {
 	reclaimableSize int64        // 可回收磁盘空间容量
 }
 
+// Stat 状态信息
 type Stat struct {
 	keyNum          uint  // key的数量
 	DataFileNum     uint  // 数据文件个数
@@ -63,13 +64,18 @@ func New() (*Base, error) {
 	return NewBaseWith(DefaultOptions)
 }
 
-// NewBaseWith 启动存储引擎
 func NewBaseWith(options Options) (*Base, error) {
+	return Open(options)
+}
+
+// Open 启动存储引擎
+func Open(options Options) (*Base, error) {
 	if err := checkOptions(options); err != nil {
 		return nil, err
 	}
 
 	// 检查目录是否存在 创建目录
+	// 该目录是存储引擎存放文件的目录
 	if _, err := os.Stat(options.DirPath); os.IsNotExist(err) {
 		if err = os.MkdirAll(options.DirPath, os.ModePerm); err != nil {
 			return nil, err
@@ -86,14 +92,13 @@ func NewBaseWith(options Options) (*Base, error) {
 		return nil, errno.ErrDatabaseIsUsing
 	}
 
-	// 初始化数据结构
 	base := &Base{
 		options:    options,
 		olderFiles: make(map[uint32]*data.File),
-		index:      NewIndexer(options.IndexType),
+		index:      NewIndexer(options.IndexType), // 创建内存索引结构
 	}
 
-	// 加载merge数据目录
+	// 如果存在合并后的目录 加载该目录中的文件数据
 	if err := base.LoadMergeFiles(); err != nil {
 		return nil, err
 	}
@@ -132,7 +137,7 @@ func (b *Base) Get(key string) (*values.Value, bool) {
 	}
 	keyBytes := utils.S2B(key)
 
-	// 从索引中获取key位置
+	// 从索引中获取键的位置
 	pos := b.index.Get(keyBytes)
 	if pos == nil {
 		return nil, false
@@ -301,7 +306,7 @@ func (b *Base) AppendLogRecord(rec *data.LogRecord) (*data.LogRecordPos, error) 
 
 	var needSync = b.options.SyncWrites
 
-	// 如果累计写入字节数大于设定值 则进行持久化
+	// 如果累计写入字节数大于设定值 则刷入磁盘
 	if !needSync && b.options.BytesPerSync > 0 && b.bytesWrite >= b.options.BytesPerSync {
 		needSync = true
 	}
@@ -324,13 +329,12 @@ func (b *Base) LoadDataFiles() error {
 	}
 
 	var fileIds []int
-
 	// 遍历目录中所有文件
 	for _, entry := range entries {
 		// 匹配后缀为.data
 		if strings.HasSuffix(entry.Name(), data.FileNameSuffix) {
 			splitNames := strings.Split(entry.Name(), ".")
-			fileId, err := strconv.Atoi(splitNames[0])
+			fileId, err := strconv.Atoi(splitNames[0]) // 获取文件ID
 			if err != nil {
 				return errno.ErrDataDirectoryCorrupted
 			}
@@ -343,11 +347,13 @@ func (b *Base) LoadDataFiles() error {
 	b.fileIds = fileIds
 
 	// 遍历每个文件ID 打开对应数据文件
+	// 建立文件映射 并设置活跃文件
 	for i, fid := range fileIds {
 		ioType := fio.StandardFIO
 		if b.options.MMapAtStartup {
 			ioType = fio.MemoryMap
 		}
+
 		dataFile, err := data.OpenDataFile(b.options.DirPath, uint32(fid), ioType)
 		if err != nil {
 			return err
@@ -371,8 +377,8 @@ func (b *Base) LoadIndexFromDataFiles() error {
 		return nil
 	}
 
-	// 检查是否已经merge
 	hasMerge, nonMergeFileId := false, uint32(0)
+
 	mergeFinFileName := filepath.Join(b.options.DirPath, data.MergeFinishedFileName)
 	if _, err := os.Stat(mergeFinFileName); err == nil {
 		fid, err := b.getNonMergeFileId(b.options.DirPath)
@@ -387,9 +393,9 @@ func (b *Base) LoadIndexFromDataFiles() error {
 	updateIndex := func(key []byte, typ data.LogRecordType, pos *data.LogRecordPos) {
 		var ok bool
 		if typ == data.LogRecordDeleted {
-			ok = b.index.Delete(key)
+			ok = b.index.Delete(key) // 删除索引
 		} else {
-			ok = b.index.Put(key, pos)
+			ok = b.index.Put(key, pos) // 添加索引
 		}
 
 		if !ok {
@@ -407,7 +413,7 @@ func (b *Base) LoadIndexFromDataFiles() error {
 	for i, fid := range b.fileIds {
 		var fileId = uint32(fid)
 
-		// 已经从Hint文件中加载过 跳过
+		// 已经合并过的文件不再加载
 		if hasMerge && fileId < nonMergeFileId {
 			continue
 		}
@@ -440,16 +446,14 @@ func (b *Base) LoadIndexFromDataFiles() error {
 				// 非事务操作 直接更新内存索引
 				updateIndex(realKey, rec.Type, pos)
 			} else {
-				// 已完成事务 更新到内存索引中
 				if rec.Type == data.LogRecordTxnFinished {
+					// 检查事务已经完成 应用事务中所有操作
 					for _, txRecord := range txRecords[seqNo] {
 						updateIndex(txRecord.Record.Key, txRecord.Record.Type, txRecord.Pos)
 					}
 					delete(txRecords, seqNo)
 				} else {
 					rec.Key = realKey
-
-					// 暂存数据
 					txRecords[seqNo] = append(txRecords[seqNo], &data.TxRecord{
 						Record: rec,
 						Pos:    pos,
@@ -478,14 +482,16 @@ func (b *Base) LoadIndexFromDataFiles() error {
 	return nil
 }
 
+// Backup 数据备份
 func (b *Base) Backup(dir string) error {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 
+	// 将数据目录复制
 	return utils.CopyDir(b.options.DirPath, dir, []string{fileLockName})
 }
 
-// 获取value
+// 通过位置信息获取值
 func (b *Base) getValueByPosition(pos *data.LogRecordPos) ([]byte, error) {
 	var dataFile *data.File
 
@@ -499,13 +505,13 @@ func (b *Base) getValueByPosition(pos *data.LogRecordPos) ([]byte, error) {
 		return nil, errno.ErrDataFileNotFound
 	}
 
-	// 读取指定位置的记录
+	// 读取指定偏移处的日志记录
 	rec, _, err := dataFile.ReadLogRecord(pos.Offset)
 	if err != nil {
 		return nil, err
 	}
 
-	// 已删除日志
+	// 日志已删除
 	if rec.Type == data.LogRecordDeleted {
 		return nil, errno.ErrKeyNotFound
 	}
@@ -524,8 +530,10 @@ func (b *Base) Sync() error {
 	return b.activeFile.Sync()
 }
 
+// Close 关闭数据库
 func (b *Base) Close() error {
 	defer func() {
+		// 解锁文件锁
 		if err := b.fileLock.Unlock(); err != nil {
 			panic("failed to unlock the director: " + err.Error())
 		}
@@ -544,27 +552,28 @@ func (b *Base) Close() error {
 		return err
 	}
 
+	// 生成一条日志 标识当前事务号
 	rec := &data.LogRecord{
 		Key:   []byte(SeqNoKey),
 		Value: []byte(strconv.FormatUint(b.seqNo, 10)),
 	}
 
 	encRecord, _ := data.EncodeLogRecord(rec)
-	if err := seqNoFile.Write(encRecord); err != nil {
+	if err = seqNoFile.Write(encRecord); err != nil {
 		return err
 	}
-	if err := seqNoFile.Sync(); err != nil {
+	if err = seqNoFile.Sync(); err != nil {
 		return err
 	}
 
 	// 关闭当前活跃文件
-	if err := b.activeFile.Close(); err != nil {
+	if err = b.activeFile.Close(); err != nil {
 		return err
 	}
 
 	// 关闭旧数据文件
 	for _, file := range b.olderFiles {
-		if err := file.Close(); err != nil {
+		if err = file.Close(); err != nil {
 			return err
 		}
 	}

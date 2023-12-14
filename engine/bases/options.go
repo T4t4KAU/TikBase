@@ -30,6 +30,7 @@ type Options struct {
 	// 启动时是否使用MMap
 	MMapAtStartup bool
 
+	// 阈值
 	DataFileMergeRatio float32
 }
 

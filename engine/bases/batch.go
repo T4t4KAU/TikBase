@@ -13,6 +13,7 @@ const nonTransactionSeqNo = 0
 
 var txnFinKey = []byte("txn-fin")
 
+// WriteBatch 事务中批量操作
 type WriteBatch struct {
 	options WriteBatchOptions // 配置项
 	mutex   sync.RWMutex
@@ -35,7 +36,7 @@ func (b *Base) NewWriteBatchWith(options WriteBatchOptions) *WriteBatch {
 	}
 }
 
-// Put 插入数据
+// Put 事务中插入数据
 func (wb *WriteBatch) Put(key []byte, value []byte) error {
 	if len(key) <= 0 {
 		return errno.ErrKeyIsEmpty
@@ -49,7 +50,7 @@ func (wb *WriteBatch) Put(key []byte, value []byte) error {
 	return nil
 }
 
-// Delete 删除数据
+// Delete 事务中删除数据
 func (wb *WriteBatch) Delete(key []byte) error {
 	if len(key) <= 0 {
 		return errno.ErrKeyIsEmpty
@@ -117,7 +118,7 @@ func (wb *WriteBatch) Commit() error {
 		Type: data.LogRecordTxnFinished,
 	}
 
-	// 追加结束标记
+	// 追加事务完成标记 标识结束
 	if _, err := wb.base.AppendLogRecord(finishedRecord); err != nil {
 		return err
 	}

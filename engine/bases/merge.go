@@ -57,7 +57,7 @@ func (b *Base) Merge() error {
 	}
 	if uint64(totalSize-b.reclaimableSize) >= availableDiskSize {
 		b.mutex.Unlock()
-		return err
+		return errno.ErrNotEnoughDiskForMerge
 	}
 
 	// 持久化当前活跃文件
@@ -245,9 +245,9 @@ func (b *Base) getNonMergeFileId(dirPath string) (uint32, error) {
 	return uint32(nonMergeFileId), nil
 }
 
-// LoadMergeFiles 加载merge数据目录
+// LoadMergeFiles 加载合并文件
 func (b *Base) LoadMergeFiles() error {
-	// 如果merge目录存在则加载
+	// 如果合并目录存在则加载
 	mergePath := b.getMergePath()
 	if _, err := os.Stat(mergePath); os.IsNotExist(err) {
 		return nil
@@ -258,24 +258,25 @@ func (b *Base) LoadMergeFiles() error {
 		_ = os.RemoveAll(mergePath)
 	}()
 
-	// 读取目录中的文件项
+	// 读取目录中的所有文件项
 	dirEntries, err := os.ReadDir(mergePath)
 	if err != nil {
 		return err
 	}
 
+	// 标识合并是否已经完成
 	var mergeFinished bool
 	var fileNames []string
 
-	// 查找标识merge完成的文件
 	for _, entry := range dirEntries {
+		// 存在则表明合并已经完成
 		if entry.Name() == data.MergeFinishedFileName {
 			mergeFinished = true
 		}
 		fileNames = append(fileNames, entry.Name())
 	}
 
-	// merge 未完成则退出
+	// 合并未完成则退出
 	if !mergeFinished {
 		return nil
 	}
@@ -287,21 +288,21 @@ func (b *Base) LoadMergeFiles() error {
 
 	var fileId uint32 = 0
 
-	// 移除旧文件
+	// 遍历所有已合并的数据文件 在原路径中将其移除
 	for ; fileId < nonMergeFileId; fileId++ {
 		fileName := data.GetDataFileName(b.options.DirPath, fileId)
-		if _, err := os.Stat(fileName); err == nil {
-			if err := os.Remove(fileName); err != nil {
+		if _, err = os.Stat(fileName); err == nil {
+			if err = os.Remove(fileName); err != nil {
 				return err
 			}
 		}
 	}
 
-	// 移动新文件
+	// 将已经合并过的文件移动到新路径
 	for _, fileName := range fileNames {
 		srcPath := filepath.Join(mergePath, fileName)
 		destPath := filepath.Join(b.options.DirPath, fileName)
-		if err := os.Rename(srcPath, destPath); err != nil {
+		if err = os.Rename(srcPath, destPath); err != nil {
 			return err
 		}
 	}

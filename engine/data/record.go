@@ -64,6 +64,7 @@ func DecodeLogRecordHeader(buf []byte) (*LogRecordHeader, int64) {
 	return header, int64(index)
 }
 
+// EncodeLogRecord 编码日志记录
 func EncodeLogRecord(rec *LogRecord) ([]byte, int64) {
 	header := make([]byte, maxLogRecordHeaderSize)
 

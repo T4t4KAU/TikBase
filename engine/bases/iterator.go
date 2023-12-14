@@ -11,6 +11,7 @@ type Iterator struct {
 	options  IteratorOptions
 }
 
+// NewIterator 创建迭代器
 func (b *Base) NewIterator(opts IteratorOptions) *Iterator {
 	it := b.index.Iterator(opts.Reverse)
 	return &Iterator{
