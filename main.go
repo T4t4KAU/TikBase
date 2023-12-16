@@ -4,10 +4,11 @@ import (
 	"TikBase/engine"
 	"TikBase/iface"
 	"TikBase/pack/config"
+	"TikBase/pack/net/http"
 	"TikBase/pack/net/tcp/resp"
 	"TikBase/pack/net/tcp/tiko"
 	"TikBase/pack/poll"
-	"TikBase/pack/web"
+
 	"errors"
 	"strconv"
 	"time"
@@ -26,19 +27,24 @@ func NewHandler(name string, eng iface.Engine) (iface.Handler, error) {
 	}
 }
 
-func startServer(config config.Config) {
-	eng, err := engine.NewEngine(config.Type)
+func startServer(server config.ServerConfig, store config.BaseStoreConfig) {
+	eng, err := engine.NewEngine("base")
 
-	go web.StartServer(eng)
+	go func() {
+		err := http.StartServer(":9090", eng)
+		if err != nil {
+			panic(err)
+		}
+	}()
 
-	handler, err := NewHandler(config.Protocol, eng)
+	handler, err := NewHandler("tiko", eng)
 	if err != nil {
 		panic(err)
 	}
 
 	p := poll.New(poll.Config{
-		Address:    ":" + strconv.Itoa(config.TcpPort),
-		MaxConnect: int32(config.MaxConn),
+		Address:    ":" + strconv.Itoa(server.RESPPort),
+		MaxConnect: int32(server.WorkersNum),
 		Timeout:    time.Second,
 	}, handler)
 
@@ -50,11 +56,14 @@ func startServer(config config.Config) {
 
 func main() {
 	println(logo)
-	c, err := config.ReadConfigFile("config.yaml")
+	server, err := config.ReadServerConfigFile("./config/server-config.yaml")
+	if err != nil {
+		panic(err)
+	}
+	store, err := config.ReadBaseConfigFile("./config/store-config.yaml")
 	if err != nil {
 		panic(err)
 	}
 
-	println("using protocol:", c.Protocol, "\nusing engine:", c.Type, "\nstart server at", c.Host)
-	startServer(*c)
+	startServer(server, store)
 }

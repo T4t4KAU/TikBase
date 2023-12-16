@@ -52,7 +52,7 @@ func (c *Context) setHeader(key string, value string) {
 func (c *Context) String(code int, format string, values ...any) {
 	c.setHeader("Context-Type", "text/plain")
 	c.Status(code)
-	c.Writer.Write([]byte(fmt.Sprintf(format, values...)))
+	_, _ = c.Writer.Write([]byte(fmt.Sprintf(format, values...)))
 }
 
 // JSON JSON序列化
@@ -67,5 +67,5 @@ func (c *Context) JSON(code int, obj any) {
 
 func (c *Context) Data(code int, data []byte) {
 	c.Status(code)
-	c.Writer.Write(data)
+	_, _ = c.Writer.Write(data)
 }

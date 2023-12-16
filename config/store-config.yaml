@@ -1,0 +1,15 @@
+directory: "./temp"
+indexer: "art"
+datafile_size: 1024 # 数据文件大小
+bytes_per_sync: 1000
+sync_writes: true
+write_batch:
+  max_batch_num: 10000
+  sync_writes: true
+datafile_merge_ratio: 10
+iterator:
+  prefix: ""
+  reverse: true
+mmap_at_startup: true
+
+

@@ -1,13 +1,13 @@
 package config
 
 import (
+	"TikBase/engine/bases"
 	"fmt"
 
 	"github.com/spf13/viper"
 )
 
-type StoreConfig struct {
-	Type         string `mapstructure:"type"`
+type BaseStoreConfig struct {
 	Directory    string `mapstructure:"directory"`
 	Indexer      string `mapstructure:"indexer"`
 	DatafileSize int    `mapstructure:"datafile_size"`
@@ -26,30 +26,87 @@ type StoreConfig struct {
 }
 
 type ServerConfig struct {
-	TCPPort    int `mapstructure:"tcp_port"`
+	RESPPort   int `mapstructure:"resp_port"`
 	HTTPPort   int `mapstructure:"http_port"`
 	WorkersNum int `mapstructure:"workers_num"`
 	Timeout    int `mapstructure:"timeout"`
 }
 
-type Config struct {
-	Store  StoreConfig  `mapstructure:"store"`
-	Server ServerConfig `mapstructure:"server"`
-}
-
-func ReadConfigFile(filePath string) (Config, error) {
+func ReadServerConfigFile(filePath string) (ServerConfig, error) {
 	viper.SetConfigFile(filePath)
 	viper.SetConfigType("yaml")
 	err := viper.ReadInConfig()
 	if err != nil {
-		return Config{}, fmt.Errorf("failed to read config file: %w", err)
+		return ServerConfig{}, fmt.Errorf("failed to read config file: %w", err)
 	}
 
-	var config Config
+	var config ServerConfig
 	err = viper.Unmarshal(&config)
 	if err != nil {
-		return Config{}, fmt.Errorf("failed to unmarshal config: %w", err)
+		return ServerConfig{}, fmt.Errorf("failed to unmarshal config: %w", err)
+	}
+	return config, nil
+}
+
+func ReadBaseConfigFile(filePath string) (BaseStoreConfig, error) {
+	viper.SetConfigFile(filePath)
+	viper.SetConfigType("yaml")
+	err := viper.ReadInConfig()
+	if err != nil {
+		return BaseStoreConfig{}, fmt.Errorf("failed to read config file: %w", err)
+	}
+	var config BaseStoreConfig
+	err = viper.Unmarshal(&config)
+	if err != nil {
+		return BaseStoreConfig{}, fmt.Errorf("failed to unmarshal config: %w", err)
+	}
+	return config, nil
+}
+
+func BaseEngineConfig(config BaseStoreConfig) (bases.Options, bases.WriteBatchOptions, bases.IteratorOptions) {
+	var idx bases.IndexerType
+	switch config.Indexer {
+	case "art", "":
+		idx = bases.ART
+	case "bt":
+		idx = bases.BT
+	default:
+		panic("invalid index type")
 	}
 
-	return config, nil
+	if config.BytesPerSync <= 0 {
+		panic("invalid bytes_per_sync param")
+	}
+	if config.DatafileSize <= 0 {
+		panic("invalid data_file_size param")
+	}
+	if config.DatafileMergeRatio <= 0 {
+		panic("invalid datafile_merge_ratio param")
+	}
+
+	baseOption := bases.Options{
+		DirPath:            config.Directory,
+		DataFileSize:       int64(config.DatafileSize),
+		SyncWrites:         config.SyncWrites,
+		IndexType:          idx,
+		BytesPerSync:       uint(config.BytesPerSync),
+		MMapAtStartup:      config.MmapAtStartup,
+		DataFileMergeRatio: float32(config.DatafileMergeRatio),
+	}
+
+	iterOption := bases.IteratorOptions{
+		Prefix:  []byte(config.Iterator.Prefix),
+		Reverse: config.Iterator.Reverse,
+	}
+
+	if config.WriteBatch.MaxBatchNum <= 0 {
+		panic("invalid max_batch_num param")
+	}
+
+	txOption := bases.WriteBatchOptions{
+		MaxBatchNum: uint(config.WriteBatch.MaxBatchNum),
+		SyncWriters: config.WriteBatch.SyncWrites,
+	}
+
+	return baseOption, txOption, iterOption
 }

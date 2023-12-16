@@ -613,6 +613,7 @@ func (b *Base) Fold(fn func(key []byte, value []byte) bool) error {
 	return nil
 }
 
+// AppendLogRecordWithLock 带锁追加日志
 func (b *Base) AppendLogRecordWithLock(rec *data.LogRecord) (*data.LogRecordPos, error) {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()

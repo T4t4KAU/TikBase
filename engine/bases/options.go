@@ -37,11 +37,12 @@ type Options struct {
 type IndexerType = int8
 
 var DefaultOptions = Options{
-	DirPath:       os.TempDir(),
-	DataFileSize:  256 * 1024 * 1024, // 256MB
-	SyncWrites:    false,
-	IndexType:     ART,
-	MMapAtStartup: true,
+	DirPath:            os.TempDir(),
+	DataFileSize:       256 * 1024 * 1024, // 256MB
+	SyncWrites:         false,
+	IndexType:          ART,
+	MMapAtStartup:      true,
+	DataFileMergeRatio: 0.5,
 }
 
 type IteratorOptions struct {
