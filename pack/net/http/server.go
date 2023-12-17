@@ -29,11 +29,11 @@ func (s *Server) Run(address string) error {
 
 func (s *Server) routerHandler() *router.Router {
 	r := router.New()
-	r.GET("/cache/:key", s.getHandler)
-	r.PUT("/cache/:key", s.setHandler)
-	r.DELETE("/cache/:key", s.deleteHandler)
-	r.GET("/status", s.statusHandler)
-	r.GET("/echo/:key", s.echoHandler)
+	r.GET("/store/:key", s.getHandler)
+	r.PUT("/store/:key", s.setHandler)
+	r.DELETE("/store/:key", s.deleteHandler)
+	r.GET("/store/status", s.statusHandler)
+	r.GET("/store/echo/:key", s.echoHandler)
 	return r
 }
 
@@ -83,7 +83,7 @@ func (s *Server) deleteHandler(ctx *router.Context) {
 }
 
 func (s *Server) statusHandler(ctx *router.Context) {
-
+	ctx.Writer.WriteHeader(http.StatusOK)
 }
 
 func (s *Server) echoHandler(ctx *router.Context) {

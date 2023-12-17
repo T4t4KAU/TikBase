@@ -62,7 +62,7 @@ func (c *Client) Del(key string) error {
 }
 
 func (c *Client) Expire(key string, ttl int64) error {
-	_, err := writeExpireRequest(c.conn, utils.S2B(key), utils.Int64ToBytes(ttl))
+	_, err := writeExpireRequest(c.conn, utils.S2B(key), utils.I642B(ttl))
 	if err != nil {
 		return err
 	}

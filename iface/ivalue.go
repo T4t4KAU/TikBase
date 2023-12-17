@@ -8,7 +8,8 @@ const (
 	STRING
 	SET
 	ZSET
-	MAP
+	HASH
+	LIST
 	LOG_POS
 )
 

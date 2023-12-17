@@ -61,7 +61,7 @@ func (b *Base) Merge() error {
 	}
 
 	// 持久化当前活跃文件
-	if err := b.activeFile.Sync(); err != nil {
+	if err = b.activeFile.Sync(); err != nil {
 		b.mutex.Unlock()
 		return err
 	}
@@ -70,7 +70,7 @@ func (b *Base) Merge() error {
 	b.olderFiles[b.activeFile.FileId] = b.activeFile // 归入旧文件
 
 	// 打开并设置新的活跃文件
-	if err := b.setActiveDataFile(); err != nil {
+	if err = b.setActiveDataFile(); err != nil {
 		b.mutex.Unlock()
 		return nil
 	}
@@ -151,11 +151,11 @@ func (b *Base) Merge() error {
 	}
 
 	// 将数据持久化到磁盘
-	if err := hintFile.Sync(); err != nil {
+	if err = hintFile.Sync(); err != nil {
 		return err
 	}
 
-	if err := mergeDB.Sync(); err != nil {
+	if err = mergeDB.Sync(); err != nil {
 		return err
 	}
 

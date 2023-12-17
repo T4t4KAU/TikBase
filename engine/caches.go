@@ -77,7 +77,13 @@ func (eng *CacheEngine) Exec(ins iface.INS, args [][]byte) iface.Result {
 
 func (eng *CacheEngine) ExecSetString(args [][]byte) *CacheResult {
 	key := string(args[0])
-	val := parseSetStringArgs(args)
+	val, err := parseSetStringArgs(args)
+	if err != nil {
+		return &CacheResult{
+			succ: false,
+			err:  err,
+		}
+	}
 	ok := eng.SetString(key, val, values.NeverExpire)
 	if !ok {
 		return &CacheResult{
@@ -119,7 +125,13 @@ func (eng *CacheEngine) ExecDelKey(args [][]byte) *CacheResult {
 
 func (eng *CacheEngine) ExecExpire(args [][]byte) *CacheResult {
 	key := string(args[0])
-	ttl := parseExpireKeyArgs(args)
+	ttl, err := parseExpireKeyArgs(args)
+	if err != nil {
+		return &CacheResult{
+			succ: false,
+			err:  err,
+		}
+	}
 	ok := eng.Expire(key, ttl)
 	if !ok {
 		return &CacheResult{

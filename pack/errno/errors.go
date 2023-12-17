@@ -13,5 +13,7 @@ var (
 	ErrMergeIsProgress        = errors.New("merge is in progress, try again later")
 	ErrDatabaseIsUsing        = errors.New("the database directory is using")
 	ErrMergeRatioUnreached    = errors.New("merge ratio is unreached")
-	ErrNotEnoughDiskForMerge   = errors.New("no enough disk space for merge")
+	ErrNotEnoughDiskForMerge  = errors.New("no enough disk space for merge")
+	ErrWrongTypeOperation     = errors.New("WRONGTYPE Operation against a key holding the wrong kind of value")
+	ErrParseArgsError         = errors.New("parse args from bytes failed")
 )

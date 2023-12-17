@@ -48,7 +48,7 @@ func writeReply(writer io.Writer, code byte, body []byte) (int, error) {
 }
 
 func writeMultiReply(writer io.Writer, code byte, body [][]byte, n int) error {
-	_, err := writeReply(writer, code, utils.IntToBytes(n))
+	_, err := writeReply(writer, code, utils.I2B(n))
 	if err != nil {
 		return err
 	}
