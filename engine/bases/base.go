@@ -99,22 +99,22 @@ func Open(options Options) (*Base, error) {
 	}
 
 	// 如果存在合并后的目录 加载该目录中的文件数据
-	if err := base.LoadMergeFiles(); err != nil {
+	if err = base.LoadMergeFiles(); err != nil {
 		return nil, err
 	}
 
 	// 加载数据文件
-	if err := base.LoadDataFiles(); err != nil {
+	if err = base.LoadDataFiles(); err != nil {
 		return nil, err
 	}
 
 	// 从Hint文件加载索引
-	if err := base.LoadIndexFromHintFile(); err != nil {
+	if err = base.LoadIndexFromHintFile(); err != nil {
 		return nil, err
 	}
 
 	// 从数据文件加载索引
-	if err := base.LoadIndexFromDataFiles(); err != nil {
+	if err = base.LoadIndexFromDataFiles(); err != nil {
 		return nil, err
 	}
 
@@ -128,7 +128,7 @@ func Open(options Options) (*Base, error) {
 }
 
 // Get 读取数据
-func (b *Base) Get(key string) (*values.Value, bool) {
+func (b *Base) Get(key string) (iface.Value, bool) {
 	b.mutex.RLock()
 	defer b.mutex.RUnlock()
 

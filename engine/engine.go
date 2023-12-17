@@ -26,6 +26,8 @@ func NewEngine(name string) (iface.Engine, error) {
 	}
 }
 
+// 解析参数
+
 func parseSetStringArgs(args [][]byte) (string, error) {
 	if len(args) < 2 {
 		return "", errno.ErrParseArgsError

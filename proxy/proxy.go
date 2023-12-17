@@ -1,6 +1,7 @@
 package proxy
 
 type Proxy struct {
+	limiter *Limiter
 }
 
 func New() *Proxy {

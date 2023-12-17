@@ -11,6 +11,7 @@ const (
 	HASH
 	LIST
 	LOG_POS
+	META_DATA
 )
 
 type Value interface {

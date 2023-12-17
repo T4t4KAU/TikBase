@@ -5,6 +5,7 @@ import (
 	"TikBase/engine/values"
 	"TikBase/iface"
 	"TikBase/pack/errno"
+	"TikBase/pack/utils"
 	"errors"
 )
 
@@ -72,9 +73,15 @@ func (eng *LevelEngine) Exec(ins iface.INS, args [][]byte) iface.Result {
 }
 
 func (eng *LevelEngine) ExecSetString(args [][]byte) *LevelResult {
-	val := parseSetStringArgs(args)
-	key := string(args[0])
+	val, err := parseSetStringArgs(args)
+	if err != nil {
+		return &LevelResult{
+			succ: true,
+			err:  errno.ErrParseArgsError,
+		}
+	}
 
+	key := utils.B2S(args[0])
 	v := values.New([]byte(val), 0, iface.STRING)
 	eng.Set(key, &v)
 	return NewSuccLevelResult()
