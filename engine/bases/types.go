@@ -1,103 +1,13 @@
 package bases
 
 import (
+	"TikBase/engine/values"
 	"TikBase/iface"
 	"TikBase/pack/errno"
 	"TikBase/pack/utils"
 	"encoding/binary"
-	"math"
 	"time"
 )
-
-const (
-	maxMetadataSize   = 1 + binary.MaxVarintLen64*2 + binary.MaxVarintLen32
-	extraListMetaSize = binary.MaxVarintLen64 * 2
-	initialListFlag   = math.MaxUint64 / 2
-	scoreKeyPrefix    = "!score"
-)
-
-type HashInternalKey struct {
-	key     []byte
-	version int64
-	field   []byte
-}
-
-func NewHashInternalKey(key string, version int64, field []byte) *HashInternalKey {
-	return &HashInternalKey{
-		key:     utils.S2B(key),
-		version: version,
-		field:   field,
-	}
-}
-
-func (hk *HashInternalKey) Encode() []byte {
-	b := make([]byte, len(hk.key)+len(hk.field)+8)
-
-	var index = 0
-	copy(b[index:index+len(hk.key)], hk.key)
-	binary.LittleEndian.PutUint64(b[index:index+8], uint64(hk.version))
-	index += 8
-	copy(b[index:], hk.field)
-
-	return b
-}
-
-func (hk *HashInternalKey) String() string {
-	return utils.B2S(hk.Encode())
-}
-
-type SetInternalKey struct {
-	key     []byte
-	version int64
-	member  []byte
-}
-
-func NewSetInternalKey(key string, version int64, member []byte) *SetInternalKey {
-	return &SetInternalKey{
-		key:     utils.S2B(key),
-		version: version,
-		member:  member,
-	}
-}
-
-func (sk *SetInternalKey) Encode() []byte {
-	b := make([]byte, len(sk.key)+len(sk.member)+12)
-
-	var index = 0
-	copy(b[index:index+len(sk.key)], sk.key)
-	index += len(sk.key)
-
-	binary.LittleEndian.PutUint64(b[index:index+8], uint64(sk.version))
-	index += 8
-
-	copy(b[index:index+len(sk.member)], sk.member)
-	index += len(sk.member)
-	binary.LittleEndian.PutUint32(b[index:], uint32(len(sk.member)))
-
-	return b
-}
-
-type ZSetInternalKey struct {
-	key     []byte
-	version int64
-	member  []byte
-	score   float64
-}
-
-func NewZSetInternalKey(key []byte, version int64, member []byte, score float64) *ZSetInternalKey {
-	return &ZSetInternalKey{
-		key:     key,
-		version: version,
-		member:  member,
-		score:   score,
-	}
-}
-
-type ListInternalKey struct {
-	key     []byte
-	version int64
-	index   uint64
-}
 
 // Meta 元数据 支撑复杂数据类型
 type Meta struct {
@@ -313,4 +223,84 @@ func (b *Base) Contain(key string, member []byte) bool {
 	encKey := NewSetInternalKey(key, meta.Version, member).Encode()
 	_, ok := b.Get(utils.B2S(encKey))
 	return ok
+}
+
+func (b *Base) pushInner(key string, element []byte, isLeft bool) (uint32, error) {
+	meta, err := b.FindMeta(key, iface.LIST)
+	if err != nil {
+		return 0, err
+	}
+
+	lk := NewListInternalKey(key, meta.Version, 0)
+	if isLeft {
+		lk.index = meta.Head - 1
+	} else {
+		lk.index = meta.Tail
+	}
+
+	wb := b.NewWriteBatch()
+	meta.Size++
+	if isLeft {
+		meta.Head--
+	} else {
+		meta.Tail++
+	}
+
+	_ = wb.Put(utils.S2B(key), meta.Encode())
+	_ = wb.Put(lk.Encode(), element)
+	if err = wb.Commit(); err != nil {
+		return 0, err
+	}
+	return meta.Size, nil
+}
+
+func (b *Base) popInner(key string, isLeft bool) (iface.Value, error) {
+	meta, err := b.FindMeta(key, iface.LIST)
+	if err != nil {
+		return nil, err
+	}
+	if meta.Size == 0 {
+		return nil, nil
+	}
+
+	listKey := NewListInternalKey(key, meta.Version, 0)
+	if isLeft {
+		listKey.index = meta.Head
+	} else {
+		listKey.index = meta.Tail - 1
+	}
+
+	elem, ok := b.Get(listKey.String())
+	if !ok {
+		return nil, errno.ErrKeyNotFound
+	}
+
+	meta.Size--
+	if isLeft {
+		meta.Head++
+	} else {
+		meta.Tail--
+	}
+
+	v := values.NewMeta(meta.Encode())
+	if !b.Set(key, &v) {
+		return nil, err
+	}
+	return elem, nil
+}
+
+func (b *Base) LPush(key string, element []byte) (uint32, error) {
+	return b.pushInner(key, element, true)
+}
+
+func (b *Base) RPush(key string, element []byte) (uint32, error) {
+	return b.pushInner(key, element, false)
+}
+
+func (b *Base) LPop(key string) (iface.Value, error) {
+	return b.popInner(key, true)
+}
+
+func (b *Base) RPop(key string) (iface.Value, error) {
+	return b.popInner(key, false)
 }

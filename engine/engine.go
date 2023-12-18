@@ -42,30 +42,44 @@ func parseExpireKeyArgs(args [][]byte) (int64, error) {
 	return utils.B2I64(args[1]), nil
 }
 
-func parseHashSetArgs(args [][]byte) ([]byte, []byte, []byte, error) {
+func parseHashSetArgs(args [][]byte) (string, []byte, []byte, error) {
 	if len(args) < 3 {
-		return nil, nil, nil, errno.ErrParseArgsError
+		return "", nil, nil, errno.ErrParseArgsError
 	}
-	return args[0], args[1], args[2], nil
+	return utils.B2S(args[0]), args[1], args[2], nil
 }
 
-func parseHashGetArgs(args [][]byte) ([]byte, []byte, error) {
+func parseHashGetArgs(args [][]byte) (string, []byte, error) {
 	if len(args) < 2 {
-		return nil, nil, errno.ErrParseArgsError
+		return "", nil, errno.ErrParseArgsError
 	}
-	return args[0], args[1], nil
+	return utils.B2S(args[0]), args[1], nil
 }
 
-func parseHashDelArgs(args [][]byte) ([]byte, []byte, error) {
+func parseListPushArgs(args [][]byte) (string, []byte, error) {
 	if len(args) < 2 {
-		return nil, nil, errno.ErrParseArgsError
+		return utils.B2S(args[0]), args[1], errno.ErrParseArgsError
 	}
-	return args[0], args[1], nil
+	return utils.B2S(args[0]), args[1], nil
 }
 
-func parseSetAddArgs(args [][]byte) ([]byte, []byte, error) {
+func parseListPopArgs(args [][]byte) (string, error) {
+	if len(args) < 2 {
+		return utils.B2S(args[0]), errno.ErrParseArgsError
+	}
+	return utils.B2S(args[0]), nil
+}
+
+func parseHashDelArgs(args [][]byte) (string, []byte, error) {
+	if len(args) < 2 {
+		return "", nil, errno.ErrParseArgsError
+	}
+	return utils.B2S(args[0]), args[1], nil
+}
+
+func parseSetAddArgs(args [][]byte) (string, []byte, error) {
 	if len(args) < 3 {
-		return nil, nil, errno.ErrParseArgsError
+		return "", nil, errno.ErrParseArgsError
 	}
-	return args[0], args[1], nil
+	return utils.B2S(args[0]), args[1], nil
 }

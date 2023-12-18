@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -67,6 +68,15 @@ func I642B(e int64) []byte {
 
 func B2I64(b []byte) int64 {
 	return int64(binary.BigEndian.Uint64(b))
+}
+
+func B2F64(b []byte) float64 {
+	val, _ := strconv.ParseFloat(B2S(b), 64)
+	return val
+}
+
+func F642B(f float64) []byte {
+	return []byte(strconv.FormatFloat(f, 'f', -1, 64))
 }
 
 func GenerateRandomString(length int) string {

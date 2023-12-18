@@ -35,7 +35,7 @@ func (r *BaseResult) Status() int {
 	return 0
 }
 
-func buildBaseResp(succ bool, data [][]byte, err error) *BaseResult {
+func buildBaseResult(succ bool, data [][]byte, err error) *BaseResult {
 	return &BaseResult{
 		succ: true,
 		data: data,
@@ -43,10 +43,18 @@ func buildBaseResp(succ bool, data [][]byte, err error) *BaseResult {
 	}
 }
 
-func buildBaseErrResp(err error) *BaseResult {
+func buildBaseErrResult(err error) *BaseResult {
 	return &BaseResult{
 		succ: false,
 		err:  err,
+	}
+}
+
+func buildBaseResultFromValue(value iface.Value) *BaseResult {
+	return &BaseResult{
+		succ: true,
+		err:  nil,
+		data: [][]byte{value.Bytes()},
 	}
 }
 
@@ -95,32 +103,32 @@ func (eng *BaseEngine) Exec(ins iface.INS, args [][]byte) iface.Result {
 
 func (eng *BaseEngine) ExecStrSet(args [][]byte) iface.Result {
 	if len(args[0]) <= 0 {
-		return buildBaseErrResp(errno.ErrKeyIsEmpty)
+		return buildBaseErrResult(errno.ErrKeyIsEmpty)
 	}
 
 	val := values.New(args[1], 0, iface.STRING)
 	ok := eng.SetBytes(args[0], &val)
 	if !ok {
-		return buildBaseErrResp(errno.ErrExceedCapacity)
+		return buildBaseErrResult(errno.ErrExceedCapacity)
 	}
 	return NewSuccBaseResult()
 }
 
 func (eng *BaseEngine) ExecStrGet(args [][]byte) iface.Result {
 	if len(args[0]) <= 0 {
-		return buildBaseErrResp(errno.ErrKeyIsEmpty)
+		return buildBaseErrResult(errno.ErrKeyIsEmpty)
 	}
 
 	val, ok := eng.Get(utils.B2S(args[0]))
 	if !ok {
-		return buildBaseErrResp(errno.ErrKeyNotFound)
+		return buildBaseErrResult(errno.ErrKeyNotFound)
 	}
-	return buildBaseResp(true, [][]byte{val.Bytes()}, nil)
+	return buildBaseResult(true, [][]byte{val.Bytes()}, nil)
 }
 
 func (eng *BaseEngine) ExecDelKey(args [][]byte) iface.Result {
 	if len(args[0]) <= 0 {
-		return buildBaseErrResp(errno.ErrKeyIsEmpty)
+		return buildBaseErrResult(errno.ErrKeyIsEmpty)
 	}
 
 	ok := eng.Del(utils.B2S(args[0]))
@@ -128,4 +136,52 @@ func (eng *BaseEngine) ExecDelKey(args [][]byte) iface.Result {
 		return NewNotFoundBaseResult()
 	}
 	return NewSuccBaseResult()
+}
+
+func (eng *BaseEngine) ExecHashSet(args [][]byte) iface.Result {
+	key, field, value, err := parseHashSetArgs(args)
+	if err != nil {
+		return buildBaseErrResult(err)
+	}
+	_, err = eng.HSet(key, field, value)
+	if err != nil {
+		return buildBaseErrResult(err)
+	}
+	return NewSuccBaseResult()
+}
+
+func (eng *BaseEngine) ExecHashGet(args [][]byte) iface.Result {
+	key, field, err := parseHashGetArgs(args)
+	if err != nil {
+		return buildBaseErrResult(err)
+	}
+	v, ok := eng.HGet(key, field)
+	if !ok {
+		return NewNotFoundBaseResult()
+	}
+	return buildBaseResultFromValue(v)
+}
+
+func (eng *BaseEngine) ExecListPush(args [][]byte) iface.Result {
+	key, element, err := parseListPushArgs(args)
+	if err != nil {
+		return buildBaseErrResult(err)
+	}
+	_, err = eng.LPush(key, element)
+	if err != nil {
+		return buildBaseErrResult(err)
+	}
+	return NewSuccBaseResult()
+}
+
+func (eng *BaseEngine) ExecListPop(args [][]byte) iface.Result {
+	key, err := parseListPopArgs(args)
+	if err != nil {
+		return buildBaseErrResult(err)
+	}
+	v, err := eng.LPop(key)
+	if err != nil {
+		return buildBaseErrResult(err)
+	}
+	return buildBaseResultFromValue(v)
 }
