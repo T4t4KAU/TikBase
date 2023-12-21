@@ -38,16 +38,16 @@ func NewSet() *Set {
 	}
 }
 
-func (set *Set) Add(val string) int {
+func (set *Set) Add(val iface.Value) int {
 	return set.dict.Put(val, nil)
 }
 
-func (set *Set) Remove(val string) int {
+func (set *Set) Remove(val iface.Value) int {
 	_, ret := set.dict.Remove(val)
 	return ret
 }
 
-func (set *Set) Has(val string) bool {
+func (set *Set) Has(val iface.Value) bool {
 	if set == nil || set.dict == nil {
 		return false
 	}
@@ -65,13 +65,13 @@ func (set *Set) Len() int {
 func (set *Set) String() string {
 	s := ""
 	for k := range set.dict.m {
-		s += k + ", "
+		s += k.String() + ", "
 	}
 
 	s = strings.TrimRight(s, ", ")
 	return "{" + s + "}"
 }
 
-func (set *Set) Elements() []string {
+func (set *Set) Elements() []iface.Value {
 	return set.dict.Keys()
 }

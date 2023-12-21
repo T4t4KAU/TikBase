@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"bytes"
 	"encoding/binary"
 	"io/fs"
 	"math/rand"
@@ -28,8 +27,8 @@ func CopyTo(dst []byte, src []byte) {
 	copy(dst, src)
 }
 
-func CompareKey(a, b string) int {
-	return bytes.Compare([]byte(a), []byte(b))
+func CompareKey[T any](a, b T) int {
+	return 0
 }
 
 // NowSuffix 当前时间戳后缀

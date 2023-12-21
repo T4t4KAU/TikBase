@@ -183,3 +183,49 @@ func TestBase_FileLock(t *testing.T) {
 	t.Log(base2)
 	t.Log(err)
 }
+
+func TestBase_HGet(t *testing.T) {
+	opts := DefaultOptions
+	opts.DirPath = "../../temp"
+	base, err := NewBaseWith(opts)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	_, err = base.HSet("test_hash", []byte("test_key"), []byte("test_value"))
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	res, ok := base.HGet("test_hash", []byte("test_key"))
+	if !ok {
+		t.Log("HGet failed")
+		return
+	}
+
+	assert.Equal(t, "test_value", res.String())
+}
+
+func TestBase_SAdd(t *testing.T) {
+	opts := DefaultOptions
+	opts.DirPath = "../../temp"
+	base, err := NewBaseWith(opts)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	ok := base.SAdd("test_set", []byte("001"))
+	assert.True(t, ok)
+
+	ok = base.SAdd("test_set", []byte("002"))
+	assert.True(t, ok)
+
+	ok = base.Contain("test_set", []byte("001"))
+	assert.True(t, ok)
+
+	ok = base.Contain("test_set", []byte("000"))
+	assert.False(t, ok)
+}

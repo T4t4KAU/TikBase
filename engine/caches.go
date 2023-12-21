@@ -10,6 +10,7 @@ import (
 
 type CacheEngine struct {
 	*caches.Cache
+	execFunc map[iface.INS]ExecFunc
 }
 
 func NewCacheEngine() (*CacheEngine, error) {
@@ -17,9 +18,13 @@ func NewCacheEngine() (*CacheEngine, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &CacheEngine{
+
+	eng := &CacheEngine{
 		Cache: c,
-	}, nil
+	}
+
+	eng.initExecFunc()
+	return eng, nil
 }
 
 type CacheResult struct {
@@ -58,24 +63,23 @@ func NewUnknownCacheResult() *CacheResult {
 }
 
 func (eng *CacheEngine) Exec(ins iface.INS, args [][]byte) iface.Result {
-	switch ins {
-	case iface.SET_STR:
-		return eng.ExecSetString(args)
-	case iface.GET_STR:
-		return eng.ExecGetString(args)
-	case iface.DEL:
-		return eng.ExecDelKey(args)
-	case iface.EXPIRE:
-		return eng.ExecExpire(args)
-	case iface.NIL:
-		// 不作任何操作
-		return NewSuccCacheResult()
-	default:
-		return NewUnknownCacheResult()
+	if fn, ok := eng.execFunc[ins]; ok {
+		return fn(args)
 	}
+	return NewUnknownCacheResult()
 }
 
-func (eng *CacheEngine) ExecSetString(args [][]byte) *CacheResult {
+func (eng *CacheEngine) registerExecFunc(ins iface.INS, fn ExecFunc) {
+	eng.execFunc[ins] = fn
+}
+
+func (eng *CacheEngine) initExecFunc() {
+	eng.registerExecFunc(iface.GET_STR, eng.ExecStrGet)
+	eng.registerExecFunc(iface.SET_STR, eng.ExecStrSet)
+	eng.registerExecFunc(iface.DEL, eng.ExecDelKey)
+}
+
+func (eng *CacheEngine) ExecStrSet(args [][]byte) iface.Result {
 	key := string(args[0])
 	val, err := parseSetStringArgs(args)
 	if err != nil {
@@ -94,7 +98,7 @@ func (eng *CacheEngine) ExecSetString(args [][]byte) *CacheResult {
 	return NewSuccCacheResult()
 }
 
-func (eng *CacheEngine) ExecGetString(args [][]byte) *CacheResult {
+func (eng *CacheEngine) ExecStrGet(args [][]byte) iface.Result {
 	key := string(args[0])
 	val, ok := eng.Get(key)
 	if !ok {
@@ -109,7 +113,7 @@ func (eng *CacheEngine) ExecGetString(args [][]byte) *CacheResult {
 	}
 }
 
-func (eng *CacheEngine) ExecDelKey(args [][]byte) *CacheResult {
+func (eng *CacheEngine) ExecDelKey(args [][]byte) iface.Result {
 	key := string(args[0])
 	ok := eng.Del(key)
 	if !ok {
@@ -123,7 +127,7 @@ func (eng *CacheEngine) ExecDelKey(args [][]byte) *CacheResult {
 	}
 }
 
-func (eng *CacheEngine) ExecExpire(args [][]byte) *CacheResult {
+func (eng *CacheEngine) ExecExpire(args [][]byte) iface.Result {
 	key := string(args[0])
 	ttl, err := parseExpireKeyArgs(args)
 	if err != nil {
@@ -144,7 +148,7 @@ func (eng *CacheEngine) ExecExpire(args [][]byte) *CacheResult {
 	}
 }
 
-func (eng *CacheEngine) ExecKeys() *CacheResult {
+func (eng *CacheEngine) ExecKeys() iface.Result {
 	return &CacheResult{
 		succ: true,
 		data: eng.Keys(),

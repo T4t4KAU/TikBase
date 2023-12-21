@@ -5,8 +5,8 @@ import (
 	"TikBase/iface"
 	"TikBase/pack/config"
 	"TikBase/pack/net/http"
-	"TikBase/pack/net/tcp/resp"
-	"TikBase/pack/net/tcp/tiko"
+	"TikBase/pack/net/resp"
+	"TikBase/pack/net/tiko"
 	"TikBase/pack/poll"
 
 	"errors"

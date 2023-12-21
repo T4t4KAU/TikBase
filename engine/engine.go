@@ -7,6 +7,8 @@ import (
 	"errors"
 )
 
+type ExecFunc func(args [][]byte) iface.Result
+
 var engines = make(map[string]iface.Engine)
 
 func RegisterEngine(name string, eng iface.Engine) {
@@ -17,8 +19,6 @@ func NewEngine(name string) (iface.Engine, error) {
 	switch name {
 	case "cache":
 		return NewCacheEngine()
-	case "level":
-		return NewLevelEngine()
 	case "base":
 		return NewBaseEngine()
 	default:

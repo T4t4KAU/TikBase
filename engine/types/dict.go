@@ -1,17 +1,19 @@
 package types
 
+import "TikBase/iface"
+
 // Dict 字典
 type Dict struct {
-	m map[string]any
+	m map[iface.Value]any
 }
 
 func NewDict() *Dict {
 	return &Dict{
-		m: make(map[string]any),
+		m: make(map[iface.Value]any),
 	}
 }
 
-func (dict *Dict) Get(key string) (any, bool) {
+func (dict *Dict) Get(key iface.Value) (any, bool) {
 	val, ok := dict.m[key]
 	return val, ok
 }
@@ -23,7 +25,7 @@ func (dict *Dict) Len() int {
 	return len(dict.m)
 }
 
-func (dict *Dict) Put(key string, val any) int {
+func (dict *Dict) Put(key iface.Value, val any) int {
 	_, ok := dict.m[key]
 	dict.m[key] = val
 	if ok {
@@ -32,7 +34,7 @@ func (dict *Dict) Put(key string, val any) int {
 	return 1
 }
 
-func (dict *Dict) Remove(key string) (any, int) {
+func (dict *Dict) Remove(key iface.Value) (any, int) {
 	val, ok := dict.m[key]
 	delete(dict.m, key)
 	if ok {
@@ -41,7 +43,7 @@ func (dict *Dict) Remove(key string) (any, int) {
 	return nil, 0
 }
 
-func (dict *Dict) PutIfAbsent(key string, val any) int {
+func (dict *Dict) PutIfAbsent(key iface.Value, val iface.Value) int {
 	_, ok := dict.m[key]
 	if ok {
 		return 0
@@ -50,8 +52,8 @@ func (dict *Dict) PutIfAbsent(key string, val any) int {
 	return 1
 }
 
-func (dict *Dict) Keys() []string {
-	keys := make([]string, len(dict.m))
+func (dict *Dict) Keys() []iface.Value {
+	keys := make([]iface.Value, len(dict.m))
 	i := 0
 	for k := range dict.m {
 		keys[i] = k

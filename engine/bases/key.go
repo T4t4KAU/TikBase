@@ -13,9 +13,10 @@ const (
 	scoreKeyPrefix    = "!score"
 )
 
+// HashInternalKey 用于标识一个HASH结构
 type HashInternalKey struct {
 	key     []byte
-	version int64
+	version int64 // 版本号
 	field   []byte
 }
 
@@ -28,12 +29,18 @@ func NewHashInternalKey(key string, version int64, field []byte) *HashInternalKe
 }
 
 func (hk *HashInternalKey) Encode() []byte {
-	b := make([]byte, len(hk.key)+len(hk.field)+8)
+	b := make([]byte, len(hk.key)+8+len(hk.field))
 
 	var index = 0
+
+	// 将key复制到数组
 	copy(b[index:index+len(hk.key)], hk.key)
+	index += len(hk.key)
+
 	binary.LittleEndian.PutUint64(b[index:index+8], uint64(hk.version))
 	index += 8
+
+	// 将field复制到数组
 	copy(b[index:], hk.field)
 
 	return b
@@ -43,6 +50,7 @@ func (hk *HashInternalKey) String() string {
 	return utils.B2S(hk.Encode())
 }
 
+// SetInternalKey 用于标识一个SET结构
 type SetInternalKey struct {
 	key     []byte
 	version int64
@@ -61,12 +69,16 @@ func (sk *SetInternalKey) Encode() []byte {
 	b := make([]byte, len(sk.key)+len(sk.member)+12)
 
 	var index = 0
+
+	// 将key复制到数组
 	copy(b[index:index+len(sk.key)], sk.key)
 	index += len(sk.key)
 
+	// 写入版本号
 	binary.LittleEndian.PutUint64(b[index:index+8], uint64(sk.version))
 	index += 8
 
+	// 将member复制到数组
 	copy(b[index:index+len(sk.member)], sk.member)
 	index += len(sk.member)
 	binary.LittleEndian.PutUint32(b[index:], uint32(len(sk.member)))
@@ -80,7 +92,7 @@ func (sk *SetInternalKey) String() string {
 
 type ListInternalKey struct {
 	key     []byte
-	version int64
+	version int64 // 版本号
 	index   uint64
 }
 
@@ -98,7 +110,11 @@ func (lk *ListInternalKey) Encode() []byte {
 
 	copy(b[index:index+len(lk.key)], lk.key)
 	index += len(lk.key)
+
 	binary.LittleEndian.PutUint64(b[index:index+8], uint64(lk.version))
+	index += 8
+
+	binary.LittleEndian.PutUint64(b[index:], lk.index)
 
 	return b
 }
@@ -127,9 +143,12 @@ func (zk *ZSetInternalKey) EncodeWithMember() []byte {
 	b := make([]byte, len(zk.key)+len(zk.member)+8)
 
 	var index = 0
+
+	// 写入key
 	copy(b[index:index+len(zk.key)], zk.key)
 	index += len(zk.key)
 
+	// 写入版本号
 	binary.LittleEndian.PutUint64(b[index:index+8], uint64(zk.version))
 	index += 8
 	copy(b[index:], zk.member)
@@ -138,8 +157,8 @@ func (zk *ZSetInternalKey) EncodeWithMember() []byte {
 }
 
 func (zk *ZSetInternalKey) EncodeWithScore() []byte {
-	scoreBuf := utils.F642B(zk.score)
-	b := make([]byte, len(zk.key)+len(scoreKeyPrefix)+len(scoreBuf)+len(zk.member)+8+4)
+	scoreBytes := utils.F642B(zk.score)
+	b := make([]byte, len(zk.key)+len(scoreKeyPrefix)+len(scoreBytes)+len(zk.member)+8+4)
 
 	var index = 0
 	copy(b[index:index+len(scoreKeyPrefix)], scoreKeyPrefix)

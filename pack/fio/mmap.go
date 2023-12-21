@@ -37,8 +37,7 @@ func (m *MMap) Sync() error {
 }
 
 func (m *MMap) Close() error {
-	//TODO implement me
-	panic("implement me")
+	return m.readerAt.Close()
 }
 
 func (m *MMap) Size() (int64, error) {

@@ -11,8 +11,10 @@ const (
 	ADD_SET
 	ADD_ZSET
 	PUSH_LIST
+	POP_LIST
 
 	GET_STR
+	GET_HASH
 	DEL
 	EXPIRE
 	KEYS
@@ -20,20 +22,10 @@ const (
 )
 
 func (ins INS) String() string {
-	switch ins {
-	case ECHO:
-		return "ECHO"
-	case SET_STR:
-		return "SET"
-	case GET_STR:
-		return "GET"
-	case DEL:
-		return "DEL"
-	case EXPIRE:
-		return "EXPIRE"
-	default:
-		return "UNKNOWN"
+	if s, ok := insMap[ins]; ok {
+		return s
 	}
+	return "UNKNOWN"
 }
 
 type Engine interface {
@@ -87,4 +79,12 @@ type Iterator interface {
 	Key() []byte
 	Value() *data.LogRecordPos
 	Close()
+}
+
+var insMap = map[INS]string{
+	ECHO:    "ECHO",
+	SET_STR: "SET",
+	GET_STR: "GET",
+	DEL:     "DEL",
+	EXPIRE:  "EXPIRE",
 }

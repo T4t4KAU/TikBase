@@ -16,7 +16,6 @@ type Value struct {
 	TTL     int64      // 存活时间
 	Created int64      // 数据创建时间
 	Type    iface.Type // 数据类型
-	Version uint32     // 版本号
 }
 
 // New 返回一个封装好的数据
@@ -44,6 +43,24 @@ func MewString(data []byte, ttl int64) Value {
 		TTL:     ttl,
 		Created: time.Now().Unix(),
 		Type:    iface.STRING,
+	}
+}
+
+func NewHash(data []byte, ttl int64) Value {
+	return Value{
+		Data:    data,
+		TTL:     ttl,
+		Created: time.Now().Unix(),
+		Type:    iface.HASH,
+	}
+}
+
+func NewSet(data []byte, ttl int64) Value {
+	return Value{
+		Data:    data,
+		TTL:     ttl,
+		Created: time.Now().Unix(),
+		Type:    iface.SET,
 	}
 }
 
