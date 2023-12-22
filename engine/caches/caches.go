@@ -68,25 +68,25 @@ func recoverFromDumpFile(dumpFile string) (*Cache, bool) {
 }
 
 // Get 返回指定value 未找到则返回false
-func (c *Cache) Get(key string) (iface.Value, bool) {
+func (c *Cache) Get(key string) (iface.Value, error) {
 	c.waitForDumping()
 	return c.segmentOf(key).get(key)
 }
 
 // Set 保存键值对到缓存
-func (c *Cache) Set(key string, value iface.Value) bool {
+func (c *Cache) Set(key string, value iface.Value) error {
 	return c.SetWithTTL(key, value.Bytes(), value.Time(), value.Attr())
 }
 
 // Expire 设置超时时间
-func (c *Cache) Expire(key string, ttl int64) bool {
+func (c *Cache) Expire(key string, ttl int64) error {
 	c.waitForDumping()
-	val, ok := c.segmentOf(key).get(key)
-	if !ok {
-		return false
+	val, err := c.segmentOf(key).get(key)
+	if err != nil {
+		return err
 	}
 	val.TTL = ttl
-	return true
+	return nil
 }
 
 func (c *Cache) Keys() [][]byte {
@@ -102,13 +102,13 @@ func (c *Cache) Keys() [][]byte {
 }
 
 // Exist 检查键是否存在
-func (c *Cache) Exist(key string) bool {
+func (c *Cache) Exist(key string) error {
 	c.waitForDumping()
-	_, ok := c.segmentOf(key).get(key)
-	return ok
+	_, err := c.segmentOf(key).get(key)
+	return err
 }
 
-func (c *Cache) SetString(key string, value string, ttl int64) bool {
+func (c *Cache) SetString(key string, value string, ttl int64) error {
 	return c.SetWithTTL(key, []byte(value), ttl, iface.STRING)
 }
 
@@ -118,13 +118,13 @@ func (c *Cache) AddSetElem(key string, element string) bool {
 }
 
 // SetWithTTL 添加到指定的数据到缓存中 设置相应有效期
-func (c *Cache) SetWithTTL(key string, value []byte, ttl int64, typ iface.Type) bool {
+func (c *Cache) SetWithTTL(key string, value []byte, ttl int64, typ iface.Type) error {
 	c.waitForDumping()
 	return c.segmentOf(key).set(key, value, ttl, typ)
 }
 
 // Del 从缓存中删除指定键值对
-func (c *Cache) Del(key string) bool {
+func (c *Cache) Del(key string) error {
 	c.waitForDumping()
 	return c.segmentOf(key).delete(key)
 }

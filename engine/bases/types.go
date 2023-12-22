@@ -6,6 +6,7 @@ import (
 	"TikBase/pack/errno"
 	"TikBase/pack/utils"
 	"encoding/binary"
+	"errors"
 	"time"
 )
 
@@ -29,13 +30,20 @@ func newMeta(dataType iface.Type, expire int64, version int64, size uint32) *Met
 	}
 }
 
+func (meta *Meta) Value() values.Value {
+	return values.NewMeta(meta.Encode())
+}
+
 // FindMeta 查找元信息
 func (b *Base) FindMeta(key string, dataType iface.Type) (*Meta, error) {
-	val, ok := b.Get(key)
+	val, err := b.Get(key)
+	if err != nil && !errors.Is(err, errno.ErrKeyNotFound) {
+		return nil, err
+	}
 
 	var meta *Meta
 	var exist = true
-	if !ok {
+	if errors.Is(err, errno.ErrKeyNotFound) {
 		exist = false
 	} else {
 		meta = DecodeMeta(val.Bytes()) // 解析元信息
@@ -145,11 +153,15 @@ func (b *Base) HSet(key string, field, value []byte) (bool, error) {
 	}
 
 	encKey := NewHashInternalKey(key, meta.Version, field).Encode()
-	_, ok := b.Get(utils.B2S(encKey))
+
+	var exist = true
+	if _, err = b.Get(utils.B2S(encKey)); errors.Is(err, errno.ErrKeyNotFound) {
+		exist = false
+	}
 
 	// 创建结构元信息和添加元素放在一个事务中操作
 	wb := b.NewWriteBatch()
-	if !ok {
+	if !exist {
 		// 不存在则追加
 		meta.Size++
 		_ = wb.Put(utils.S2B(key), meta.Encode())
@@ -159,17 +171,17 @@ func (b *Base) HSet(key string, field, value []byte) (bool, error) {
 	if err = wb.Commit(); err != nil {
 		return false, err
 	}
-	return ok, nil
+	return !exist, nil
 }
 
 // HGet HashGet操作
-func (b *Base) HGet(key string, field []byte) (iface.Value, bool) {
+func (b *Base) HGet(key string, field []byte) (iface.Value, error) {
 	meta, err := b.FindMeta(key, iface.HASH)
 	if err != nil {
-		return nil, false
+		return nil, err
 	}
 	if meta.Size == 0 {
-		return nil, false
+		return nil, nil
 	}
 
 	hashKey := NewHashInternalKey(key, meta.Version, field).String()
@@ -177,29 +189,34 @@ func (b *Base) HGet(key string, field []byte) (iface.Value, bool) {
 }
 
 // HDel HashDelete操作
-func (b *Base) HDel(key string, field []byte) bool {
+func (b *Base) HDel(key string, field []byte) (bool, error) {
 	meta, err := b.FindMeta(key, iface.HASH)
 	if err != nil {
-		return false
+		return false, err
 	}
 	if meta.Size == 0 {
-		return false
+		return false, nil
 	}
 
 	encKey := NewHashInternalKey(key, meta.Version, field).Encode()
-	_, ok := b.Get(utils.B2S(encKey)) // 检查数据是否存在
-	if ok {
+
+	var exist = true
+	if _, err = b.Get(utils.B2S(encKey)); errors.Is(err, errno.ErrKeyNotFound) {
+		exist = false
+	}
+
+	if exist {
 		// 不存在则更新数据
 		wb := b.NewWriteBatch()
 		meta.Size--
 		_ = wb.Put(encKey, meta.Encode()) // 修改元信息
 		_ = wb.Delete(encKey)
 		if err = wb.Commit(); err != nil {
-			return false
+			return false, err
 		}
 	}
 
-	return ok
+	return exist, nil
 }
 
 func (b *Base) SAdd(key string, member []byte) bool {
@@ -209,8 +226,8 @@ func (b *Base) SAdd(key string, member []byte) bool {
 	}
 
 	encKey := NewSetInternalKey(key, meta.Version, member).Encode()
-	_, ok := b.Get(utils.B2S(encKey))
-	if !ok {
+
+	if _, err = b.Get(utils.B2S(encKey)); errors.Is(err, errno.ErrKeyNotFound) {
 		wb := b.NewWriteBatch()
 		meta.Size++
 		_ = wb.Put(utils.S2B(key), meta.Encode())
@@ -224,18 +241,22 @@ func (b *Base) SAdd(key string, member []byte) bool {
 }
 
 // Contain 判断元素是否在集合中
-func (b *Base) Contain(key string, member []byte) bool {
+func (b *Base) Contain(key string, member []byte) (bool, error) {
 	meta, err := b.FindMeta(key, iface.SET)
 	if err != nil {
-		return false
+		return false, err
 	}
 	if meta.Size == 0 {
-		return false
+		return false, nil
 	}
 
 	encKey := NewSetInternalKey(key, meta.Version, member).Encode()
-	_, ok := b.Get(utils.B2S(encKey))
-	return ok
+	_, err = b.Get(utils.B2S(encKey))
+	if err != nil && errors.Is(err, errno.ErrKeyNotFound) {
+		return false, err
+	}
+
+	return true, nil
 }
 
 func (b *Base) pushInner(key string, element []byte, isLeft bool) (uint32, error) {
@@ -261,6 +282,8 @@ func (b *Base) pushInner(key string, element []byte, isLeft bool) (uint32, error
 
 	_ = wb.Put(utils.S2B(key), meta.Encode())
 	_ = wb.Put(listKey.Encode(), element)
+
+	// 事务提交
 	if err = wb.Commit(); err != nil {
 		return 0, err
 	}
@@ -283,9 +306,9 @@ func (b *Base) popInner(key string, isLeft bool) (iface.Value, error) {
 		listKey.index = meta.Tail - 1
 	}
 
-	elem, ok := b.Get(listKey.String())
-	if !ok {
-		return nil, errno.ErrKeyNotFound
+	elem, err := b.Get(listKey.String())
+	if err != nil {
+		return nil, err
 	}
 
 	meta.Size--
@@ -295,8 +318,8 @@ func (b *Base) popInner(key string, isLeft bool) (iface.Value, error) {
 		meta.Tail--
 	}
 
-	v := values.NewMeta(meta.Encode())
-	if !b.Set(key, &v) {
+	val := meta.Value()
+	if err = b.Set(key, &val); err != nil {
 		return nil, err
 	}
 	return elem, nil

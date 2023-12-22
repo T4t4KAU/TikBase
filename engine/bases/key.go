@@ -130,9 +130,9 @@ type ZSetInternalKey struct {
 	score   float64
 }
 
-func NewZSetInternalKey(key []byte, version int64, member []byte, score float64) *ZSetInternalKey {
+func NewZSetInternalKey(key string, version int64, member []byte, score float64) *ZSetInternalKey {
 	return &ZSetInternalKey{
-		key:     key,
+		key:     utils.S2B(key),
 		version: version,
 		member:  member,
 		score:   score,

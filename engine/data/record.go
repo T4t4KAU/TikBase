@@ -31,6 +31,7 @@ type LogRecordHeader struct {
 type LogRecordPos struct {
 	Fid    uint32
 	Offset int64
+	Size   uint32 // 标识数据在磁盘中大小
 }
 
 type TxRecord struct {

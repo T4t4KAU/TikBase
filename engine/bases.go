@@ -45,6 +45,9 @@ func buildBaseResult(succ bool, data [][]byte, err error) *BaseResult {
 }
 
 func NewBaseErrResult(err error) *BaseResult {
+	if err == nil {
+		return NewSuccBaseResult()
+	}
 	return &BaseResult{
 		succ: false,
 		err:  err,
@@ -121,11 +124,8 @@ func (eng *BaseEngine) ExecStrSet(args [][]byte) iface.Result {
 	}
 
 	val := values.New(args[1], 0, iface.STRING)
-	ok := eng.SetBytes(args[0], &val)
-	if !ok {
-		return NewBaseErrResult(errno.ErrExceedCapacity)
-	}
-	return NewSuccBaseResult()
+	err := eng.Set(utils.B2S(args[0]), &val)
+	return NewBaseErrResult(err)
 }
 
 func (eng *BaseEngine) ExecStrGet(args [][]byte) iface.Result {
@@ -133,9 +133,9 @@ func (eng *BaseEngine) ExecStrGet(args [][]byte) iface.Result {
 		return NewBaseErrResult(errno.ErrKeyIsEmpty)
 	}
 
-	val, ok := eng.Get(utils.B2S(args[0]))
-	if !ok {
-		return NewBaseErrResult(errno.ErrKeyNotFound)
+	val, err := eng.Get(utils.B2S(args[0]))
+	if err != nil {
+		return NewNotFoundBaseResult()
 	}
 	return buildBaseResult(true, [][]byte{val.Bytes()}, nil)
 }
@@ -145,11 +145,8 @@ func (eng *BaseEngine) ExecDelKey(args [][]byte) iface.Result {
 		return NewBaseErrResult(errno.ErrKeyIsEmpty)
 	}
 
-	ok := eng.Del(utils.B2S(args[0]))
-	if !ok {
-		return NewNotFoundBaseResult()
-	}
-	return NewSuccBaseResult()
+	err := eng.Del(utils.B2S(args[0]))
+	return NewBaseErrResult(err)
 }
 
 func (eng *BaseEngine) ExecHashSet(args [][]byte) iface.Result {
@@ -169,9 +166,9 @@ func (eng *BaseEngine) ExecHashGet(args [][]byte) iface.Result {
 	if err != nil {
 		return NewBaseErrResult(err)
 	}
-	v, ok := eng.HGet(key, field)
-	if !ok {
-		return NewNotFoundBaseResult()
+	v, err := eng.HGet(key, field)
+	if err != nil {
+		return NewBaseErrResult(err)
 	}
 	return NewBaseResultFromValue(v)
 }

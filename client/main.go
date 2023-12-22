@@ -1,7 +1,7 @@
 package main
 
 import (
-	"TikBase/pack/net/tcp/tiko"
+	"TikBase/pack/net/tiko"
 	"bufio"
 	"errors"
 	"fmt"

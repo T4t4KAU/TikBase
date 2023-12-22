@@ -3,6 +3,7 @@ package caches
 import (
 	"TikBase/engine/values"
 	"TikBase/iface"
+	"TikBase/pack/errno"
 	"sync"
 )
 
@@ -25,27 +26,27 @@ func newSegment(options Options) segment {
 }
 
 // 返回指定key数据
-func (seg *segment) get(key string) (*values.Value, bool) {
+func (seg *segment) get(key string) (*values.Value, error) {
 	// 对当前segment加读锁
 	seg.mutex.RLock()
 
 	// 获取从表中数据
 	v, ok := seg.Data[key]
 	if !ok {
-		return nil, false
+		return nil, errno.ErrKeyNotFound
 	}
 	seg.mutex.RUnlock()
 
 	// 数据过期
 	if !v.Alive() {
-		seg.delete(key)
-		return &v, false
+		_ = seg.delete(key)
+		return &v, errno.ErrKeyNotFound
 	}
-	return &v, true
+	return &v, nil
 }
 
 // 将一个数据添加进segment
-func (seg *segment) set(key string, data []byte, ttl int64, typ iface.Type) bool {
+func (seg *segment) set(key string, data []byte, ttl int64, typ iface.Type) error {
 	// 对当前segment进行加锁
 	seg.mutex.Lock()
 	defer seg.mutex.Unlock()
@@ -62,26 +63,26 @@ func (seg *segment) set(key string, data []byte, ttl int64, typ iface.Type) bool
 		}
 
 		// 超出单segment存储上限
-		return false
+		return errno.ErrExceedCapacity
 	}
 
 	// 修改状态消息
 	seg.Status.addEntry(key, data)
 	seg.Data[key] = values.New(data, ttl, typ)
-	return true
+	return nil
 }
 
 // 从segment中删除指定key
-func (seg *segment) delete(key string) bool {
+func (seg *segment) delete(key string) error {
 	// 对当前segment加锁
 	seg.mutex.Lock()
 	defer seg.mutex.Unlock()
 	if v, ok := seg.Data[key]; ok {
 		seg.Status.subEntry(key, v.Data)
 		delete(seg.Data, key)
-		return true
+		return nil
 	} else {
-		return false
+		return errno.ErrKeyNotFound
 	}
 }
 

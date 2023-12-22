@@ -128,19 +128,19 @@ func Open(options Options) (*Base, error) {
 }
 
 // Get 读取数据
-func (b *Base) Get(key string) (iface.Value, bool) {
+func (b *Base) Get(key string) (iface.Value, error) {
 	b.mutex.RLock()
 	defer b.mutex.RUnlock()
 
 	if len(key) == 0 {
-		return nil, false
+		return nil, errno.ErrKeyIsEmpty
 	}
 	keyBytes := utils.S2B(key)
 
 	// 从索引中获取键的位置
 	pos := b.index.Get(keyBytes)
 	if pos == nil {
-		return nil, false
+		return nil, errno.ErrKeyNotFound
 	}
 
 	var dataFile *data.File
@@ -151,24 +151,28 @@ func (b *Base) Get(key string) (iface.Value, bool) {
 	}
 
 	if dataFile == nil {
-		return nil, false
+		return nil, errno.ErrDataFileNotFound
 	}
 
 	// 读取日志记录
 	rec, _, err := dataFile.ReadLogRecord(pos.Offset)
 	if err != nil {
-		return nil, false
+		return nil, err
 	}
 
 	if rec.Type == data.LogRecordDeleted {
-		return nil, false
+		return nil, errno.ErrKeyNotFound
 	}
 
 	v := values.New(rec.Value, 0, iface.STRING)
-	return &v, true
+	return &v, nil
 }
 
-func (b *Base) Set(key string, value iface.Value) bool {
+func (b *Base) Set(key string, value iface.Value) error {
+	if len(key) == 0 {
+		return errno.ErrKeyIsEmpty
+	}
+
 	keyBytes := utils.S2B(key)
 	rec := data.LogRecord{
 		Key:   LogRecordKeyWithSeqNo(keyBytes, nonTransactionSeqNo),
@@ -179,41 +183,25 @@ func (b *Base) Set(key string, value iface.Value) bool {
 	// 追加写入到当前活跃文件中
 	pos, err := b.AppendLogRecordWithLock(&rec)
 	if err != nil {
-		return false
+		return err
 	}
 
 	// 更新索引
-	if ok := b.index.Put(keyBytes, pos); !ok {
-		return false
+	if oldPos := b.index.Put(keyBytes, pos); oldPos != nil {
+		b.reclaimableSize += int64(oldPos.Size)
 	}
-	return true
+	return nil
 }
 
-func (b *Base) SetBytes(key []byte, value iface.Value) bool {
-	rec := data.LogRecord{
-		Key:   LogRecordKeyWithSeqNo(key, nonTransactionSeqNo),
-		Value: value.Bytes(),
-		Type:  data.LogRecordNormal,
+func (b *Base) Del(key string) error {
+	if len(key) == 0 {
+		return errno.ErrKeyIsEmpty
 	}
-
-	// 追加写入到当前活跃文件中
-	pos, err := b.AppendLogRecordWithLock(&rec)
-	if err != nil {
-		return false
-	}
-
-	if ok := b.index.Put(key, pos); !ok {
-		return false
-	}
-	return true
-}
-
-func (b *Base) Del(key string) bool {
 	keyBytes := utils.S2B(key)
 
 	// 从索引中检查key是否存在
 	if pos := b.index.Get(keyBytes); pos == nil {
-		return false
+		return nil
 	}
 
 	// 构造LogRecord 标记墓碑值
@@ -221,17 +209,22 @@ func (b *Base) Del(key string) bool {
 		Key:  LogRecordKeyWithSeqNo(keyBytes, nonTransactionSeqNo),
 		Type: data.LogRecordDeleted,
 	}
-	_, err := b.AppendLogRecordWithLock(rec)
+	pos, err := b.AppendLogRecordWithLock(rec)
 	if err != nil {
-		return false
+		return err
 	}
+	b.reclaimableSize += int64(pos.Size)
 
 	// 从内存索引中将对应key删除
-	ok := b.index.Delete(keyBytes)
+	oldPos, ok := b.index.Delete(keyBytes)
 	if !ok {
-		return false
+		return errno.ErrIndexUpdateFailed
 	}
-	return true
+	if oldPos != nil {
+		b.reclaimableSize += int64(oldPos.Size)
+	}
+
+	return nil
 }
 
 // Stat 返回数据库统计信息
@@ -391,15 +384,14 @@ func (b *Base) LoadIndexFromDataFiles() error {
 
 	// 更新索引信息
 	updateIndex := func(key []byte, typ data.LogRecordType, pos *data.LogRecordPos) {
-		var ok bool
+		var oldPos *data.LogRecordPos
 		if typ == data.LogRecordDeleted {
-			ok = b.index.Delete(key) // 删除索引
+			oldPos, _ = b.index.Delete(key)
 		} else {
-			ok = b.index.Put(key, pos) // 添加索引
+			oldPos = b.index.Put(key, pos) // 添加索引
 		}
-
-		if !ok {
-			panic(errno.ErrIndexUpdateFailed)
+		if oldPos != nil {
+			b.reclaimableSize += int64(oldPos.Size)
 		}
 	}
 
@@ -419,7 +411,6 @@ func (b *Base) LoadIndexFromDataFiles() error {
 		}
 
 		var dataFile *data.File
-
 		if fileId == b.activeFile.FileId {
 			dataFile = b.activeFile
 		} else {

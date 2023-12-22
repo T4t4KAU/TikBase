@@ -48,13 +48,13 @@ type Result interface {
 // Indexer 抽象索引接口，后续如果想要接入其他的数据结构，则直接实现这个接口即可
 type Indexer interface {
 	// Put 向索引中存储 key 对应的数据位置信息
-	Put(key []byte, pos *data.LogRecordPos) bool
+	Put(key []byte, pos *data.LogRecordPos) *data.LogRecordPos
 
 	// Get 根据 key 取出对应的索引位置信息
 	Get(key []byte) *data.LogRecordPos
 
 	// Delete 根据 key 删除对应的索引位置信息
-	Delete(key []byte) bool
+	Delete(key []byte) (*data.LogRecordPos, bool)
 
 	// Size 索引中的数据量
 	Size() int
@@ -87,4 +87,8 @@ var insMap = map[INS]string{
 	GET_STR: "GET",
 	DEL:     "DEL",
 	EXPIRE:  "EXPIRE",
+}
+
+type IWriteBatch interface {
+	Commit() error
 }

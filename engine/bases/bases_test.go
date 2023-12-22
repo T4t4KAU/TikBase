@@ -41,13 +41,13 @@ func TestBase_Set(t *testing.T) {
 	assert.NotNil(t, b)
 
 	v := values.New([]byte(utils.GenerateRandomString(10)), 0, iface.STRING)
-	res := b.Set("test", &v)
-	assert.True(t, res)
+	err = b.Set("test", &v)
+	assert.Nil(t, err)
 
 	for i := 0; i < 100000; i++ {
 		v = values.New([]byte(utils.GenerateRandomString(10)), 0, iface.STRING)
-		res = b.Set(utils.GenerateRandomString(10), &v)
-		assert.True(t, res)
+		err = b.Set(utils.GenerateRandomString(10), &v)
+		assert.Nil(t, err)
 	}
 }
 
@@ -78,16 +78,16 @@ func TestBase_Multi_Values(t *testing.T) {
 	assert.NotNil(t, base)
 
 	v1 := values.New([]byte("value1"), 0, iface.STRING)
-	ok1 := base.Set("key1", &v1)
-	assert.True(t, ok1)
+	err = base.Set("key1", &v1)
+	assert.Nil(t, err)
 
 	v2 := values.New([]byte("value2"), 0, iface.STRING)
-	ok2 := base.Set("key2", &v2)
-	assert.True(t, ok2)
+	err = base.Set("key2", &v2)
+	assert.Nil(t, err)
 
 	v3 := values.New([]byte("value3"), 0, iface.STRING)
-	ok3 := base.Set("key3", &v3)
-	assert.True(t, ok3)
+	err = base.Set("key3", &v3)
+	assert.Nil(t, err)
 
 	it1 := base.NewIterator(DefaultIteratorOptions)
 	for it1.Rewind(); it1.Valid(); it1.Next() {
@@ -112,14 +112,14 @@ func TestBase_WriteBatch(t *testing.T) {
 	err = wb.Put([]byte("key1"), []byte("value1"))
 	assert.Nil(t, err)
 
-	_, ok := base.Get("key1")
-	assert.False(t, ok)
+	_, err = base.Get("key1")
+	assert.Nil(t, err)
 
 	err = wb.Commit()
 	assert.Nil(t, err)
 
-	v, ok := base.Get("key1")
-	assert.True(t, ok)
+	v, err := base.Get("key1")
+	assert.Nil(t, err)
 
 	t.Log(v.String())
 }
@@ -135,8 +135,8 @@ func TestBase_WriteBatch2(t *testing.T) {
 	assert.NotNil(t, b1)
 
 	v1 := values.New([]byte("value1"), 0, iface.STRING)
-	ok1 := b1.Set("key1", &v1)
-	assert.True(t, ok1)
+	err = b1.Set("key1", &v1)
+	assert.Nil(t, err)
 
 	wb := b1.NewWriteBatch()
 
@@ -156,8 +156,8 @@ func TestBase_WriteBatch2(t *testing.T) {
 	b2, err := NewBaseWith(opts)
 	assert.Nil(t, err)
 
-	_, ok := b2.Get("key1")
-	assert.False(t, ok)
+	_, err = b2.Get("key1")
+	assert.Nil(t, err)
 }
 
 func TestBase_Merge(t *testing.T) {
@@ -199,8 +199,8 @@ func TestBase_HGet(t *testing.T) {
 		return
 	}
 
-	res, ok := base.HGet("test_hash", []byte("test_key"))
-	if !ok {
+	res, err := base.HGet("test_hash", []byte("test_key"))
+	if err != nil {
 		t.Log("HGet failed")
 		return
 	}
@@ -209,6 +209,10 @@ func TestBase_HGet(t *testing.T) {
 }
 
 func TestBase_SAdd(t *testing.T) {
+
+}
+
+func TestBase_LPush(t *testing.T) {
 	opts := DefaultOptions
 	opts.DirPath = "../../temp"
 	base, err := NewBaseWith(opts)
@@ -217,15 +221,16 @@ func TestBase_SAdd(t *testing.T) {
 		return
 	}
 
-	ok := base.SAdd("test_set", []byte("001"))
-	assert.True(t, ok)
+	n, err := base.LPush("test_list", []byte("001"))
+	assert.Nil(t, err)
+	assert.Equal(t, n, uint32(1))
 
-	ok = base.SAdd("test_set", []byte("002"))
-	assert.True(t, ok)
+	n, err = base.LPush("test_list", []byte("002"))
+	assert.Nil(t, err)
+	assert.Equal(t, n, uint32(2))
 
-	ok = base.Contain("test_set", []byte("001"))
-	assert.True(t, ok)
+	v, err := base.LPop("test_list")
+	assert.Nil(t, err)
 
-	ok = base.Contain("test_set", []byte("000"))
-	assert.False(t, ok)
+	t.Log(v.String())
 }

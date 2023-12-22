@@ -32,12 +32,15 @@ func New() *Tree {
 	}
 }
 
-func (tree *Tree) Put(key []byte, pos *data.LogRecordPos) bool {
+func (tree *Tree) Put(key []byte, pos *data.LogRecordPos) *data.LogRecordPos {
 	tree.mutex.Lock()
-	tree.tree.ReplaceOrInsert(&Item{key: key, pos: pos})
+	old := tree.tree.ReplaceOrInsert(&Item{key: key, pos: pos})
 	tree.mutex.Unlock()
+	if old == nil {
+		return nil
+	}
 
-	return true
+	return old.(*Item).pos
 }
 
 func (tree *Tree) Get(key []byte) *data.LogRecordPos {
@@ -47,15 +50,15 @@ func (tree *Tree) Get(key []byte) *data.LogRecordPos {
 	return nil
 }
 
-func (tree *Tree) Delete(key []byte) bool {
-	oit := &Item{key: key}
+func (tree *Tree) Delete(key []byte) (*data.LogRecordPos, bool) {
+	it := &Item{key: key}
 	tree.mutex.Lock()
-	oldItem := tree.tree.Delete(oit)
+	oldItem := tree.tree.Delete(it)
 	tree.mutex.Unlock()
 	if oldItem == nil {
-		return false
+		return nil, false
 	}
-	return true
+	return oldItem.(*Item).pos, true
 }
 
 func (tree *Tree) Size() int {

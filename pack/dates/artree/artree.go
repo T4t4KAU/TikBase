@@ -35,11 +35,14 @@ func (tree *ARTree) Get(key []byte) *data.LogRecordPos {
 }
 
 // Delete 删除数据
-func (tree *ARTree) Delete(key []byte) bool {
+func (tree *ARTree) Delete(key []byte) (*data.LogRecordPos, bool) {
 	tree.mutex.Lock()
-	_, deleted := tree.tree.Delete(key)
+	old, ok := tree.tree.Delete(key)
 	tree.mutex.Unlock()
-	return deleted
+	if old == nil {
+		return nil, false
+	}
+	return old.(*data.LogRecordPos), ok
 }
 
 func (tree *ARTree) Size() int {
@@ -57,12 +60,14 @@ func (tree *ARTree) Iterator(reverse bool) iface.Iterator {
 	return tree.newIterator(tree.tree, reverse)
 }
 
-func (tree *ARTree) Put(key []byte, pos *data.LogRecordPos) bool {
+func (tree *ARTree) Put(key []byte, pos *data.LogRecordPos) *data.LogRecordPos {
 	tree.mutex.Lock()
-	tree.tree.Insert(key, pos)
+	old, _ := tree.tree.Insert(key, pos)
 	tree.mutex.Unlock()
-
-	return true
+	if old == nil {
+		return nil
+	}
+	return old.(*data.LogRecordPos)
 }
 
 type Iterator struct {

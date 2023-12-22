@@ -4,7 +4,6 @@ import (
 	"TikBase/engine/caches"
 	"TikBase/engine/values"
 	"TikBase/iface"
-	"TikBase/pack/errno"
 	"errors"
 )
 
@@ -62,6 +61,24 @@ func NewUnknownCacheResult() *CacheResult {
 	}
 }
 
+func NewCacheErrorResult(err error) *CacheResult {
+	if err != nil {
+		return &CacheResult{
+			succ: false,
+			err:  err,
+		}
+	}
+	return NewSuccCacheResult()
+}
+
+func NewCacheResult(succ bool, data [][]byte, err error) *CacheResult {
+	return &CacheResult{
+		succ: succ,
+		data: data,
+		err:  err,
+	}
+}
+
 func (eng *CacheEngine) Exec(ins iface.INS, args [][]byte) iface.Result {
 	if fn, ok := eng.execFunc[ins]; ok {
 		return fn(args)
@@ -83,69 +100,35 @@ func (eng *CacheEngine) ExecStrSet(args [][]byte) iface.Result {
 	key := string(args[0])
 	val, err := parseSetStringArgs(args)
 	if err != nil {
-		return &CacheResult{
-			succ: false,
-			err:  err,
-		}
+		NewCacheErrorResult(err)
 	}
-	ok := eng.SetString(key, val, values.NeverExpire)
-	if !ok {
-		return &CacheResult{
-			succ: false,
-			err:  errno.ErrExceedCapacity,
-		}
-	}
-	return NewSuccCacheResult()
+	err = eng.SetString(key, val, values.NeverExpire)
+	return NewCacheErrorResult(err)
 }
 
 func (eng *CacheEngine) ExecStrGet(args [][]byte) iface.Result {
 	key := string(args[0])
-	val, ok := eng.Get(key)
-	if !ok {
-		return &CacheResult{
-			succ: false,
-			err:  errno.ErrKeyNotFound,
-		}
+	val, err := eng.Get(key)
+	if err != nil {
+		return NewCacheErrorResult(err)
 	}
-	return &CacheResult{
-		succ: true,
-		data: [][]byte{val.Bytes()},
-	}
+	return NewCacheResult(true, [][]byte{val.Bytes()}, nil)
 }
 
 func (eng *CacheEngine) ExecDelKey(args [][]byte) iface.Result {
 	key := string(args[0])
-	ok := eng.Del(key)
-	if !ok {
-		return &CacheResult{
-			succ: false,
-			err:  errno.ErrKeyNotFound,
-		}
-	}
-	return &CacheResult{
-		succ: true,
-	}
+	err := eng.Del(key)
+	return NewCacheErrorResult(err)
 }
 
 func (eng *CacheEngine) ExecExpire(args [][]byte) iface.Result {
 	key := string(args[0])
 	ttl, err := parseExpireKeyArgs(args)
 	if err != nil {
-		return &CacheResult{
-			succ: false,
-			err:  err,
-		}
+		return NewCacheErrorResult(err)
 	}
-	ok := eng.Expire(key, ttl)
-	if !ok {
-		return &CacheResult{
-			succ: false,
-			err:  errno.ErrKeyNotFound,
-		}
-	}
-	return &CacheResult{
-		succ: true,
-	}
+	err = eng.Expire(key, ttl)
+	return NewCacheErrorResult(err)
 }
 
 func (eng *CacheEngine) ExecKeys() iface.Result {
