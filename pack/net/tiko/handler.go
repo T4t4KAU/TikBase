@@ -55,7 +55,6 @@ func (h *Handler) Handle(conn iface.Connection) {
 		// 获取对应指令
 		ins, ok := h.commands[payload.Command]
 		if !ok {
-			// h.Info("handle error:", errCommandNotFound.Error())
 			_, err := writeErrorReply(conn, errCommandNotFound.Error())
 			if err != nil {
 				_ = conn.Close()
@@ -65,7 +64,6 @@ func (h *Handler) Handle(conn iface.Connection) {
 		}
 
 		res := h.engine.Exec(ins, payload.Args)
-		// h.Info(ins.String(), " command args: ", payload.Args, " result: ", res.Success())
 
 		if res.Success() {
 			_, err := writeReply(conn, Success, res.Data())
