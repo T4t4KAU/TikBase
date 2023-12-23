@@ -1,9 +1,9 @@
 package artree
 
 import (
-	"TikBase/engine/data"
-	"TikBase/iface"
 	"bytes"
+	"github.com/T4t4KAU/TikBase/engine/data"
+	"github.com/T4t4KAU/TikBase/iface"
 	goart "github.com/plar/go-adaptive-radix-tree"
 	"sort"
 	"sync"

@@ -1,9 +1,9 @@
 package btree
 
 import (
-	"TikBase/engine/data"
-	"TikBase/iface"
 	"bytes"
+	"github.com/T4t4KAU/TikBase/engine/data"
+	"github.com/T4t4KAU/TikBase/iface"
 	"github.com/google/btree"
 	"sort"
 	"sync"

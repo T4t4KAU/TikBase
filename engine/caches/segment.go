@@ -1,9 +1,9 @@
 package caches
 
 import (
-	"TikBase/engine/values"
-	"TikBase/iface"
-	"TikBase/pack/errno"
+	"github.com/T4t4KAU/TikBase/engine/values"
+	"github.com/T4t4KAU/TikBase/iface"
+	"github.com/T4t4KAU/TikBase/pack/errno"
 	"sync"
 )
 

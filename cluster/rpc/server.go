@@ -1,10 +1,10 @@
 package rpc
 
 import (
-	"TikBase/cluster/rpc/codec"
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"github.com/T4t4KAU/TikBase/cluster/rpc/codec"
 	"io"
 	"log"
 	"net"

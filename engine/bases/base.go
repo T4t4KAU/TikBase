@@ -1,15 +1,15 @@
 package bases
 
 import (
-	"TikBase/engine/data"
-	"TikBase/engine/values"
-	"TikBase/iface"
-	"TikBase/pack/dates/artree"
-	"TikBase/pack/dates/btree"
-	"TikBase/pack/errno"
-	"TikBase/pack/fio"
-	"TikBase/pack/utils"
 	"errors"
+	"github.com/T4t4KAU/TikBase/engine/data"
+	"github.com/T4t4KAU/TikBase/engine/values"
+	"github.com/T4t4KAU/TikBase/iface"
+	"github.com/T4t4KAU/TikBase/pack/dates/artree"
+	"github.com/T4t4KAU/TikBase/pack/dates/btree"
+	"github.com/T4t4KAU/TikBase/pack/errno"
+	"github.com/T4t4KAU/TikBase/pack/fio"
+	"github.com/T4t4KAU/TikBase/pack/utils"
 	"github.com/gofrs/flock"
 	"io"
 	"os"

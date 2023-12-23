@@ -1,9 +1,9 @@
 package tiko
 
 import (
-	"TikBase/engine"
-	"TikBase/pack/poll"
 	"bytes"
+	"github.com/T4t4KAU/TikBase/engine"
+	"github.com/T4t4KAU/TikBase/pack/poll"
 	"net"
 	"testing"
 	"time"

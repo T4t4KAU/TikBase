@@ -1,8 +1,8 @@
 package tiko
 
 import (
-	"TikBase/pack/tlog"
-	"TikBase/pack/utils"
+	"github.com/T4t4KAU/TikBase/pack/tlog"
+	"github.com/T4t4KAU/TikBase/pack/utils"
 	"io"
 	"runtime/debug"
 )

@@ -1,6 +1,6 @@
 package types
 
-import "TikBase/iface"
+import "github.com/T4t4KAU/TikBase/iface"
 
 // Dict 字典
 type Dict struct {

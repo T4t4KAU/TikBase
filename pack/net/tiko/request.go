@@ -1,9 +1,9 @@
 package tiko
 
 import (
-	"TikBase/pack/utils"
 	"encoding/binary"
 	"errors"
+	"github.com/T4t4KAU/TikBase/pack/utils"
 	"io"
 	"strings"
 )

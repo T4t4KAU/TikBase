@@ -1,9 +1,9 @@
 package bases
 
 import (
-	"TikBase/engine/values"
-	"TikBase/iface"
-	"TikBase/pack/utils"
+	"github.com/T4t4KAU/TikBase/engine/values"
+	"github.com/T4t4KAU/TikBase/iface"
+	"github.com/T4t4KAU/TikBase/pack/utils"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
@@ -23,7 +23,7 @@ func destroyDB(base *Base) {
 
 func TestNew(t *testing.T) {
 	opts := DefaultOptions
-	dir, _ := os.MkdirTemp("", "tikbase")
+	dir, _ := os.MkdirTemp("", "github.com/T4t4KAU/TikBase")
 	opts.DirPath = dir
 	b, err := NewBaseWith(opts)
 	// defer destroyDB(b)
@@ -34,7 +34,7 @@ func TestNew(t *testing.T) {
 
 func TestBase_Set(t *testing.T) {
 	opts := DefaultOptions
-	dir, _ := os.MkdirTemp("", "tikbase")
+	dir, _ := os.MkdirTemp("", "github.com/T4t4KAU/TikBase")
 	opts.DirPath = dir
 	b, err := NewBaseWith(opts)
 	assert.Nil(t, err)
@@ -66,7 +66,7 @@ func TestBase_NewIterator(t *testing.T) {
 
 func TestBase_Multi_Values(t *testing.T) {
 	opts := DefaultOptions
-	dir, err := os.MkdirTemp("", "tikbase")
+	dir, err := os.MkdirTemp("", "github.com/T4t4KAU/TikBase")
 	assert.Nil(t, err)
 
 	opts.DirPath = dir
@@ -99,7 +99,7 @@ func TestBase_Multi_Values(t *testing.T) {
 
 func TestBase_WriteBatch(t *testing.T) {
 	opts := DefaultOptions
-	dir, _ := os.MkdirTemp("", "tikbase")
+	dir, _ := os.MkdirTemp("", "github.com/T4t4KAU/TikBase")
 	opts.DirPath = dir
 	base, err := NewBaseWith(opts)
 

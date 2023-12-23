@@ -1,7 +1,7 @@
 package types
 
 import (
-	"TikBase/pack/dates/slist"
+	"github.com/T4t4KAU/TikBase/pack/dates/slist"
 )
 
 // ZSet 有序集合

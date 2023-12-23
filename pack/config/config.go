@@ -1,8 +1,8 @@
 package config
 
 import (
-	"TikBase/engine/bases"
 	"fmt"
+	"github.com/T4t4KAU/TikBase/engine/bases"
 
 	"github.com/spf13/viper"
 )

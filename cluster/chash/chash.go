@@ -1,7 +1,7 @@
 package cluster
 
 import (
-	"TikBase/pack/utils"
+	"github.com/T4t4KAU/TikBase/pack/utils"
 	"sort"
 	"strconv"
 )

@@ -1,8 +1,8 @@
 package logq
 
 import (
-	"TikBase/pack/queue"
 	"errors"
+	"github.com/T4t4KAU/TikBase/pack/queue"
 	"sync"
 	"sync/atomic"
 )

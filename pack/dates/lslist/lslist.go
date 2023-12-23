@@ -1,11 +1,11 @@
 package lslist
 
 import (
-	"TikBase/engine/data"
-	"TikBase/engine/values"
-	"TikBase/iface"
-	"TikBase/pack/dates/slist"
-	"TikBase/pack/utils"
+	"github.com/T4t4KAU/TikBase/engine/data"
+	"github.com/T4t4KAU/TikBase/engine/values"
+	"github.com/T4t4KAU/TikBase/iface"
+	"github.com/T4t4KAU/TikBase/pack/dates/slist"
+	"github.com/T4t4KAU/TikBase/pack/utils"
 )
 
 type List struct {

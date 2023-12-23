@@ -1,10 +1,10 @@
 package main
 
 import (
-	"TikBase/pack/net/tiko"
 	"bufio"
 	"errors"
 	"fmt"
+	"github.com/T4t4KAU/TikBase/pack/net/tiko"
 	"io"
 	"net"
 	"os"

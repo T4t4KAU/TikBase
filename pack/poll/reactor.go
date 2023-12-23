@@ -1,9 +1,9 @@
 package poll
 
 import (
-	"TikBase/iface"
-	conc "TikBase/pack/conc/pool"
 	"context"
+	"github.com/T4t4KAU/TikBase/iface"
+	conc "github.com/T4t4KAU/TikBase/pack/conc/pool"
 	"net"
 )
 

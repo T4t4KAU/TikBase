@@ -1,4 +1,4 @@
-module TikBase
+module github.com/T4t4KAU/TikBase
 
 go 1.20
 

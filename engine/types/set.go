@@ -1,9 +1,9 @@
 package types
 
 import (
-	"TikBase/iface"
 	"bytes"
 	"encoding/gob"
+	"github.com/T4t4KAU/TikBase/iface"
 	"strings"
 )
 

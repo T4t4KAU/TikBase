@@ -1,8 +1,8 @@
 package slist
 
 import (
-	"TikBase/iface"
-	"TikBase/pack/utils"
+	"github.com/T4t4KAU/TikBase/iface"
+	"github.com/T4t4KAU/TikBase/pack/utils"
 	"math/rand"
 	"sync"
 	"time"

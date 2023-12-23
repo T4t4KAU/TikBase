@@ -1,12 +1,12 @@
 package bases
 
 import (
-	"TikBase/engine/values"
-	"TikBase/iface"
-	"TikBase/pack/errno"
-	"TikBase/pack/utils"
 	"encoding/binary"
 	"errors"
+	"github.com/T4t4KAU/TikBase/engine/values"
+	"github.com/T4t4KAU/TikBase/iface"
+	"github.com/T4t4KAU/TikBase/pack/errno"
+	"github.com/T4t4KAU/TikBase/pack/utils"
 	"time"
 )
 

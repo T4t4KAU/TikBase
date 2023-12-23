@@ -1,6 +1,6 @@
 package iface
 
-import "TikBase/engine/data"
+import "github.com/T4t4KAU/TikBase/engine/data"
 
 type INS int
 

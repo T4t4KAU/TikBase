@@ -1,10 +1,10 @@
 package engine
 
 import (
-	"TikBase/engine/caches"
-	"TikBase/engine/values"
-	"TikBase/iface"
 	"errors"
+	"github.com/T4t4KAU/TikBase/engine/caches"
+	"github.com/T4t4KAU/TikBase/engine/values"
+	"github.com/T4t4KAU/TikBase/iface"
 )
 
 type CacheEngine struct {

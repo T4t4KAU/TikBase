@@ -1,7 +1,7 @@
 package artree
 
 import (
-	"TikBase/engine/data"
+	"github.com/T4t4KAU/TikBase/engine/data"
 	"testing"
 )
 

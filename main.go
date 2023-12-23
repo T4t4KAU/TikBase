@@ -1,12 +1,12 @@
 package main
 
 import (
-	"TikBase/engine"
-	"TikBase/iface"
-	"TikBase/pack/config"
-	"TikBase/pack/net/http"
-	"TikBase/pack/net/tiko"
-	"TikBase/pack/poll"
+	"github.com/T4t4KAU/TikBase/engine"
+	"github.com/T4t4KAU/TikBase/iface"
+	"github.com/T4t4KAU/TikBase/pack/config"
+	"github.com/T4t4KAU/TikBase/pack/net/http"
+	"github.com/T4t4KAU/TikBase/pack/net/tiko"
+	"github.com/T4t4KAU/TikBase/pack/poll"
 
 	"errors"
 	"strconv"

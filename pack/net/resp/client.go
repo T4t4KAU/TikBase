@@ -1,8 +1,8 @@
 package resp
 
 import (
-	"TikBase/pack/utils"
 	"errors"
+	"github.com/T4t4KAU/TikBase/pack/utils"
 	"net"
 	"strings"
 )

@@ -1,8 +1,8 @@
 package queue
 
 import (
-	conc "TikBase/pack/conc/pool"
 	"context"
+	conc "github.com/T4t4KAU/TikBase/pack/conc/pool"
 	"sync"
 	"time"
 )

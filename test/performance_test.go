@@ -1,11 +1,11 @@
 package test
 
 import (
-	"TikBase/engine"
-	http2 "TikBase/pack/net/http"
-	"TikBase/pack/net/resp"
-	"TikBase/pack/net/tiko"
-	"TikBase/pack/poll"
+	"github.com/T4t4KAU/TikBase/engine"
+	http2 "github.com/T4t4KAU/TikBase/pack/net/http"
+	"github.com/T4t4KAU/TikBase/pack/net/resp"
+	"github.com/T4t4KAU/TikBase/pack/net/tiko"
+	"github.com/T4t4KAU/TikBase/pack/poll"
 	"net"
 	"net/http"
 	"strconv"

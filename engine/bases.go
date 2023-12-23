@@ -1,12 +1,12 @@
 package engine
 
 import (
-	"TikBase/engine/bases"
-	"TikBase/engine/values"
-	"TikBase/iface"
-	"TikBase/pack/errno"
-	"TikBase/pack/utils"
 	"errors"
+	"github.com/T4t4KAU/TikBase/engine/bases"
+	"github.com/T4t4KAU/TikBase/engine/values"
+	"github.com/T4t4KAU/TikBase/iface"
+	"github.com/T4t4KAU/TikBase/pack/errno"
+	"github.com/T4t4KAU/TikBase/pack/utils"
 )
 
 type BaseEngine struct {

@@ -1,9 +1,9 @@
 package data
 
 import (
-	"TikBase/pack/fio"
 	"errors"
 	"fmt"
+	"github.com/T4t4KAU/TikBase/pack/fio"
 	"hash/crc32"
 	"io"
 	"path/filepath"

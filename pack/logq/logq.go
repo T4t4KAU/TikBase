@@ -1,8 +1,8 @@
 package logq
 
 import (
-	"TikBase/iface"
-	"TikBase/pack/queue"
+	"github.com/T4t4KAU/TikBase/iface"
+	"github.com/T4t4KAU/TikBase/pack/queue"
 	"sync"
 	"time"
 )

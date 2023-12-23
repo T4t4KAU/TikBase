@@ -1,7 +1,7 @@
 package caches
 
 import (
-	"TikBase/iface"
+	"github.com/T4t4KAU/TikBase/iface"
 	"sync"
 	"sync/atomic"
 	"time"

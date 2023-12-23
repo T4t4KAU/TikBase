@@ -1,8 +1,8 @@
 package bases
 
 import (
-	"TikBase/iface"
 	"bytes"
+	"github.com/T4t4KAU/TikBase/iface"
 )
 
 type Iterator struct {

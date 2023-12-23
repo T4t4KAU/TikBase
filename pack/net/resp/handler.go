@@ -1,8 +1,8 @@
 package resp
 
 import (
-	"TikBase/iface"
 	"errors"
+	"github.com/T4t4KAU/TikBase/iface"
 	"io"
 	"strings"
 )

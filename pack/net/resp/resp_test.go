@@ -1,10 +1,10 @@
 package resp
 
 import (
-	"TikBase/engine"
-	"TikBase/pack/poll"
 	"bytes"
 	"fmt"
+	"github.com/T4t4KAU/TikBase/engine"
+	"github.com/T4t4KAU/TikBase/pack/poll"
 	"io"
 	"net"
 	"testing"

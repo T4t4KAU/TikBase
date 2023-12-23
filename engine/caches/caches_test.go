@@ -1,8 +1,8 @@
 package caches
 
 import (
-	"TikBase/engine/values"
-	"TikBase/iface"
+	"github.com/T4t4KAU/TikBase/engine/values"
+	"github.com/T4t4KAU/TikBase/iface"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"

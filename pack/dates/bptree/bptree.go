@@ -1,8 +1,8 @@
 package bptree
 
 import (
-	"TikBase/engine/data"
-	"TikBase/iface"
+	"github.com/T4t4KAU/TikBase/engine/data"
+	"github.com/T4t4KAU/TikBase/iface"
 	"go.etcd.io/bbolt"
 	"path/filepath"
 )

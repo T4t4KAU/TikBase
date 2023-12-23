@@ -1,9 +1,9 @@
 package tiko
 
 import (
-	"TikBase/iface"
-	"TikBase/pack/utils"
 	"errors"
+	"github.com/T4t4KAU/TikBase/iface"
+	"github.com/T4t4KAU/TikBase/pack/utils"
 )
 
 type Client struct {

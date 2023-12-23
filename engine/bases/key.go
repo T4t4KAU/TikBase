@@ -1,8 +1,8 @@
 package bases
 
 import (
-	"TikBase/pack/utils"
 	"encoding/binary"
+	"github.com/T4t4KAU/TikBase/pack/utils"
 	"math"
 )
 

@@ -1,9 +1,9 @@
 package tlog
 
 import (
-	"TikBase/pack/queue"
 	"bytes"
 	"fmt"
+	"github.com/T4t4KAU/TikBase/pack/queue"
 	"log"
 	"os"
 	"testing"

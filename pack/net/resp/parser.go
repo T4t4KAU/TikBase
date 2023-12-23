@@ -1,12 +1,12 @@
 package resp
 
 import (
-	"TikBase/iface"
-	"TikBase/pack/tlog"
-	"TikBase/pack/utils"
 	"bufio"
 	"bytes"
 	"fmt"
+	"github.com/T4t4KAU/TikBase/iface"
+	"github.com/T4t4KAU/TikBase/pack/tlog"
+	"github.com/T4t4KAU/TikBase/pack/utils"
 	"io"
 	"runtime/debug"
 	"strconv"

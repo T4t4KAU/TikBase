@@ -1,7 +1,7 @@
 package values
 
 import (
-	"TikBase/engine/types"
+	"github.com/T4t4KAU/TikBase/engine/types"
 	"testing"
 )
 

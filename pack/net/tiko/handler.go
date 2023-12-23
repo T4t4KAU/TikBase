@@ -1,12 +1,12 @@
 package tiko
 
 import (
-	"TikBase/iface"
-	"TikBase/pack/queue"
-	"TikBase/pack/tlog"
-	"TikBase/pack/utils"
 	"errors"
 	"fmt"
+	"github.com/T4t4KAU/TikBase/iface"
+	"github.com/T4t4KAU/TikBase/pack/queue"
+	"github.com/T4t4KAU/TikBase/pack/tlog"
+	"github.com/T4t4KAU/TikBase/pack/utils"
 	"io"
 )
 

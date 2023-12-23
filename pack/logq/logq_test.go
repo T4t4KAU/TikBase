@@ -1,9 +1,9 @@
 package logq
 
 import (
-	"TikBase/pack/queue"
-	"TikBase/pack/tlog"
 	"fmt"
+	"github.com/T4t4KAU/TikBase/pack/queue"
+	"github.com/T4t4KAU/TikBase/pack/tlog"
 	"log"
 	"os"
 	"testing"
