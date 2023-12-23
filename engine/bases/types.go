@@ -340,3 +340,64 @@ func (b *Base) LPop(key string) (iface.Value, error) {
 func (b *Base) RPop(key string) (iface.Value, error) {
 	return b.popInner(key, false)
 }
+
+func (b *Base) ZAdd(key string, score float64, member []byte) (bool, error) {
+	meta, err := b.FindMeta(key, iface.ZSET)
+	if err != nil {
+		return false, err
+	}
+
+	zk := NewZSetInternalKey(key, meta.Version, member, score)
+
+	var exist = true
+	val, err := b.Get(utils.B2S(zk.EncodeWithMember()))
+	if err != nil && !errors.Is(err, errno.ErrKeyNotFound) {
+		return false, err
+	}
+	if errors.Is(err, errno.ErrKeyNotFound) {
+		exist = false
+	}
+
+	if exist {
+		if score == utils.B2F64(val.Bytes()) {
+			return false, nil
+		}
+	}
+
+	wb := b.NewWriteBatch()
+	if !exist {
+		meta.Size++
+		_ = wb.Put(utils.S2B(key), meta.Encode())
+	}
+
+	if exist {
+		oldKey := NewZSetInternalKey(key, meta.Version, member, utils.B2F64(val.Bytes()))
+		_ = wb.Delete(oldKey.EncodeWithScore())
+	}
+
+	_ = wb.Put(zk.EncodeWithMember(), utils.F642B(score))
+	_ = wb.Put(zk.EncodeWithScore(), nil)
+	if err = wb.Commit(); err != nil {
+		return false, err
+	}
+
+	return !exist, nil
+}
+
+func (b *Base) ZScore(key string, member []byte) (float64, error) {
+	meta, err := b.FindMeta(key, iface.ZSET)
+	if err != nil {
+		return -1, err
+	}
+	if meta.Size == 0 {
+		return -1, nil
+	}
+
+	zsetKey := NewZSetInternalKey(key, meta.Version, member, 0)
+	val, err := b.Get(utils.B2S(zsetKey.EncodeWithMember()))
+	if err != nil {
+		return -1, err
+	}
+
+	return utils.B2F64(val.Bytes()), nil
+}

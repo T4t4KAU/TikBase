@@ -197,6 +197,7 @@ func (b *Base) Del(key string) error {
 	if len(key) == 0 {
 		return errno.ErrKeyIsEmpty
 	}
+
 	keyBytes := utils.S2B(key)
 
 	// 从索引中检查key是否存在
