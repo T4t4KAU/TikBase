@@ -15,7 +15,7 @@ const (
 )
 
 type Value interface {
-	Score() float32 // 权值
+	Score() float64 // 权值
 	String() string
 	Bytes() []byte
 	Attr() Type

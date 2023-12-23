@@ -3,6 +3,7 @@ package values
 import (
 	"TikBase/iface"
 	"TikBase/pack/utils"
+	"strconv"
 	"sync/atomic"
 	"time"
 )
@@ -64,8 +65,9 @@ func NewSet(data []byte, ttl int64) Value {
 	}
 }
 
-func (v *Value) Score() float32 {
-	return 0
+func (v *Value) Score() float64 {
+	val, _ := strconv.ParseFloat(utils.B2S(v.data()), 64)
+	return val
 }
 
 func (v *Value) String() string {

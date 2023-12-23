@@ -350,6 +350,7 @@ func (b *Base) ZAdd(key string, score float64, member []byte) (bool, error) {
 	zk := NewZSetInternalKey(key, meta.Version, member, score)
 
 	var exist = true
+	// 先查看是否存在
 	val, err := b.Get(utils.B2S(zk.EncodeWithMember()))
 	if err != nil && !errors.Is(err, errno.ErrKeyNotFound) {
 		return false, err
@@ -359,7 +360,8 @@ func (b *Base) ZAdd(key string, score float64, member []byte) (bool, error) {
 	}
 
 	if exist {
-		if score == utils.B2F64(val.Bytes()) {
+		// 权值系统 直接返回
+		if score == val.Score() {
 			return false, nil
 		}
 	}
@@ -371,7 +373,7 @@ func (b *Base) ZAdd(key string, score float64, member []byte) (bool, error) {
 	}
 
 	if exist {
-		oldKey := NewZSetInternalKey(key, meta.Version, member, utils.B2F64(val.Bytes()))
+		oldKey := NewZSetInternalKey(key, meta.Version, member, val.Score())
 		_ = wb.Delete(oldKey.EncodeWithScore())
 	}
 
@@ -399,5 +401,5 @@ func (b *Base) ZScore(key string, member []byte) (float64, error) {
 		return -1, err
 	}
 
-	return utils.B2F64(val.Bytes()), nil
+	return val.Score(), nil
 }

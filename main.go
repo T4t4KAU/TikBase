@@ -5,7 +5,6 @@ import (
 	"TikBase/iface"
 	"TikBase/pack/config"
 	"TikBase/pack/net/http"
-	"TikBase/pack/net/resp"
 	"TikBase/pack/net/tiko"
 	"TikBase/pack/poll"
 
@@ -20,8 +19,6 @@ func NewHandler(name string, eng iface.Engine) (iface.Handler, error) {
 	switch name {
 	case "tiko":
 		return tiko.NewHandler(eng), nil
-	case "resp":
-		return resp.NewHandler(eng), nil
 	default:
 		return nil, errors.New("invalid protocol")
 	}

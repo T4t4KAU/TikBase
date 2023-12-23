@@ -38,7 +38,7 @@ func (h *Handler) handleReply(reply *MultiBulkReply, conn iface.Connection) (err
 		res := h.engine.Exec(ins, reply.Args[1:])
 		if res.Success() {
 			if len(res.Data()) > 0 {
-				_, err = conn.Write(MakeBulkReply(res.Data()[0]).ToBytes())
+				_, err = conn.Write(MakeBulkReply(res.Data()).ToBytes())
 				if err != nil {
 					_ = conn.Close()
 				}

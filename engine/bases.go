@@ -16,11 +16,11 @@ type BaseEngine struct {
 
 type BaseResult struct {
 	succ bool
-	data [][]byte
+	data []byte
 	err  error
 }
 
-func (r *BaseResult) Data() [][]byte {
+func (r *BaseResult) Data() []byte {
 	return r.data
 }
 
@@ -36,7 +36,7 @@ func (r *BaseResult) Status() int {
 	return 0
 }
 
-func buildBaseResult(succ bool, data [][]byte, err error) *BaseResult {
+func buildBaseResult(succ bool, data []byte, err error) *BaseResult {
 	return &BaseResult{
 		succ: true,
 		data: data,
@@ -58,7 +58,7 @@ func NewBaseResultFromValue(value iface.Value) *BaseResult {
 	return &BaseResult{
 		succ: true,
 		err:  nil,
-		data: [][]byte{value.Bytes()},
+		data: value.Bytes(),
 	}
 }
 
@@ -137,7 +137,7 @@ func (eng *BaseEngine) ExecStrGet(args [][]byte) iface.Result {
 	if err != nil {
 		return NewNotFoundBaseResult()
 	}
-	return buildBaseResult(true, [][]byte{val.Bytes()}, nil)
+	return buildBaseResult(true, val.Bytes(), nil)
 }
 
 func (eng *BaseEngine) ExecDelKey(args [][]byte) iface.Result {

@@ -69,7 +69,7 @@ func (s *Server) getHandler(ctx *router.Context) {
 		ctx.Writer.WriteHeader(http.StatusNotFound)
 		return
 	}
-	_, _ = ctx.Writer.Write(res.Data()[0])
+	_, _ = ctx.Writer.Write(res.Data())
 }
 
 func (s *Server) deleteHandler(ctx *router.Context) {
@@ -92,5 +92,5 @@ func (s *Server) echoHandler(ctx *router.Context) {
 	if !res.Success() {
 		ctx.Writer.WriteHeader(http.StatusBadGateway)
 	}
-	_, _ = ctx.Writer.Write(res.Data()[0])
+	_, _ = ctx.Writer.Write(res.Data())
 }

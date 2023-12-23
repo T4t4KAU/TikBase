@@ -27,15 +27,7 @@ func NewHandler(eng iface.Engine) *Handler {
 	handler := &Handler{
 		engine:   eng,
 		commands: make(map[byte]iface.INS),
-		// channel:  logq.New("tiko handler", consumer),
 	}
-
-	// 暂时不输出日志
-	//  handler.Logger = tlog.New(tlog.WithLevel(tlog.InfoLevel),
-	//	tlog.WithOutput(handler.channel),
-	//	tlog.WithFormatter(&tlog.TextFormatter{IgnoreBasicFields: false}),
-	//	tlog.WithLevel(tlog.WarnLevel),
-	//)
 
 	handler.commands[getCommand] = iface.GET_STR
 	handler.commands[setCommand] = iface.SET_STR
@@ -76,26 +68,10 @@ func (h *Handler) Handle(conn iface.Connection) {
 		// h.Info(ins.String(), " command args: ", payload.Args, " result: ", res.Success())
 
 		if res.Success() {
-			n := len(res.Data())
-			if n == 1 {
-				_, err := writeReply(conn, Success, res.Data()[0])
-				if err != nil {
-					_ = conn.Close()
-					return
-				}
-			} else if n > 1 {
-
-				err := writeMultiReply(conn, Success, res.Data(), n)
-				if err != nil {
-					_ = conn.Close()
-					return
-				}
-			} else {
-				_, err := writeReply(conn, Success, nil)
-				if err != nil {
-					_ = conn.Close()
-					return
-				}
+			_, err := writeReply(conn, Success, res.Data())
+			if err != nil {
+				_ = conn.Close()
+				return
 			}
 		} else {
 			_, err := writeErrorReply(conn, res.Error().Error())

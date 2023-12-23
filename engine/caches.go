@@ -28,7 +28,7 @@ func NewCacheEngine() (*CacheEngine, error) {
 
 type CacheResult struct {
 	succ bool
-	data [][]byte
+	data []byte
 	err  error
 }
 
@@ -44,7 +44,7 @@ func (r *CacheResult) Status() int {
 	return 0
 }
 
-func (r *CacheResult) Data() [][]byte {
+func (r *CacheResult) Data() []byte {
 	return r.data
 }
 
@@ -71,7 +71,7 @@ func NewCacheErrorResult(err error) *CacheResult {
 	return NewSuccCacheResult()
 }
 
-func NewCacheResult(succ bool, data [][]byte, err error) *CacheResult {
+func NewCacheResult(succ bool, data []byte, err error) *CacheResult {
 	return &CacheResult{
 		succ: succ,
 		data: data,
@@ -112,7 +112,7 @@ func (eng *CacheEngine) ExecStrGet(args [][]byte) iface.Result {
 	if err != nil {
 		return NewCacheErrorResult(err)
 	}
-	return NewCacheResult(true, [][]byte{val.Bytes()}, nil)
+	return NewCacheResult(true, val.Bytes(), nil)
 }
 
 func (eng *CacheEngine) ExecDelKey(args [][]byte) iface.Result {
@@ -129,11 +129,4 @@ func (eng *CacheEngine) ExecExpire(args [][]byte) iface.Result {
 	}
 	err = eng.Expire(key, ttl)
 	return NewCacheErrorResult(err)
-}
-
-func (eng *CacheEngine) ExecKeys() iface.Result {
-	return &CacheResult{
-		succ: true,
-		data: eng.Keys(),
-	}
 }

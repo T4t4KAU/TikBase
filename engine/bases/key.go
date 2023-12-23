@@ -170,6 +170,9 @@ func (zk *ZSetInternalKey) EncodeWithScore() []byte {
 	binary.LittleEndian.PutUint64(b[index:index+8], uint64(zk.version))
 	index += 8
 
+	copy(b[index:index+len(scoreBytes)], scoreBytes)
+	index += len(scoreBytes)
+
 	copy(b[index:index+len(zk.member)], zk.member)
 	index += len(zk.member)
 
