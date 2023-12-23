@@ -26,10 +26,12 @@ type BaseStoreConfig struct {
 }
 
 type ServerConfig struct {
-	RESPPort   int `mapstructure:"resp_port"`
-	HTTPPort   int `mapstructure:"http_port"`
-	WorkersNum int `mapstructure:"workers_num"`
-	Timeout    int `mapstructure:"timeout"`
+	ListenPort int    `mapstructure:"listen_port"`
+	HTTPPort   int    `mapstructure:"http_port"`
+	WorkersNum int    `mapstructure:"workers_num"`
+	Timeout    int    `mapstructure:"timeout"`
+	EngineName string `mapstructure:"engine"`
+	Protocol   string `mapstructure:"protocol"`
 }
 
 func ReadServerConfigFile(filePath string) (ServerConfig, error) {

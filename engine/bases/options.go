@@ -11,6 +11,12 @@ const (
 	SL  // 跳表
 )
 
+var name2index = map[string]IndexerType{
+	"bt":  BT,
+	"art": ART,
+	"sl":  SL,
+}
+
 type Options struct {
 	// 数据库数据目录
 	DirPath string
@@ -63,4 +69,11 @@ var DefaultIteratorOptions = IteratorOptions{
 var DefaultWriteBatchOptions = WriteBatchOptions{
 	MaxBatchNum: 10000,
 	SyncWriters: true,
+}
+
+func NewIndexerType(name string) IndexerType {
+	if res, ok := name2index[name]; ok {
+		return res
+	}
+	return ART
 }

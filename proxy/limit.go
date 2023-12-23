@@ -5,14 +5,19 @@ import (
 	"time"
 )
 
+const (
+	LimitRate = 10
+	Capacity  = 100
+)
+
 // Limiter 定义限流器
 type Limiter struct {
 	*TokenBucket
 }
 
-func NewLimiter(b *TokenBucket) *Limiter {
+func NewLimiter() *Limiter {
 	return &Limiter{
-		TokenBucket: b,
+		TokenBucket: NewTokenBucket(LimitRate, Capacity),
 	}
 }
 

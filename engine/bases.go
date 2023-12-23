@@ -5,6 +5,7 @@ import (
 	"github.com/T4t4KAU/TikBase/engine/bases"
 	"github.com/T4t4KAU/TikBase/engine/values"
 	"github.com/T4t4KAU/TikBase/iface"
+	"github.com/T4t4KAU/TikBase/pack/config"
 	"github.com/T4t4KAU/TikBase/pack/errno"
 	"github.com/T4t4KAU/TikBase/pack/utils"
 )
@@ -86,6 +87,31 @@ func NewBaseEngine() (*BaseEngine, error) {
 	base, err := bases.New()
 	if err != nil {
 		return nil, err
+	}
+
+	eng := &BaseEngine{
+		Base:     base,
+		execFunc: make(map[iface.INS]ExecFunc),
+	}
+	eng.initExecFunc()
+
+	return eng, nil
+}
+
+func NewBaseEngineWith(config config.BaseStoreConfig) (*BaseEngine, error) {
+	option := bases.Options{
+		DirPath:            config.Directory,
+		DataFileSize:       int64(config.DatafileSize),
+		SyncWrites:         config.SyncWrites,
+		IndexType:          bases.NewIndexerType(config.Indexer),
+		BytesPerSync:       uint(config.BytesPerSync),
+		MMapAtStartup:      config.MmapAtStartup,
+		DataFileMergeRatio: float32(config.DatafileMergeRatio),
+	}
+
+	base, err := bases.NewBaseWith(option)
+	if err != nil {
+		panic(err)
 	}
 
 	eng := &BaseEngine{

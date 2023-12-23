@@ -11,5 +11,3 @@ iterator:
   prefix: ""
   reverse: true
 mmap_at_startup: true
-
-
