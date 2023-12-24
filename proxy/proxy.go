@@ -35,7 +35,8 @@ func Start(server config.ServerConfig, store config.StoreConfig) (err error) {
 		cfg := store.(config.BaseStoreConfig)
 		eng, err = engine.NewBaseEngineWith(cfg)
 	case "cache":
-		eng, err = engine.NewCacheEngine()
+		cfg := store.(config.CacheStoreConfig)
+		eng, err = engine.NewCacheEngineWith(cfg)
 	}
 
 	handler, err := NewHandler(server.Protocol, eng)

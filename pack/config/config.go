@@ -33,7 +33,7 @@ type CacheStoreConfig struct {
 	GcDuration       uint   `mapstructure:"gc_duration"`
 	DumpFile         string `mapstructure:"dump_file"`
 	DumpDuration     uint   `mapstructure:"dump_duration"`
-	MaxSizeOfSegment uint   `mapstructure:"max_size_of_segment"`
+	MapSizeOfSegment uint   `mapstructure:"map_size_of_segment"`
 	SegmentSize      uint   `mapstructure:"segment_size"`
 	CasSleepTime     uint   `mapstructure:"cas_sleep_time"`
 }
@@ -87,7 +87,7 @@ func ReadCacheConfigFile(filepath string) (StoreConfig, error) {
 	}
 
 	var config CacheStoreConfig
-	err = viper.Unmarshal(config)
+	err = viper.Unmarshal(&config)
 	if err != nil {
 		return CacheStoreConfig{}, fmt.Errorf("failed to unmarshal config: %w", err)
 	}

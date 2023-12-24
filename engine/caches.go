@@ -5,6 +5,7 @@ import (
 	"github.com/T4t4KAU/TikBase/engine/caches"
 	"github.com/T4t4KAU/TikBase/engine/values"
 	"github.com/T4t4KAU/TikBase/iface"
+	"github.com/T4t4KAU/TikBase/pack/config"
 )
 
 type CacheEngine struct {
@@ -19,10 +20,37 @@ func NewCacheEngine() (*CacheEngine, error) {
 	}
 
 	eng := &CacheEngine{
-		Cache: c,
+		Cache:    c,
+		execFunc: make(map[iface.INS]ExecFunc),
 	}
 
 	eng.initExecFunc()
+	return eng, nil
+}
+
+func NewCacheEngineWith(config config.CacheStoreConfig) (*CacheEngine, error) {
+	option := caches.Options{
+		MaxEntrySize:     int(config.MaxEntrySize),
+		MaxGcCount:       int(config.MaxGcCount),
+		GcDuration:       int(config.GcDuration),
+		DumpFile:         config.DumpFile,
+		DumpDuration:     int(config.DumpDuration),
+		MapSizeOfSegment: int(config.MapSizeOfSegment),
+		SegmentSize:      int(config.SegmentSize),
+		CasSleepTime:     int(config.CasSleepTime),
+	}
+
+	cache, err := caches.NewCacheWith(option)
+	if err != nil {
+		return &CacheEngine{}, err
+	}
+
+	eng := &CacheEngine{
+		Cache:    cache,
+		execFunc: make(map[iface.INS]ExecFunc),
+	}
+	eng.initExecFunc()
+
 	return eng, nil
 }
 

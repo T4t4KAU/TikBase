@@ -3,6 +3,6 @@ max_gc_count: 10
 gc_duration: 60
 dump_file: "./temp/cache.dump"
 dump_duration: 30
-max_size_of_segment: 256
+map_size_of_segment: 256
 segment_size: 1024
 cas_sleep_time: 1000
