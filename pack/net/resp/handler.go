@@ -3,6 +3,7 @@ package resp
 import (
 	"errors"
 	"github.com/T4t4KAU/TikBase/iface"
+	"github.com/T4t4KAU/TikBase/pack/utils"
 	"io"
 	"strings"
 )
@@ -13,7 +14,7 @@ type Handler struct {
 }
 
 func (h *Handler) BulkToIns(arg []byte) (iface.INS, bool) {
-	keyword := string(arg)
+	keyword := utils.B2S(arg)
 	keyword = strings.ToLower(keyword)
 	ins, ok := h.keywords[keyword]
 	if !ok {
@@ -30,6 +31,7 @@ func NewHandler(eng iface.Engine) *Handler {
 	h.keywords["set"] = iface.SET_STR
 	h.keywords["get"] = iface.GET_STR
 	h.keywords["del"] = iface.DEL
+	h.keywords["expire"] = iface.EXPIRE
 	return h
 }
 

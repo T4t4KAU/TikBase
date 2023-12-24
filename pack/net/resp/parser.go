@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/T4t4KAU/TikBase/iface"
+	"github.com/T4t4KAU/TikBase/pack/errno"
 	"github.com/T4t4KAU/TikBase/pack/tlog"
 	"github.com/T4t4KAU/TikBase/pack/utils"
 	"io"
@@ -29,38 +30,77 @@ func ParseStream(reader io.Reader) <-chan *Payload {
 	return ch
 }
 
+// ParseBytes 一次性返回所有reply
+func ParseBytes(data []byte) ([]iface.Reply, error) {
+	ch := make(chan *Payload)
+	reader := bytes.NewReader(data)
+
+	go parse0(reader, ch)
+	var results []iface.Reply
+	for payload := range ch {
+		if payload == nil {
+			return nil, errno.ErrInvalidProtocol
+		}
+		if payload.Err != nil {
+			if payload.Err == io.EOF {
+				break
+			}
+			return nil, payload.Err
+		}
+		results = append(results, payload.Data)
+	}
+
+	return results, nil
+}
+
+// ParseOne 返回第一个Reply
+func ParseOne(data []byte) (iface.Reply, error) {
+	ch := make(chan *Payload)
+	reader := bytes.NewReader(data)
+
+	go parse0(reader, ch)
+	payload := <-ch
+	if payload == nil {
+		return nil, errno.ErrInvalidProtocol
+	}
+	return payload.Data, payload.Err
+}
+
 func parse0(rawReader io.Reader, ch chan<- *Payload) {
 	defer func() {
-		close(ch)
 		if err := recover(); err != nil {
 			tlog.Error(err, utils.B2S(debug.Stack()))
 		}
 	}()
+
 	reader := bufio.NewReader(rawReader)
 	for {
 		// 获取一行数据
 		line, err := reader.ReadBytes('\n')
 		if err != nil {
 			ch <- &Payload{Err: err}
+			close(ch)
 			return
 		}
 		length := len(line)
 		if length <= 2 || line[length-2] != '\r' {
-			protocolError(ch, line)
 			continue
 		}
 		line = bytes.TrimSuffix(line, []byte{'\r', '\n'})
 		switch line[0] {
 		case '+':
+			content := utils.B2S(line[1:])
 			ch <- &Payload{
-				Data: MakeStatusReply(utils.B2S(line[1:])),
+				Data: MakeStatusReply(content),
 			}
 		case '-':
+			content := utils.B2S(line[1:])
 			ch <- &Payload{
-				Err: MakeErrReply(utils.B2S(line[1:])),
+				Data: MakeErrReply(content),
 			}
 		case ':':
-			value, err := strconv.ParseInt(utils.B2S(line[1:]), 10, 64)
+			content := utils.B2S(line[1:])
+			value, err := strconv.ParseInt(content, 10, 64)
 			if err != nil {
 				protocolError(ch, line)
 				continue
@@ -69,15 +109,19 @@ func parse0(rawReader io.Reader, ch chan<- *Payload) {
 				Data: MakeIntReply(value),
 			}
 		case '$':
+			// 解析字符串
 			err = parseBulk(line, reader, ch)
 			if err != nil {
 				ch <- &Payload{Err: err}
+				close(ch)
 				return
 			}
 		case '*':
+			// 解析数组
 			err = parseMultiBulk(line, reader, ch)
 			if err != nil {
 				ch <- &Payload{Err: err}
+				close(ch)
 				return
 			}
 		default:

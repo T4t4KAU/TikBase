@@ -6,6 +6,7 @@ import (
 	"github.com/T4t4KAU/TikBase/iface"
 	"github.com/T4t4KAU/TikBase/pack/config"
 	"github.com/T4t4KAU/TikBase/pack/net/http"
+	"github.com/T4t4KAU/TikBase/pack/net/resp"
 	"github.com/T4t4KAU/TikBase/pack/net/tiko"
 	"github.com/T4t4KAU/TikBase/pack/poll"
 	"strconv"
@@ -22,6 +23,8 @@ func NewHandler(name string, eng iface.Engine) (iface.Handler, error) {
 	switch name {
 	case "tiko":
 		return tiko.NewHandler(eng), nil
+	case "resp":
+		return resp.NewHandler(eng), nil
 	default:
 		return nil, errors.New("invalid protocol")
 	}

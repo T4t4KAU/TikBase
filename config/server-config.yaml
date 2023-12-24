@@ -3,4 +3,4 @@ http_port: 9090
 workers_num: 20
 timeout: 60
 engine: "cache"
-protocol: "tiko"
+protocol: "resp"

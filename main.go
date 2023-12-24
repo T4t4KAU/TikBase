@@ -26,6 +26,10 @@ func main() {
 		panic(err)
 	}
 
+	print("listening at port:", server.ListenPort)
+	print("   using protocol:", server.Protocol)
+	println("   using engine:", server.EngineName)
+
 	err = proxy.Start(server, cfg)
 	if err != nil {
 		panic(err)

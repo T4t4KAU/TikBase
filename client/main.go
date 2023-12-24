@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"github.com/T4t4KAU/TikBase/pack/net/resp"
 	"github.com/T4t4KAU/TikBase/pack/net/tiko"
 	"io"
 	"net"
@@ -41,7 +42,7 @@ func main() {
 	}
 
 	// 创建客户端
-	cli = NewClient("tiko", conn)
+	cli = NewClient("resp", conn)
 
 	println(logo)
 	println("connecting to: ", address)
@@ -165,7 +166,9 @@ func NewClient(name string, conn net.Conn) Client {
 	switch name {
 	case "tiko":
 		return tiko.NewClient(conn)
+	case "resp":
+		return resp.NewClient(conn)
 	default:
-		panic("invalid name")
+		panic("invalid protocol")
 	}
 }

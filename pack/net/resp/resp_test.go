@@ -4,7 +4,10 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/T4t4KAU/TikBase/engine"
+	"github.com/T4t4KAU/TikBase/iface"
 	"github.com/T4t4KAU/TikBase/pack/poll"
+	"github.com/T4t4KAU/TikBase/pack/utils"
+	"github.com/stretchr/testify/assert"
 	"io"
 	"net"
 	"testing"
@@ -12,10 +15,31 @@ import (
 )
 
 func TestParseStream1(t *testing.T) {
+	replies := []iface.Reply{
+		MakeIntReply(1),
+		MakeStatusReply("OK"),
+		MakeErrReply("ERR unknown"),
+		MakeBulkReply([]byte("a\r\nb")), // test binary safe
+		MakeNullBulkReply(),
+		MakeMultiBulkReply([][]byte{
+			[]byte("a"),
+			[]byte("\r\n"),
+		}),
+		MakeEmptyMultiBulkReply(),
+	}
 	reqs := bytes.Buffer{}
+	for _, re := range replies {
+		reqs.Write(re.ToBytes())
+	}
 	reqs.Write([]byte("set a a" + CRLF)) // test text protocol
+	expected := make([]iface.Reply, len(replies))
+	copy(expected, replies)
+	expected = append(expected, MakeMultiBulkReply([][]byte{
+		[]byte("set"), []byte("a"), []byte("a"),
+	}))
 
 	ch := ParseStream(bytes.NewReader(reqs.Bytes()))
+	i := 0
 	for payload := range ch {
 		if payload.Err != nil {
 			if payload.Err == io.EOF {
@@ -27,8 +51,11 @@ func TestParseStream1(t *testing.T) {
 		if payload.Data == nil {
 			t.Error("empty data")
 			return
-		} else {
-			fmt.Print(string(payload.Data.ToBytes()))
+		}
+		exp := expected[i]
+		i++
+		if !utils.BytesEquals(exp.ToBytes(), payload.Data.ToBytes()) {
+			t.Error("parse failed: " + string(exp.ToBytes()))
 		}
 	}
 }
@@ -72,28 +99,24 @@ func TestWriteGetRequest(t *testing.T) {
 	go startServer()
 	time.Sleep(time.Second)
 
-	conn, err := net.Dial("tcp", "127.0.0.1:9999")
-	if err != nil {
-		t.Error(err.Error())
-		return
-	}
+	conn, err := net.Dial("tcp", "127.0.0.1:9096")
+	assert.Nil(t, err)
+
 	_, err = writeSetRequest(conn, []byte("key"), []byte("value"))
-	if err != nil {
-		t.Error(err.Error())
-		return
-	}
+	assert.Nil(t, err)
+
 	b := make([]byte, 1024)
-	_, _ = conn.Read(b)
-	println(string(b))
+	n, err := conn.Read(b)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte("+OK\r\n"), b[:n])
 
 	_, err = writeGetRequest(conn, []byte("key"))
-	if err != nil {
-		t.Error(err.Error())
-		return
-	}
+	assert.Nil(t, err)
+
 	b = make([]byte, 1024)
-	_, _ = conn.Read(b)
-	println(string(b))
+	n, err = conn.Read(b)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte("$5\r\nvalue\r\n"), b[:n])
 }
 
 func TestClient(t *testing.T) {
@@ -106,19 +129,11 @@ func TestClient(t *testing.T) {
 		return
 	}
 	cli := NewClient(conn)
-	val, err := cli.Set("key", "value")
-	if err != nil {
-		t.Error(err.Error())
-		return
-	}
-	println(val)
+	err = cli.Set("key", "value")
+	assert.Nil(t, err)
 
-	val, err = cli.Get("key")
-	if err != nil {
-		t.Error(err.Error())
-		return
-	}
-	println(val)
+	_, err = cli.Get("key")
+	assert.Nil(t, err)
 }
 
 func TestParseStream3(t *testing.T) {

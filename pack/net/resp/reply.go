@@ -7,6 +7,15 @@ import (
 	"strconv"
 )
 
+/*
+
+"+" 表示简单字符串
+"-" 表示错误类型
+":" 表示整数
+"$" 表示 Bulk String
+"*" 表述数组
+*/
+
 var CRLF = "\r\n"
 
 // constant reply

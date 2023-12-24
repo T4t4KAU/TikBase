@@ -16,4 +16,5 @@ var (
 	ErrNotEnoughDiskForMerge  = errors.New("no enough disk space for merge")
 	ErrWrongTypeOperation     = errors.New("WRONGTYPE Operation against a key holding the wrong kind of value")
 	ErrParseArgsError         = errors.New("parse args from bytes failed")
+	ErrInvalidProtocol        = errors.New("invalid protocol")
 )
