@@ -2,6 +2,7 @@ package test
 
 import (
 	"github.com/T4t4KAU/TikBase/engine"
+	"github.com/T4t4KAU/TikBase/iface"
 	http2 "github.com/T4t4KAU/TikBase/pack/net/http"
 	"github.com/T4t4KAU/TikBase/pack/net/resp"
 	"github.com/T4t4KAU/TikBase/pack/net/tiko"
@@ -72,21 +73,31 @@ func TestHTTPServer(t *testing.T) {
 	t.Logf("consume read time: %s\n", readTime)
 }
 
-func startServer() {
-	eng, _ := engine.NewCacheEngine()
+func startServer(proto, engName string) {
+	var handler iface.Handler
+
+	eng, _ := engine.NewEngine(engName)
+
+	if proto == "resp" {
+		handler = resp.NewHandler(eng)
+	}
+	if proto == "tiko" {
+		handler = tiko.NewHandler(eng)
+	}
+
 	p := poll.New(poll.Config{
 		Address:    "127.0.0.1:9999",
 		MaxConnect: 1000,
 		Timeout:    time.Second,
-	}, tiko.NewHandler(eng))
+	}, handler)
 	err := p.Run()
 	if err != nil {
 		panic(err)
 	}
 }
 
-func TestTCPServer(t *testing.T) {
-	go startServer()
+func TestTikoServer(t *testing.T) {
+	go startServer("tiko", "cache")
 	time.Sleep(time.Second)
 
 	conn, err := net.Dial("tcp", "127.0.0.1:9999")
@@ -120,7 +131,7 @@ func TestTCPServer(t *testing.T) {
 }
 
 func TestRespServer(t *testing.T) {
-	go startServer()
+	go startServer("resp", "cache")
 	time.Sleep(time.Second)
 
 	conn, err := net.Dial("tcp", "127.0.0.1:9999")
@@ -136,7 +147,7 @@ func TestRespServer(t *testing.T) {
 
 	writeTime := testTask(func(no int) {
 		data := strconv.Itoa(no)
-		_, err := cli.Set(data, data)
+		err = cli.Set(data, data)
 		if err != nil {
 			t.Fatal(err)
 		}

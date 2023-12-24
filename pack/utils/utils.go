@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"io/fs"
 	"math/rand"
+	"net"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -168,5 +169,27 @@ func BytesEquals(a []byte, b []byte) bool {
 			return false
 		}
 	}
+	return true
+}
+
+func ValidateAddress(address string) bool {
+	// 按冒号分隔 IP 和端口
+	parts := strings.Split(address, ":")
+	if len(parts) != 2 {
+		return false
+	}
+
+	// 校验 IP 地址部分
+	ip := net.ParseIP(parts[0])
+	if ip == nil {
+		return false
+	}
+
+	// 校验端口部分
+	port, err := strconv.Atoi(parts[1])
+	if err != nil || port < 1 || port > 65535 {
+		return false
+	}
+
 	return true
 }

@@ -18,3 +18,7 @@ var (
 	ErrParseArgsError         = errors.New("parse args from bytes failed")
 	ErrInvalidProtocol        = errors.New("invalid protocol")
 )
+
+var (
+	ErrInvalidAddress = errors.New("invalid address")
+)
