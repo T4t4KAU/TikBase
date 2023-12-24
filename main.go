@@ -13,13 +13,22 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	store, err := config.ReadBaseConfigFile("./config/store-config.yaml")
+
+	var cfg config.StoreConfig
+
+	switch server.EngineName {
+	case "base":
+		cfg, err = config.ReadBaseConfigFile("./config/base-config.yaml")
+	case "cache":
+		cfg, err = config.ReadCacheConfigFile("./config/cache-config.yaml")
+	}
 	if err != nil {
 		panic(err)
 	}
 
-	err = proxy.Start(server, store)
+	err = proxy.Start(server, cfg)
 	if err != nil {
 		panic(err)
 	}
+
 }

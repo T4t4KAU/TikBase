@@ -7,6 +7,8 @@ import (
 	"github.com/spf13/viper"
 )
 
+type StoreConfig interface{}
+
 type BaseStoreConfig struct {
 	Directory    string `mapstructure:"directory"`
 	Indexer      string `mapstructure:"indexer"`
@@ -23,6 +25,17 @@ type BaseStoreConfig struct {
 		Reverse bool   `mapstructure:"reverse"`
 	} `mapstructure:"iterator"`
 	MmapAtStartup bool `mapstructure:"mmap_at_startup"`
+}
+
+type CacheStoreConfig struct {
+	MaxEntrySize     uint   `mapstructure:"max_entry_size"`
+	MaxGcCount       uint   `mapstructure:"max_gc_count"`
+	GcDuration       uint   `mapstructure:"gc_duration"`
+	DumpFile         string `mapstructure:"dump_file"`
+	DumpDuration     uint   `mapstructure:"dump_duration"`
+	MaxSizeOfSegment uint   `mapstructure:"max_size_of_segment"`
+	SegmentSize      uint   `mapstructure:"segment_size"`
+	CasSleepTime     uint   `mapstructure:"cas_sleep_time"`
 }
 
 type ServerConfig struct {
@@ -50,7 +63,7 @@ func ReadServerConfigFile(filePath string) (ServerConfig, error) {
 	return config, nil
 }
 
-func ReadBaseConfigFile(filePath string) (BaseStoreConfig, error) {
+func ReadBaseConfigFile(filePath string) (StoreConfig, error) {
 	viper.SetConfigFile(filePath)
 	viper.SetConfigType("yaml")
 	err := viper.ReadInConfig()
@@ -61,6 +74,22 @@ func ReadBaseConfigFile(filePath string) (BaseStoreConfig, error) {
 	err = viper.Unmarshal(&config)
 	if err != nil {
 		return BaseStoreConfig{}, fmt.Errorf("failed to unmarshal config: %w", err)
+	}
+	return config, nil
+}
+
+func ReadCacheConfigFile(filepath string) (StoreConfig, error) {
+	viper.SetConfigFile(filepath)
+	viper.SetConfigType("yaml")
+	err := viper.ReadInConfig()
+	if err != nil {
+		return CacheStoreConfig{}, fmt.Errorf("failed to read config file: %w", err)
+	}
+
+	var config CacheStoreConfig
+	err = viper.Unmarshal(config)
+	if err != nil {
+		return CacheStoreConfig{}, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 	return config, nil
 }

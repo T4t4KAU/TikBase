@@ -27,7 +27,7 @@ func NewHandler(name string, eng iface.Engine) (iface.Handler, error) {
 	}
 }
 
-func Start(server config.ServerConfig, store any) (err error) {
+func Start(server config.ServerConfig, store config.StoreConfig) (err error) {
 	var eng iface.Engine
 
 	switch server.EngineName {

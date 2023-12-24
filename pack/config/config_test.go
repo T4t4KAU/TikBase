@@ -15,7 +15,7 @@ func TestReadServerConfigFile(t *testing.T) {
 }
 
 func TestReadBaseConfigFile(t *testing.T) {
-	c, err := ReadBaseConfigFile("../../config/store-config.yaml")
+	c, err := ReadBaseConfigFile("../../config/base-config.yaml")
 	if err != nil {
 		t.Error(err)
 		return
