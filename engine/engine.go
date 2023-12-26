@@ -78,14 +78,21 @@ func parseHashDelArgs(args [][]byte) (string, []byte, error) {
 }
 
 func parseSetAddArgs(args [][]byte) (string, []byte, error) {
-	if len(args) < 3 {
+	if len(args) < 2 {
 		return "", nil, errno.ErrParseArgsError
 	}
 	return utils.B2S(args[0]), args[1], nil
 }
 
-func parsePopAddArgs(args [][]byte) (string, []byte, error) {
-	if len(args) < 3 {
+func parseSetRemArgs(args [][]byte) (string, []byte, error) {
+	if len(args) < 2 {
+		return "", nil, errno.ErrParseArgsError
+	}
+	return utils.B2S(args[0]), args[1], nil
+}
+
+func parseSetIsMemberArgs(args [][]byte) (string, []byte, error) {
+	if len(args) < 2 {
 		return "", nil, errno.ErrParseArgsError
 	}
 	return utils.B2S(args[0]), args[1], nil

@@ -2,6 +2,7 @@ package engine
 
 import (
 	"github.com/T4t4KAU/TikBase/iface"
+	"github.com/T4t4KAU/TikBase/pack/errno"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -52,4 +53,24 @@ func TestBaseEngine_ExecListPush(t *testing.T) {
 	assert.Nil(t, res.Error())
 	assert.Equal(t, []byte("element1"), res.Data())
 	println(string(res.Data()))
+}
+
+func TestBaseEngine_ExecSetAdd(t *testing.T) {
+	e, _ := NewBaseEngine()
+	res := e.Exec(iface.ADD_SET, [][]byte{[]byte("set"), []byte("element1")})
+	assert.Nil(t, res.Error())
+
+	res = e.Exec(iface.ADD_SET, [][]byte{[]byte("set"), []byte("element2")})
+	assert.Nil(t, res.Error())
+
+	res = e.Exec(iface.IS_MEMBER_SET, [][]byte{[]byte("set"), []byte("element1")})
+	assert.Nil(t, res.Error())
+	assert.True(t, res.Success())
+
+	res = e.Exec(iface.REM_SET, [][]byte{[]byte("set"), []byte("element1")})
+	assert.Nil(t, res.Error())
+
+	res = e.Exec(iface.IS_MEMBER_SET, [][]byte{[]byte("set"), []byte("element1")})
+	assert.Equal(t, errno.ErrSetMemberNotFound, res.Error())
+	assert.False(t, res.Success())
 }

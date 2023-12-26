@@ -247,13 +247,16 @@ func (b *Base) SIsMember(key string, member []byte) (bool, error) {
 		return false, err
 	}
 	if meta.Size == 0 {
-		return false, nil
+		return false, errno.ErrSetDataIsEmpty
 	}
 
 	encKey := NewSetInternalKey(key, meta.Version, member).Encode()
 	_, err = b.Get(utils.B2S(encKey))
-	if err != nil && errors.Is(err, errno.ErrKeyNotFound) {
+	if err != nil && !errors.Is(err, errno.ErrKeyNotFound) {
 		return false, err
+	}
+	if errors.Is(err, errno.ErrKeyNotFound) {
+		return false, errno.ErrSetMemberNotFound
 	}
 
 	return true, nil
@@ -416,7 +419,7 @@ func (b *Base) ZScore(key string, member []byte) (float64, error) {
 		return -1, err
 	}
 	if meta.Size == 0 {
-		return -1, nil
+		return -1, errno.ErrZSetDataIsEmpty
 	}
 
 	zsetKey := NewZSetInternalKey(key, meta.Version, member, 0)

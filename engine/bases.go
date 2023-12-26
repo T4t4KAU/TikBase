@@ -143,6 +143,9 @@ func (eng *BaseEngine) initExecFunc() {
 	eng.registerExecFunc(iface.DEL_HASH, eng.ExecHashDel)
 	eng.registerExecFunc(iface.PUSH_LIST, eng.ExecListPush)
 	eng.registerExecFunc(iface.POP_LIST, eng.ExecListPop)
+	eng.registerExecFunc(iface.ADD_SET, eng.ExecSetAdd)
+	eng.registerExecFunc(iface.REM_SET, eng.ExecSetRem)
+	eng.registerExecFunc(iface.IS_MEMBER_SET, eng.ExecSetIsMember)
 }
 
 func (eng *BaseEngine) ExecStrSet(args [][]byte) iface.Result {
@@ -240,10 +243,19 @@ func (eng *BaseEngine) ExecSetAdd(args [][]byte) iface.Result {
 }
 
 func (eng *BaseEngine) ExecSetRem(args [][]byte) iface.Result {
-	key, member, err := parseSetAddArgs(args)
+	key, member, err := parseSetRemArgs(args)
 	if err != nil {
 		return NewBaseErrResult(err)
 	}
 	_, err = eng.SRem(key, member)
+	return NewBaseErrResult(err)
+}
+
+func (eng *BaseEngine) ExecSetIsMember(args [][]byte) iface.Result {
+	key, member, err := parseSetIsMemberArgs(args)
+	if err != nil {
+		return NewBaseErrResult(err)
+	}
+	_, err = eng.SIsMember(key, member)
 	return NewBaseErrResult(err)
 }
