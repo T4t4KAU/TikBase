@@ -28,13 +28,13 @@
 go run main.go
 ```
 
-支持 Docker 安装并启动:
+支持 Docker 安装并启动(当前只支持ARM架构):
 ```
 docker pull venuns/tikbase:latest 
 docker run venuns/tikbase:latest 
 ```
 
-客户端启动方式：
+客户端启动方式(用于测试)：
 ```bash
 go run client/main.go
 ```

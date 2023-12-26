@@ -92,3 +92,44 @@ func (c *Client) Set(key string, value string) error {
 	}
 	return nil
 }
+
+func (c *Client) HSet(key string, field []byte, value []byte) error {
+	_, err := writeHSetRequest(c.conn, utils.S2B(key), field, value)
+	if err != nil {
+		return err
+	}
+
+	b := make([]byte, 1024)
+	_, err = c.conn.Read(b)
+	if err != nil {
+		return err
+	}
+
+	_, err = ParseOne(b)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Client) HGet(key string, field, value []byte) (string, error) {
+	_, err := writeHGetRequest(c.conn, utils.S2B(key), field)
+	if err != nil {
+		return "", nil
+	}
+
+	b := make([]byte, 1024)
+	_, err = c.conn.Read(b)
+	if err != nil {
+		return "", err
+	}
+
+	reply, err := ParseOne(b)
+	if err != nil {
+		return "", err
+	}
+
+	ss := strings.Split(utils.B2S(reply.ToBytes()), CRLF)
+	return ss[1], nil
+}

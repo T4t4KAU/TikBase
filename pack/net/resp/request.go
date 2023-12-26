@@ -80,3 +80,67 @@ func (req *ExpireRequest) ToBytes() []byte {
 func writeExpireRequest(writer io.Writer, key []byte, ttl int64) (int, error) {
 	return writer.Write(MakeExpireRequest(key, ttl).ToBytes())
 }
+
+type HSetRequest struct {
+	Key   []byte
+	Field []byte
+	Value []byte
+}
+
+func MakeHSetRequest(key, field, value []byte) *HSetRequest {
+	return &HSetRequest{
+		Key:   key,
+		Field: field,
+		Value: value,
+	}
+}
+
+func (req *HSetRequest) ToBytes() []byte {
+	return MakeMultiBulkReply([][]byte{[]byte("HSET"), req.Key, req.Field, req.Value}).ToBytes()
+}
+
+func writeHSetRequest(writer io.Writer, key, field, value []byte) (int, error) {
+	return writer.Write(MakeHSetRequest(key, field, value).ToBytes())
+}
+
+type HGetRequest struct {
+	Key   []byte
+	Field []byte
+}
+
+func MakeHGetRequest(key, field []byte) *HGetRequest {
+	return &HGetRequest{
+		Key:   key,
+		Field: field,
+	}
+}
+
+func (req *HGetRequest) ToBytes() []byte {
+	return MakeMultiBulkReply([][]byte{[]byte("HGET"), req.Key, req.Field}).ToBytes()
+}
+
+func writeHGetRequest(writer io.Writer, key, field []byte) (int, error) {
+	return writer.Write(MakeHGetRequest(key, field).ToBytes())
+}
+
+type HDelRequest struct {
+	Key   []byte
+	Field []byte
+	Value []byte
+}
+
+func MakeHDelRequest(key, field, value []byte) *HDelRequest {
+	return &HDelRequest{
+		Key:   key,
+		Field: field,
+		Value: value,
+	}
+}
+
+func (req *HDelRequest) ToBytes() []byte {
+	return MakeMultiBulkReply([][]byte{[]byte("HDEL"), req.Key, req.Field, req.Value}).ToBytes()
+}
+
+func writeHDelRequest(writer io.Writer, key, field, value []byte) (int, error) {
+	return writer.Write(MakeHDelRequest(key, field, value).ToBytes())
+}

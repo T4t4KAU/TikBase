@@ -32,6 +32,14 @@ func NewHandler(eng iface.Engine) *Handler {
 	h.keywords["get"] = iface.GET_STR
 	h.keywords["del"] = iface.DEL
 	h.keywords["expire"] = iface.EXPIRE
+
+	h.keywords["hget"] = iface.GET_HASH
+	h.keywords["hset"] = iface.SET_HASH
+	h.keywords["hdel"] = iface.DEL_HASH
+
+	h.keywords["lpush"] = iface.PUSH_LIST
+	h.keywords["lpop"] = iface.POP_LIST
+
 	return h
 }
 

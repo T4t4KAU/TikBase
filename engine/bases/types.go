@@ -195,7 +195,7 @@ func (b *Base) HDel(key string, field []byte) (bool, error) {
 		return false, err
 	}
 	if meta.Size == 0 {
-		return false, nil
+		return false, errno.ErrHashDataIsEmpty
 	}
 
 	encKey := NewHashInternalKey(key, meta.Version, field).Encode()
@@ -219,10 +219,10 @@ func (b *Base) HDel(key string, field []byte) (bool, error) {
 	return exist, nil
 }
 
-func (b *Base) SAdd(key string, member []byte) bool {
+func (b *Base) SAdd(key string, member []byte) (bool, error) {
 	meta, err := b.FindMeta(key, iface.SET)
 	if err != nil {
-		return false
+		return false, err
 	}
 
 	encKey := NewSetInternalKey(key, meta.Version, member).Encode()
@@ -233,15 +233,15 @@ func (b *Base) SAdd(key string, member []byte) bool {
 		_ = wb.Put(utils.S2B(key), meta.Encode())
 		_ = wb.Put(encKey, nil)
 		if err = wb.Commit(); err != nil {
-			return false
+			return false, err
 		}
 	}
 
-	return true
+	return true, nil
 }
 
-// Contain 判断元素是否在集合中
-func (b *Base) Contain(key string, member []byte) (bool, error) {
+// SIsMember 判断元素是否在集合中
+func (b *Base) SIsMember(key string, member []byte) (bool, error) {
 	meta, err := b.FindMeta(key, iface.SET)
 	if err != nil {
 		return false, err
@@ -256,6 +256,30 @@ func (b *Base) Contain(key string, member []byte) (bool, error) {
 		return false, err
 	}
 
+	return true, nil
+}
+
+func (b *Base) SRem(key string, member []byte) (bool, error) {
+	meta, err := b.FindMeta(key, iface.SET)
+	if err != nil {
+		return false, err
+	}
+	if meta.Size == 0 {
+		return false, errno.ErrSetDataIsEmpty
+	}
+
+	setKey := NewSetInternalKey(key, meta.Version, member).Encode()
+	if _, err = b.Get(utils.B2S(setKey)); errors.Is(err, errno.ErrKeyNotFound) {
+		return false, errno.ErrSetMemberNotFound
+	}
+
+	wb := b.NewWriteBatch()
+	meta.Size--
+	_ = wb.Put(utils.S2B(key), meta.Encode())
+	_ = wb.Delete(setKey)
+	if err = wb.Commit(); err != nil {
+		return false, err
+	}
 	return true, nil
 }
 

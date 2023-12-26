@@ -3,6 +3,7 @@ package bases
 import (
 	"github.com/T4t4KAU/TikBase/engine/values"
 	"github.com/T4t4KAU/TikBase/iface"
+	"github.com/T4t4KAU/TikBase/pack/errno"
 	"github.com/T4t4KAU/TikBase/pack/utils"
 	"github.com/stretchr/testify/assert"
 	"os"
@@ -208,8 +209,57 @@ func TestBase_HGet(t *testing.T) {
 	assert.Equal(t, "test_value", res.String())
 }
 
-func TestBase_SAdd(t *testing.T) {
+func TestBase_HDel(t *testing.T) {
+	opts := DefaultOptions
+	opts.DirPath = "../../temp"
+	base, err := NewBaseWith(opts)
+	assert.Nil(t, err)
 
+	_, err = base.HSet("test_hash", []byte("test_key"), []byte("test_value"))
+	assert.Nil(t, err)
+
+	res, err := base.HDel("test_hash", []byte("test_key"))
+	assert.Nil(t, err)
+	assert.True(t, res)
+
+	_, err = base.HGet("test_hash", []byte("test_key"))
+	assert.Equal(t, errno.ErrHashKeyNotFound, err)
+}
+
+func TestBase_SAdd(t *testing.T) {
+	opts := DefaultOptions
+	opts.DirPath = "../../temp"
+	base, err := NewBaseWith(opts)
+	assert.Nil(t, err)
+
+	_, err = base.SAdd("test_set", []byte("test_element1"))
+	assert.Nil(t, err)
+
+	ok, err := base.SIsMember("test_set", []byte("test_element1"))
+	assert.Nil(t, err)
+	assert.True(t, ok)
+}
+
+func TestBase_SRem(t *testing.T) {
+	opts := DefaultOptions
+	opts.DirPath = "../../temp"
+	base, err := NewBaseWith(opts)
+	assert.Nil(t, err)
+
+	_, err = base.SAdd("test_set", []byte("test_element1"))
+	assert.Nil(t, err)
+
+	ok, err := base.SIsMember("test_set", []byte("test_element1"))
+	assert.Nil(t, err)
+	assert.True(t, ok)
+
+	ok, err = base.SRem("test_set", []byte("test_element1"))
+	assert.Nil(t, err)
+	assert.True(t, ok)
+
+	ok, err = base.SIsMember("test_set", []byte("test_element1"))
+	assert.Nil(t, err)
+	assert.False(t, ok)
 }
 
 func TestBase_LPush(t *testing.T) {

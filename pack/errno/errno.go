@@ -17,6 +17,13 @@ var (
 	ErrWrongTypeOperation     = errors.New("WRONGTYPE Operation against a key holding the wrong kind of value")
 	ErrParseArgsError         = errors.New("parse args from bytes failed")
 	ErrInvalidProtocol        = errors.New("invalid protocol")
+	ErrHashKeyNotFound        = errors.New("hash key not found")
+	ErrSetMemberNotFound      = errors.New("set member not found")
+
+	ErrHashDataIsEmpty = errors.New("hash data is empty")
+	ErrListDataIsEmpty = errors.New("list data is empty")
+	ErrSetDataIsEmpty  = errors.New("set data is empty")
+	ErrZSetDataIsEmpty = errors.New("zset data is empty")
 )
 
 var (

@@ -16,6 +16,8 @@ const (
 	GET_STR
 	GET_HASH
 	DEL
+	DEL_HASH
+
 	EXPIRE
 	KEYS
 	NIL

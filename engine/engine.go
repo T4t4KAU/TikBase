@@ -64,7 +64,7 @@ func parseListPushArgs(args [][]byte) (string, []byte, error) {
 }
 
 func parseListPopArgs(args [][]byte) (string, error) {
-	if len(args) < 2 {
+	if len(args) < 1 {
 		return utils.B2S(args[0]), errno.ErrParseArgsError
 	}
 	return utils.B2S(args[0]), nil
@@ -78,6 +78,13 @@ func parseHashDelArgs(args [][]byte) (string, []byte, error) {
 }
 
 func parseSetAddArgs(args [][]byte) (string, []byte, error) {
+	if len(args) < 3 {
+		return "", nil, errno.ErrParseArgsError
+	}
+	return utils.B2S(args[0]), args[1], nil
+}
+
+func parsePopAddArgs(args [][]byte) (string, []byte, error) {
 	if len(args) < 3 {
 		return "", nil, errno.ErrParseArgsError
 	}
