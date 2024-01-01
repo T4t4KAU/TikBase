@@ -53,9 +53,9 @@ type ExpireRequest struct {
 	TTL int64
 }
 
-func MakeExpireRequest(key []byte, ttl int64) *ExpireRequest {
+func MakeExpireRequest(key string, ttl int64) *ExpireRequest {
 	return &ExpireRequest{
-		Key: key,
+		Key: utils.S2B(key),
 		TTL: ttl,
 	}
 }

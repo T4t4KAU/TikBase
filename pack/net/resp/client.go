@@ -1,6 +1,7 @@
 package resp
 
 import (
+	"errors"
 	"github.com/T4t4KAU/TikBase/iface"
 	"github.com/T4t4KAU/TikBase/pack/conc/wait"
 	"github.com/T4t4KAU/TikBase/pack/errno"
@@ -89,20 +90,39 @@ func (c *Client) handleWrite() {
 func (c *Client) Get(key string) (string, error) {
 	bytes := MakeGetRequest(key).ToBytes()
 	reply := c.Send(bytes)
-	_, err := ParseOne(reply.ToBytes())
-	if err != nil {
-		return "", err
+	if isErrReply(reply) {
+		return "", errWithMsg(reply)
 	}
 	ss := strings.Split(utils.B2S(reply.ToBytes()), CRLF)
+	if len(ss) < 1 {
+		return "", nil
+	}
 	return ss[1], nil
 }
 
 func (c *Client) Set(key string, value string) error {
 	bytes := MakeSetRequest(key, value).ToBytes()
 	reply := c.Send(bytes)
-	_, err := ParseOne(reply.ToBytes())
-	if err != nil {
-		return err
+	if isErrReply(reply) {
+		return errWithMsg(reply)
+	}
+	return nil
+}
+
+func (c *Client) Del(key string) error {
+	bytes := MakeDelRequest(key).ToBytes()
+	reply := c.Send(bytes)
+	if isErrReply(reply) {
+		return errWithMsg(reply)
+	}
+	return nil
+}
+
+func (c *Client) Expire(key string, ttl int64) error {
+	bytes := MakeExpireRequest(key, ttl).ToBytes()
+	reply := c.Send(bytes)
+	if isErrReply(reply) {
+		return errWithMsg(reply)
 	}
 	return nil
 }
@@ -110,20 +130,23 @@ func (c *Client) Set(key string, value string) error {
 func (c *Client) HGet(key, field string) (string, error) {
 	bytes := MakeHGetRequest(key, field).ToBytes()
 	reply := c.Send(bytes)
-	_, err := ParseOne(reply.ToBytes())
-	if err != nil {
-		return "", err
+
+	if isErrReply(reply) {
+		return "", errWithMsg(reply)
 	}
+
 	ss := strings.Split(utils.B2S(reply.ToBytes()), CRLF)
+	if len(ss) < 1 {
+		return "", nil
+	}
 	return ss[1], nil
 }
 
 func (c *Client) HSet(key, field, value string) error {
 	bytes := MakeHSetRequest(key, field, value).ToBytes()
 	reply := c.Send(bytes)
-	_, err := ParseOne(reply.ToBytes())
-	if err != nil {
-		return err
+	if isErrReply(reply) {
+		return errWithMsg(reply)
 	}
 	return nil
 }
@@ -266,4 +289,12 @@ func (c *Client) doHeartbeat() {
 	defer c.working.Done()
 	c.pendingReqs <- req
 	req.waiting.WaitWithTimeout(maxWait)
+}
+
+func errWithMsg(reply iface.Reply) error {
+	return errors.New(strings.Trim(utils.B2S(reply.ToBytes()[1:]), CRLF))
+}
+
+func isErrReply(reply iface.Reply) bool {
+	return string(reply.ToBytes()[0]) == "-"
 }

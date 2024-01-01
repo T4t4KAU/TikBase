@@ -113,6 +113,13 @@ func TestClient(t *testing.T) {
 	val, err = cli.HGet("hash", "key1")
 	assert.Nil(t, err)
 	assert.Equal(t, "value1", val)
+
+	err = cli.Del("key")
+	assert.Nil(t, err)
+
+	val, err = cli.Get("key")
+	assert.NotNil(t, err)
+	t.Log(err.Error())
 }
 
 func TestParseStream3(t *testing.T) {

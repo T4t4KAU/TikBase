@@ -268,7 +268,3 @@ func MakeUnknownCommandErrReply(command []byte) *UnknownCommandErrReply {
 		Command: string(command),
 	}
 }
-
-func IsErrReply(reply iface.Reply) bool {
-	return reply.ToBytes()[0] == '-'
-}
