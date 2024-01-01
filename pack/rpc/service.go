@@ -7,6 +7,7 @@ import (
 	"sync/atomic"
 )
 
+// 远程调用方法
 type methodType struct {
 	method    reflect.Method
 	ArgType   reflect.Type
@@ -14,13 +15,14 @@ type methodType struct {
 	numCalls  uint64
 }
 
+// NumCalls 调用次数
 func (mt *methodType) NumCalls() uint64 {
 	return atomic.LoadUint64(&mt.numCalls)
 }
 
-func (mt *methodType) newArgv() reflect.Value {
+func (mt *methodType) newArgValue() reflect.Value {
 	var argv reflect.Value
-	// arg may be a pointer type, or a values type
+	// 判断是否为指针类型
 	if mt.ArgType.Kind() == reflect.Ptr {
 		argv = reflect.New(mt.ArgType.Elem())
 	} else {
@@ -29,23 +31,23 @@ func (mt *methodType) newArgv() reflect.Value {
 	return argv
 }
 
-func (mt *methodType) newReplyv() reflect.Value {
-	// reply must be a pointer type
+func (mt *methodType) newReplyValue() reflect.Value {
 	replyv := reflect.New(mt.ReplyType.Elem())
 	switch mt.ReplyType.Elem().Kind() {
-	case reflect.Map:
+	case reflect.Map: // 处理map类型
 		replyv.Elem().Set(reflect.MakeMap(mt.ReplyType.Elem()))
-	case reflect.Slice:
+	case reflect.Slice: // 处理切片类型
 		replyv.Elem().Set(reflect.MakeSlice(mt.ReplyType.Elem(), 0, 0))
+	default:
 	}
 	return replyv
 }
 
 type service struct {
-	name   string
+	name   string // 结构体名称
 	typ    reflect.Type
-	rcvr   reflect.Value
-	method map[string]*methodType
+	rcvr   reflect.Value          // 指向结构体自身
+	method map[string]*methodType // 远程方法
 }
 
 func newService(rcvr interface{}) *service {
@@ -53,9 +55,13 @@ func newService(rcvr interface{}) *service {
 	s.rcvr = reflect.ValueOf(rcvr)
 	s.name = reflect.Indirect(s.rcvr).Type().Name()
 	s.typ = reflect.TypeOf(rcvr)
+
+	// 结构体是否导出
 	if !ast.IsExported(s.name) {
 		log.Fatalf("rpc server: %s is not a valid service name", s.name)
 	}
+
+	// 注册所有方法
 	s.registerMethods()
 	return s
 }
@@ -65,9 +71,12 @@ func (s *service) registerMethods() {
 	for i := 0; i < s.typ.NumMethod(); i++ {
 		method := s.typ.Method(i)
 		mType := method.Type
+
+		// 检查入参是否为3 出参是否为1
 		if mType.NumIn() != 3 || mType.NumOut() != 1 {
 			continue
 		}
+
 		if mType.Out(0) != reflect.TypeOf((*error)(nil)).Elem() {
 			continue
 		}
@@ -75,6 +84,8 @@ func (s *service) registerMethods() {
 		if !isExportedOrBuiltinType(argType) || !isExportedOrBuiltinType(replyType) {
 			continue
 		}
+
+		// 注册远程方法
 		s.method[method.Name] = &methodType{
 			method:    method,
 			ArgType:   argType,

@@ -5,7 +5,7 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
-	"github.com/T4t4KAU/TikBase/cluster/rpc/codec"
+	"github.com/T4t4KAU/TikBase/pack/rpc/codec"
 	"io"
 	"log"
 	"net"
@@ -29,15 +29,15 @@ func (call *Call) done() {
 }
 
 type Client struct {
-	cc       codec.Codec // 编解码器
-	opt      *Option
-	sm       sync.Mutex // sending mutex
-	header   codec.Header
-	cm       sync.Mutex // common mutex
-	seq      uint64
-	pending  map[uint64]*Call // 就绪	closing  bool
-	shutdown bool
-	closing  bool
+	cc           codec.Codec // 编解码器
+	option       *Option
+	sendingMutex sync.Mutex // sending mutex
+	header       codec.Header
+	commonMutex  sync.Mutex // common mutex
+	seqNum       uint64
+	pending      map[uint64]*Call // 就绪	closing  bool
+	shutdown     bool
+	closing      bool // 标识是否已经关闭
 }
 
 var _ io.Closer = (*Client)(nil)
@@ -46,8 +46,8 @@ var ErrShutdown = errors.New("connection is shut down")
 
 // Close the connection
 func (cli *Client) Close() error {
-	cli.cm.Lock()
-	defer cli.cm.Unlock()
+	cli.commonMutex.Lock()
+	defer cli.commonMutex.Unlock()
 	if cli.closing {
 		return ErrShutdown
 	}
@@ -57,28 +57,29 @@ func (cli *Client) Close() error {
 
 // IsAvailable return true if the client does work
 func (cli *Client) IsAvailable() bool {
-	cli.cm.Lock()
-	defer cli.cm.Unlock()
+	cli.commonMutex.Lock()
+	defer cli.commonMutex.Unlock()
 	return !cli.shutdown && !cli.closing
 }
 
-// register a call
+// 将调用存入就绪列表
 func (cli *Client) registerCall(call *Call) (uint64, error) {
-	cli.cm.Lock()
-	defer cli.cm.Unlock()
+	cli.commonMutex.Lock()
+	defer cli.commonMutex.Unlock()
 	if cli.closing || cli.shutdown {
 		return 0, ErrShutdown
 	}
-	call.Seq = cli.seq
+	call.Seq = cli.seqNum
 	// 添加调用
 	cli.pending[call.Seq] = call
-	cli.seq++
+	cli.seqNum++
 	return call.Seq, nil
 }
 
+// 从就绪列表中移除
 func (cli *Client) removeCall(seq uint64) *Call {
-	cli.cm.Lock()
-	defer cli.cm.Unlock()
+	cli.commonMutex.Lock()
+	defer cli.commonMutex.Unlock()
 	call := cli.pending[seq]
 	delete(cli.pending, seq)
 	return call
@@ -86,10 +87,10 @@ func (cli *Client) removeCall(seq uint64) *Call {
 
 // 中断调用
 func (cli *Client) terminateCalls(err error) {
-	cli.sm.Lock()
-	defer cli.sm.Unlock()
-	cli.cm.Lock()
-	defer cli.cm.Unlock()
+	cli.sendingMutex.Lock()
+	defer cli.sendingMutex.Unlock()
+	cli.commonMutex.Lock()
+	defer cli.commonMutex.Unlock()
 	cli.shutdown = true
 	for _, call := range cli.pending {
 		call.Error = err
@@ -100,8 +101,8 @@ func (cli *Client) terminateCalls(err error) {
 // 发送调用
 func (cli *Client) send(call *Call) {
 	// make sure that the client will send a complete request
-	cli.sm.Lock()
-	defer cli.sm.Unlock()
+	cli.sendingMutex.Lock()
+	defer cli.sendingMutex.Unlock()
 
 	// register this call.
 	seq, err := cli.registerCall(call)
@@ -119,8 +120,6 @@ func (cli *Client) send(call *Call) {
 	// encode and send the request
 	if err = cli.cc.Write(&cli.header, call.Args); err != nil {
 		c := cli.removeCall(seq)
-		// call may be nil, it usually means that Write partially failed,
-		// client has received the response and handled
 		if c != nil {
 			c.Error = err
 			c.done()
@@ -202,6 +201,7 @@ func parseOptions(opts ...*Option) (*Option, error) {
 	return opt, nil
 }
 
+// NewClient 初始化一个客户端
 func NewClient(conn net.Conn, opt *Option) (client *Client, err error) {
 	f := codec.NewCodecFuncMap[opt.CodecType]
 	if f == nil {
@@ -217,11 +217,12 @@ func NewClient(conn net.Conn, opt *Option) (client *Client, err error) {
 	return newClientCodec(f(conn), opt), nil
 }
 
+// 初始化一个客户端
 func newClientCodec(cc codec.Codec, opt *Option) *Client {
 	client := &Client{
-		seq:     1, // seq starts with 1, 0 means invalid call
+		seqNum:  1, // seq starts with 1, 0 means invalid call
 		cc:      cc,
-		opt:     opt,
+		option:  opt,
 		pending: make(map[uint64]*Call),
 	}
 
@@ -257,10 +258,14 @@ func dialTimeout(fn newClientFunc, network, address string, opts ...*Option) (*C
 		cli, e := fn(conn, opt)
 		ch <- clientResult{client: cli, err: e}
 	}()
+
+	// 无时间限制
 	if opt.ConnectTimeout == 0 {
 		result := <-ch
 		return result.client, result.err
 	}
+
+	// 有时间限制
 	select {
 	case <-time.After(opt.ConnectTimeout):
 		return nil, fmt.Errorf("rpc client: connect timeout: expect within %s", opt.ConnectTimeout)

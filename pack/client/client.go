@@ -6,7 +6,6 @@ import (
 	"github.com/T4t4KAU/TikBase/pack/net/resp"
 	"github.com/T4t4KAU/TikBase/pack/net/tiko"
 	"github.com/T4t4KAU/TikBase/pack/utils"
-	"net"
 	"strings"
 )
 
@@ -15,16 +14,16 @@ var protos = map[string]struct{}{
 	"resp": {},
 }
 
-func newClient(proto string, conn net.Conn) iface.Client {
+func newClient(proto string, addr string) (iface.Client, error) {
 	proto = strings.ToLower(proto)
 
 	switch proto {
 	case "tiko":
-		return tiko.NewClient(conn)
+		return tiko.NewClient(addr)
 	case "resp":
-		return resp.NewClient(conn)
+		return resp.NewClient(addr)
 	default:
-		panic("invalid protocol")
+		return nil, errno.ErrInvalidProtocol
 	}
 }
 
@@ -42,15 +41,14 @@ func New(addr, proto string) (*Client, error) {
 		return &Client{}, errno.ErrInvalidProtocol
 	}
 
-	conn, err := net.Dial("tcp", addr)
+	cli, err := newClient(proto, addr)
 	if err != nil {
-		return &Client{}, err
+		return nil, err
 	}
-
 	return &Client{
 		Protocol: proto,
 		Addr:     addr,
-		client:   newClient(proto, conn),
+		client:   cli,
 	}, nil
 }
 

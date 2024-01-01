@@ -97,3 +97,10 @@ func parseSetIsMemberArgs(args [][]byte) (string, []byte, error) {
 	}
 	return utils.B2S(args[0]), args[1], nil
 }
+
+func parseZSetAddArgs(args [][]byte) (string, float64, []byte, error) {
+	if len(args) < 3 {
+		return "", 0, nil, errno.ErrParseArgsError
+	}
+	return utils.B2S(args[0]), utils.B2F64(args[1]), args[2], nil
+}

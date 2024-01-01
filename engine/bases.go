@@ -141,8 +141,8 @@ func (eng *BaseEngine) initExecFunc() {
 	eng.registerExecFunc(iface.SET_HASH, eng.ExecHashSet)
 	eng.registerExecFunc(iface.GET_HASH, eng.ExecHashGet)
 	eng.registerExecFunc(iface.DEL_HASH, eng.ExecHashDel)
-	eng.registerExecFunc(iface.PUSH_LIST, eng.ExecListPush)
-	eng.registerExecFunc(iface.POP_LIST, eng.ExecListPop)
+	eng.registerExecFunc(iface.LEFT_PUSH_LIST, eng.ExecListLeftPush)
+	eng.registerExecFunc(iface.LEFT_POP_LIST, eng.ExecListLeftPop)
 	eng.registerExecFunc(iface.ADD_SET, eng.ExecSetAdd)
 	eng.registerExecFunc(iface.REM_SET, eng.ExecSetRem)
 	eng.registerExecFunc(iface.IS_MEMBER_SET, eng.ExecSetIsMember)
@@ -212,7 +212,7 @@ func (eng *BaseEngine) ExecHashDel(args [][]byte) iface.Result {
 	return NewBaseErrResult(err)
 }
 
-func (eng *BaseEngine) ExecListPush(args [][]byte) iface.Result {
+func (eng *BaseEngine) ExecListLeftPush(args [][]byte) iface.Result {
 	key, element, err := parseListPushArgs(args)
 	if err != nil {
 		return NewBaseErrResult(err)
@@ -221,12 +221,33 @@ func (eng *BaseEngine) ExecListPush(args [][]byte) iface.Result {
 	return NewBaseErrResult(err)
 }
 
-func (eng *BaseEngine) ExecListPop(args [][]byte) iface.Result {
+func (eng *BaseEngine) ExecListRightPush(args [][]byte) iface.Result {
+	key, element, err := parseListPushArgs(args)
+	if err != nil {
+		return NewBaseErrResult(err)
+	}
+	_, err = eng.RPush(key, element)
+	return NewBaseErrResult(err)
+}
+
+func (eng *BaseEngine) ExecListLeftPop(args [][]byte) iface.Result {
 	key, err := parseListPopArgs(args)
 	if err != nil {
 		return NewBaseErrResult(err)
 	}
 	v, err := eng.LPop(key)
+	if err != nil {
+		return NewBaseErrResult(err)
+	}
+	return NewBaseResultFromValue(v)
+}
+
+func (eng *BaseEngine) ExecListRightPop(args [][]byte) iface.Result {
+	key, err := parseListPopArgs(args)
+	if err != nil {
+		return NewBaseErrResult(err)
+	}
+	v, err := eng.RPop(key)
 	if err != nil {
 		return NewBaseErrResult(err)
 	}
@@ -257,5 +278,14 @@ func (eng *BaseEngine) ExecSetIsMember(args [][]byte) iface.Result {
 		return NewBaseErrResult(err)
 	}
 	_, err = eng.SIsMember(key, member)
+	return NewBaseErrResult(err)
+}
+
+func (eng *BaseEngine) ExecZSetAdd(args [][]byte) iface.Result {
+	key, score, member, err := parseZSetAddArgs(args)
+	if err != nil {
+		return NewBaseErrResult(err)
+	}
+	_, err = eng.ZAdd(key, score, member)
 	return NewBaseErrResult(err)
 }

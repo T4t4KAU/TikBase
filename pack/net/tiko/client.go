@@ -4,16 +4,24 @@ import (
 	"errors"
 	"github.com/T4t4KAU/TikBase/iface"
 	"github.com/T4t4KAU/TikBase/pack/utils"
+	"net"
 )
 
 type Client struct {
 	conn iface.Connection
+	addr string
 }
 
-func NewClient(conn iface.Connection) *Client {
+func NewClient(addr string) (*Client, error) {
+	conn, err := net.Dial("tcp", addr)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Client{
 		conn: conn,
-	}
+		addr: addr,
+	}, nil
 }
 
 func (c *Client) Set(key string, value string) error {

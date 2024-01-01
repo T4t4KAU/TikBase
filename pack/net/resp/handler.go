@@ -37,8 +37,8 @@ func NewHandler(eng iface.Engine) *Handler {
 	h.keywords["hset"] = iface.SET_HASH
 	h.keywords["hdel"] = iface.DEL_HASH
 
-	h.keywords["lpush"] = iface.PUSH_LIST
-	h.keywords["lpop"] = iface.POP_LIST
+	h.keywords["lpush"] = iface.LEFT_PUSH_LIST
+	h.keywords["lpop"] = iface.RIGHT_POP_LIST
 
 	return h
 }

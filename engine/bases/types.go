@@ -286,7 +286,7 @@ func (b *Base) SRem(key string, member []byte) (bool, error) {
 	return true, nil
 }
 
-func (b *Base) pushInner(key string, element []byte, isLeft bool) (uint32, error) {
+func (b *Base) pushInner(key string, member []byte, isLeft bool) (uint32, error) {
 	meta, err := b.FindMeta(key, iface.LIST)
 	if err != nil {
 		return 0, err
@@ -308,7 +308,7 @@ func (b *Base) pushInner(key string, element []byte, isLeft bool) (uint32, error
 	}
 
 	_ = wb.Put(utils.S2B(key), meta.Encode())
-	_ = wb.Put(listKey.Encode(), element)
+	_ = wb.Put(listKey.Encode(), member)
 
 	// 事务提交
 	if err = wb.Commit(); err != nil {
@@ -352,12 +352,12 @@ func (b *Base) popInner(key string, isLeft bool) (iface.Value, error) {
 	return elem, nil
 }
 
-func (b *Base) LPush(key string, element []byte) (uint32, error) {
-	return b.pushInner(key, element, true)
+func (b *Base) LPush(key string, member []byte) (uint32, error) {
+	return b.pushInner(key, member, true)
 }
 
-func (b *Base) RPush(key string, element []byte) (uint32, error) {
-	return b.pushInner(key, element, false)
+func (b *Base) RPush(key string, member []byte) (uint32, error) {
+	return b.pushInner(key, member, false)
 }
 
 func (b *Base) LPop(key string) (iface.Value, error) {
@@ -374,11 +374,11 @@ func (b *Base) ZAdd(key string, score float64, member []byte) (bool, error) {
 		return false, err
 	}
 
-	zk := NewZSetInternalKey(key, meta.Version, member, score)
+	zsetKey := NewZSetInternalKey(key, meta.Version, member, score)
 
 	var exist = true
 	// 先查看是否存在
-	val, err := b.Get(utils.B2S(zk.EncodeWithMember()))
+	val, err := b.Get(utils.B2S(zsetKey.EncodeWithMember()))
 	if err != nil && !errors.Is(err, errno.ErrKeyNotFound) {
 		return false, err
 	}
@@ -404,8 +404,8 @@ func (b *Base) ZAdd(key string, score float64, member []byte) (bool, error) {
 		_ = wb.Delete(oldKey.EncodeWithScore())
 	}
 
-	_ = wb.Put(zk.EncodeWithMember(), utils.F642B(score))
-	_ = wb.Put(zk.EncodeWithScore(), nil)
+	_ = wb.Put(zsetKey.EncodeWithMember(), utils.F642B(score))
+	_ = wb.Put(zsetKey.EncodeWithScore(), nil)
 	if err = wb.Commit(); err != nil {
 		return false, err
 	}

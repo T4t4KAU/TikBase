@@ -47,20 +47,6 @@ func writeReply(writer io.Writer, code byte, body []byte) (int, error) {
 	return writer.Write(data)
 }
 
-func writeMultiReply(writer io.Writer, code byte, body [][]byte, n int) error {
-	_, err := writeReply(writer, code, utils.I2B(n))
-	if err != nil {
-		return err
-	}
-	for i := 0; i < n; i++ {
-		_, err = writeReply(writer, code, body[i])
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 // 向writer写入错误信息
 func writeErrorReply(writer io.Writer, msg string) (int, error) {
 	return writeReply(writer, Error, utils.S2B(msg))

@@ -4,7 +4,7 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
-	"github.com/T4t4KAU/TikBase/cluster/rpc/codec"
+	"github.com/T4t4KAU/TikBase/pack/rpc/codec"
 	"io"
 	"log"
 	"net"
@@ -53,10 +53,14 @@ func (srv *Server) HandleConn(conn io.ReadWriteCloser) {
 		log.Println("rpc server: options error: ", err)
 		return
 	}
+
+	// 校验魔法数字
 	if opt.MagicNumber != MagicNumber {
 		log.Printf("rpc server: invalid magic number %x", opt.MagicNumber)
 		return
 	}
+
+	// 获取对映编解码函数
 	fn := codec.NewCodecFuncMap[opt.CodecType]
 	if fn == nil {
 		log.Printf("rpc server: invalid codec type %s", opt.CodecType)
@@ -68,7 +72,7 @@ func (srv *Server) HandleConn(conn io.ReadWriteCloser) {
 var invalidRequest = struct{}{}
 
 func (srv *Server) handleCodec(cc codec.Codec, opt *Option) {
-	sm := new(sync.Mutex)     // make sure to send a complete response
+	mutex := new(sync.Mutex)  // make sure to send a complete response
 	wg := new(sync.WaitGroup) // wait until all request are handled
 	for {
 		req, err := srv.readRequest(cc)
@@ -77,11 +81,11 @@ func (srv *Server) handleCodec(cc codec.Codec, opt *Option) {
 				break
 			}
 			req.h.Error = err.Error()
-			srv.sendResponse(cc, req.h, invalidRequest, sm)
+			srv.sendResponse(cc, req.h, invalidRequest, mutex)
 			continue
 		}
 		wg.Add(1)
-		go srv.handleRequest(cc, req, sm, wg, opt.HandleTimeout)
+		go srv.handleRequest(cc, req, mutex, wg, opt.HandleTimeout)
 	}
 	wg.Wait()
 	_ = cc.Close()
@@ -89,10 +93,11 @@ func (srv *Server) handleCodec(cc codec.Codec, opt *Option) {
 
 // request stores all information of a call
 type request struct {
-	h            *codec.Header // header of request
-	argv, replyv reflect.Value // argv and replyv of request
-	mtype        *methodType
-	svc          *service
+	h      *codec.Header // header of request
+	argv   reflect.Value // 方法入参
+	replyv reflect.Value // 方法响应
+	mtype  *methodType   // 调用的远程方法
+	svc    *service
 }
 
 func (srv *Server) readRequestHeader(cc codec.Codec) (*codec.Header, error) {
@@ -106,6 +111,7 @@ func (srv *Server) readRequestHeader(cc codec.Codec) (*codec.Header, error) {
 	return &h, nil
 }
 
+// 查找服务
 func (srv *Server) findService(serviceMethod string) (svc *service, mtype *methodType, err error) {
 	index := strings.LastIndex(serviceMethod, ".")
 	if index < 0 {
@@ -137,9 +143,8 @@ func (srv *Server) readRequest(cc codec.Codec) (*request, error) {
 		return req, err
 	}
 
-	// 拼接参数
-	req.argv = req.mtype.newArgv()
-	req.replyv = req.mtype.newReplyv()
+	req.argv = req.mtype.newArgValue()
+	req.replyv = req.mtype.newReplyValue()
 
 	// make sure that argvi is a pointer, ReadBody need a pointer as parameter
 	argvi := req.argv.Interface()
@@ -211,6 +216,7 @@ func Accept(lis net.Listener) {
 	DefaultServer.Accept(lis)
 }
 
+// Register 注册结构体
 func (srv *Server) Register(rcvr interface{}) error {
 	s := newService(rcvr)
 	if _, ok := srv.serviceMap.LoadOrStore(s.name, s); ok {

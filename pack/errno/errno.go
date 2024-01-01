@@ -24,6 +24,8 @@ var (
 	ErrListDataIsEmpty = errors.New("list data is empty")
 	ErrSetDataIsEmpty  = errors.New("set data is empty")
 	ErrZSetDataIsEmpty = errors.New("zset data is empty")
+
+	ErrConnectionClosed = errors.New("connection closed")
 )
 
 var (

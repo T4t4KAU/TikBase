@@ -11,7 +11,6 @@ import (
 	"io"
 	"runtime/debug"
 	"strconv"
-	"strings"
 )
 
 var (
@@ -129,67 +128,6 @@ func parse0(rawReader io.Reader, ch chan<- *Payload) {
 			ch <- &Payload{
 				Data: MakeMultiBulkReply(args),
 			}
-		}
-	}
-}
-
-func readLine(rawReader io.Reader) (payloads []*Payload) {
-	payloads = make([]*Payload, 0, 1)
-	reader := bufio.NewReader(rawReader)
-	for {
-		payload := &Payload{}
-		// 获取一行数据
-		line, err := reader.ReadBytes('\n')
-		if err != nil {
-			if strings.Contains(err.Error(), "EOF") {
-				return
-			}
-			payload.Err = err
-			payloads = append(payloads, payload)
-			return
-		}
-		length := len(line)
-		if length <= 2 || line[length-2] != '\r' {
-			payload.Err = errProtocolError
-			goto END
-		}
-		line = bytes.TrimSuffix(line, []byte{'\r', '\n'})
-		switch line[0] {
-		case '+':
-			payload.Data = MakeStatusReply(utils.B2S(line[1:]))
-			goto END
-		case '-':
-			payload.Err = MakeErrReply(utils.B2S(line[1:]))
-			goto END
-		case ':':
-			value, err := strconv.ParseInt(utils.B2S(line[1:]), 10, 64)
-			if err != nil {
-				payload.Err = err
-				goto END
-			}
-			payload.Data = MakeIntReply(value)
-		case '$':
-			err = readBulk(line, reader, payloads)
-			if err != nil {
-				payload.Err = err
-				payloads = append(payloads, payload)
-				return
-			}
-		case '*':
-			err = readMultiBulk(line, reader, &payloads)
-			if err != nil {
-				payload.Err = err
-				payloads = append(payloads, payload)
-				return
-			}
-		default:
-			args := bytes.Split(line, []byte{' '})
-			payload.Data = MakeMultiBulkReply(args)
-		}
-	END:
-		if payload.Err != nil || payload.Data != nil {
-			payloads = append(payloads, payload)
-			return
 		}
 	}
 }

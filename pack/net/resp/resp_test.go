@@ -95,69 +95,24 @@ func startServer() {
 	}
 }
 
-func TestWriteGetRequest(t *testing.T) {
-	go startServer()
-	time.Sleep(time.Second)
-
-	conn, err := net.Dial("tcp", "127.0.0.1:9999")
-	assert.Nil(t, err)
-
-	_, err = writeSetRequest(conn, []byte("key"), []byte("value"))
-	assert.Nil(t, err)
-
-	b := make([]byte, 1024)
-	n, err := conn.Read(b)
-	assert.Nil(t, err)
-	assert.Equal(t, []byte("+OK\r\n"), b[:n])
-
-	_, err = writeGetRequest(conn, []byte("key"))
-	assert.Nil(t, err)
-
-	b = make([]byte, 1024)
-	n, err = conn.Read(b)
-	assert.Nil(t, err)
-	assert.Equal(t, []byte("$5\r\nvalue\r\n"), b[:n])
-}
-
-func TestWriteHSetRequest(t *testing.T) {
-	go startServer()
-	time.Sleep(time.Second)
-
-	conn, err := net.Dial("tcp", "127.0.0.1:9999")
-	assert.Nil(t, err)
-
-	_, err = writeHSetRequest(conn, []byte("hash"), []byte("hash_key1"), []byte("hash_value1"))
-	assert.Nil(t, err)
-
-	b := make([]byte, 1024)
-	n, err := conn.Read(b)
-	assert.Nil(t, err)
-
-	_, err = writeHGetRequest(conn, []byte("hash"), []byte("hash_key1"))
-	assert.Nil(t, err)
-
-	n, err = conn.Read(b)
-	assert.Nil(t, err)
-	assert.Equal(t, []byte("$11\r\nhash_value1\r\n"), b[:n])
-
-	println(string(b[:n]))
-}
-
 func TestClient(t *testing.T) {
 	go startServer()
 	time.Sleep(time.Second)
 
-	conn, err := net.Dial("tcp", "127.0.0.1:9999")
-	if err != nil {
-		t.Error(err.Error())
-		return
-	}
-	cli := NewClient(conn)
+	cli, err := NewClient("127.0.0.1:9999")
 	err = cli.Set("key", "value")
 	assert.Nil(t, err)
 
-	_, err = cli.Get("key")
+	val, err := cli.Get("key")
 	assert.Nil(t, err)
+	assert.Equal(t, "value", val)
+
+	err = cli.HSet("hash", "key1", "value1")
+	assert.Nil(t, err)
+
+	val, err = cli.HGet("hash", "key1")
+	assert.Nil(t, err)
+	assert.Equal(t, "value1", val)
 }
 
 func TestParseStream3(t *testing.T) {
@@ -176,18 +131,4 @@ func TestParseStream3(t *testing.T) {
 	_, _ = conn.Write([]byte("get key\r\n"))
 	_, _ = conn.Read(b)
 	println(string(b))
-}
-
-func TestReadMultiBulk(t *testing.T) {
-	reqs := bytes.Buffer{}
-	reqs.Write([]byte("*3\r\n" + "$3\r\nSET\r\n" + "$3\r\nkey\r\n" + "$5\r\n" + "value\r\n")) // test text protocol
-	payloads := readLine(&reqs)
-
-	for _, payload := range payloads {
-		if payload.Err == nil {
-			println(string(payload.Data.ToBytes()))
-		} else {
-			println(payload.Err.Error())
-		}
-	}
 }
