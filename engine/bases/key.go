@@ -2,7 +2,7 @@ package bases
 
 import (
 	"encoding/binary"
-	"github.com/T4t4KAU/TikBase/pack/utils"
+	"github.com/T4t4KAU/TikBase/pkg/utils"
 	"math"
 )
 

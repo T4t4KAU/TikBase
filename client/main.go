@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"github.com/T4t4KAU/TikBase/pack/client"
+	"github.com/T4t4KAU/TikBase/pkg/client"
 	"io"
 	"os"
 	"strconv"

@@ -3,8 +3,8 @@ package engine
 import (
 	"errors"
 	"github.com/T4t4KAU/TikBase/iface"
-	"github.com/T4t4KAU/TikBase/pack/errno"
-	"github.com/T4t4KAU/TikBase/pack/utils"
+	"github.com/T4t4KAU/TikBase/pkg/errno"
+	"github.com/T4t4KAU/TikBase/pkg/utils"
 )
 
 type ExecFunc func(args [][]byte) iface.Result

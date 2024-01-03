@@ -3,7 +3,7 @@ package data
 import (
 	"errors"
 	"fmt"
-	"github.com/T4t4KAU/TikBase/pack/fio"
+	"github.com/T4t4KAU/TikBase/pkg/fio"
 	"hash/crc32"
 	"io"
 	"path/filepath"

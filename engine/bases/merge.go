@@ -2,8 +2,8 @@ package bases
 
 import (
 	"github.com/T4t4KAU/TikBase/engine/data"
-	"github.com/T4t4KAU/TikBase/pack/errno"
-	"github.com/T4t4KAU/TikBase/pack/utils"
+	"github.com/T4t4KAU/TikBase/pkg/errno"
+	"github.com/T4t4KAU/TikBase/pkg/utils"
 	"io"
 	"os"
 	"path"

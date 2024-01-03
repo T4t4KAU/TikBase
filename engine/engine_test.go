@@ -1,10 +1,11 @@
 package engine
 
 import (
-	"github.com/T4t4KAU/TikBase/iface"
-	"github.com/T4t4KAU/TikBase/pack/errno"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/T4t4KAU/TikBase/iface"
+	"github.com/T4t4KAU/TikBase/pkg/errno"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCacheEngine_Exec(t *testing.T) {
@@ -46,10 +47,10 @@ func TestBaseEngine_ExecHashSet(t *testing.T) {
 
 func TestBaseEngine_ExecListPush(t *testing.T) {
 	e, _ := NewBaseEngine()
-	res := e.Exec(iface.PUSH_LIST, [][]byte{[]byte("list"), []byte("element1")})
+	res := e.Exec(iface.LEFT_POP_LIST, [][]byte{[]byte("list"), []byte("element1")})
 	assert.Nil(t, res.Error())
 
-	res = e.Exec(iface.POP_LIST, [][]byte{[]byte("list")})
+	res = e.Exec(iface.RIGHT_POP_LIST, [][]byte{[]byte("list")})
 	assert.Nil(t, res.Error())
 	assert.Equal(t, []byte("element1"), res.Data())
 	println(string(res.Data()))

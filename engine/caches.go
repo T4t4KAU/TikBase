@@ -5,7 +5,7 @@ import (
 	"github.com/T4t4KAU/TikBase/engine/caches"
 	"github.com/T4t4KAU/TikBase/engine/values"
 	"github.com/T4t4KAU/TikBase/iface"
-	"github.com/T4t4KAU/TikBase/pack/config"
+	"github.com/T4t4KAU/TikBase/pkg/config"
 )
 
 type CacheEngine struct {

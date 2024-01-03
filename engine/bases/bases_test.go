@@ -3,8 +3,8 @@ package bases
 import (
 	"github.com/T4t4KAU/TikBase/engine/values"
 	"github.com/T4t4KAU/TikBase/iface"
-	"github.com/T4t4KAU/TikBase/pack/errno"
-	"github.com/T4t4KAU/TikBase/pack/utils"
+	"github.com/T4t4KAU/TikBase/pkg/errno"
+	"github.com/T4t4KAU/TikBase/pkg/utils"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"

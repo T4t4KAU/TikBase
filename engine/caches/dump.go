@@ -2,7 +2,7 @@ package caches
 
 import (
 	"encoding/gob"
-	"github.com/T4t4KAU/TikBase/pack/utils"
+	"github.com/T4t4KAU/TikBase/pkg/utils"
 	"os"
 	"sync"
 )
