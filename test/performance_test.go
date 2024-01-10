@@ -7,7 +7,6 @@ import (
 	"github.com/T4t4KAU/TikBase/pkg/net/resp"
 	"github.com/T4t4KAU/TikBase/pkg/net/tiko"
 	"github.com/T4t4KAU/TikBase/pkg/poll"
-	"net"
 	"net/http"
 	"strconv"
 	"strings"
@@ -100,13 +99,7 @@ func TestTikoServer(t *testing.T) {
 	go startServer("tiko", "cache")
 	time.Sleep(time.Second)
 
-	conn, err := net.Dial("tcp", "127.0.0.1:9999")
-	if err != nil {
-		t.Error(err.Error())
-		return
-	}
-
-	client := tiko.NewClient(conn)
+	client, err := tiko.NewClient("127.0.0.1:9999")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -134,13 +127,7 @@ func TestRespServer(t *testing.T) {
 	go startServer("resp", "cache")
 	time.Sleep(time.Second)
 
-	conn, err := net.Dial("tcp", "127.0.0.1:9999")
-	if err != nil {
-		t.Error(err.Error())
-		return
-	}
-
-	cli := resp.NewClient(conn)
+	cli, err := tiko.NewClient("127.0.0.1:9999")
 	if err != nil {
 		t.Fatal(err)
 	}

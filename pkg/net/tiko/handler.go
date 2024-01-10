@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/T4t4KAU/TikBase/iface"
+	"github.com/T4t4KAU/TikBase/pkg/log"
 	"github.com/T4t4KAU/TikBase/pkg/queue"
-	"github.com/T4t4KAU/TikBase/pkg/tlog"
 	"github.com/T4t4KAU/TikBase/pkg/utils"
 	"io"
 )
@@ -14,7 +14,7 @@ type Handler struct {
 	engine   iface.Engine
 	commands map[byte]iface.INS
 	channel  iface.Channel
-	*tlog.Logger
+	*log.Logger
 }
 
 func consumer(sub queue.Subscriber) {

@@ -1,6 +1,7 @@
 package pack
 
 import (
+	"errors"
 	"io"
 	"net"
 )
@@ -12,7 +13,7 @@ type Connection struct {
 	exit   chan struct{}
 }
 
-func (c *Connection) Start() error {
+func (c *Connection) StartReader() error {
 	defer c.Close()
 
 	for {
@@ -24,14 +25,46 @@ func (c *Connection) Start() error {
 	}
 }
 
-func (c *Connection) Send(id int32, data []byte) error {
-	//TODO implement me
-	panic("implement me")
+func (c *Connection) Start() {
+	go func() {
+		_ = c.StartReader()
+	}()
+
+	for {
+		select {
+		case <-c.exit:
+			return
+		}
+	}
+}
+
+func (c *Connection) Send(id uint32, data []byte) error {
+	if c.closed == true {
+		return errors.New("connection closed")
+	}
+	pa := NewDataPack()
+	msg, err := pa.Pack(NewMsgPackage(id, data))
+	if err != nil {
+		return errors.New("pack error msg")
+	}
+
+	if _, err = c.conn.Write(msg); err != nil {
+		c.exit <- struct{}{}
+		return errors.New("conn write error")
+	}
+
+	return nil
 }
 
 func (c *Connection) Close() {
-	//TODO implement me
-	panic("implement me")
+	if c.closed == true {
+		return
+	}
+	c.closed = true
+
+	_ = c.conn.Close()
+	c.exit <- struct{}{}
+	close(c.exit)
 }
 
 func (c *Connection) Raw() *net.TCPConn {
@@ -39,13 +72,11 @@ func (c *Connection) Raw() *net.TCPConn {
 }
 
 func (c *Connection) ID() uint32 {
-	//TODO implement me
-	panic("implement me")
+	return c.Id
 }
 
 func (c *Connection) RemoteAddr() net.Addr {
-	//TODO implement me
-	panic("implement me")
+	return c.conn.RemoteAddr()
 }
 
 func NewConnection(conn *net.TCPConn, connId uint32) *Connection {

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/T4t4KAU/TikBase/engine"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -28,7 +29,9 @@ func SendSetReq(key, value string) (int, []byte, error) {
 		fmt.Println("发送请求失败:", err)
 		return 0, nil, err
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -44,7 +47,9 @@ func SendGetReq(key string) (int, []byte, error) {
 		fmt.Println("request failed:", err)
 		return 0, nil, err
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
 
 	// 读取响应内容
 	body, err := ioutil.ReadAll(resp.Body)
@@ -81,7 +86,9 @@ func TestServer_Echo(t *testing.T) {
 		fmt.Println("request failed:", err)
 		return
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
 
 	// 读取响应内容
 	body, err := ioutil.ReadAll(resp.Body)

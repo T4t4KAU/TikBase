@@ -91,7 +91,7 @@ func (c *Client) handleWrite() {
 func (c *Client) Get(key string) (string, error) {
 	bytes := MakeGetRequest(key).ToBytes()
 	reply := c.Send(bytes)
-	if isErrReply(reply) {
+	if hasError(reply) {
 		return "", errWithMsg(reply)
 	}
 	ss := strings.Split(utils.B2S(reply.ToBytes()), CRLF)
@@ -104,7 +104,7 @@ func (c *Client) Get(key string) (string, error) {
 func (c *Client) Set(key string, value string) error {
 	bytes := MakeSetRequest(key, value).ToBytes()
 	reply := c.Send(bytes)
-	if isErrReply(reply) {
+	if hasError(reply) {
 		return errWithMsg(reply)
 	}
 	return nil
@@ -113,7 +113,7 @@ func (c *Client) Set(key string, value string) error {
 func (c *Client) Del(key string) error {
 	bytes := MakeDelRequest(key).ToBytes()
 	reply := c.Send(bytes)
-	if isErrReply(reply) {
+	if hasError(reply) {
 		return errWithMsg(reply)
 	}
 	return nil
@@ -122,7 +122,7 @@ func (c *Client) Del(key string) error {
 func (c *Client) Expire(key string, ttl int64) error {
 	bytes := MakeExpireRequest(key, ttl).ToBytes()
 	reply := c.Send(bytes)
-	if isErrReply(reply) {
+	if hasError(reply) {
 		return errWithMsg(reply)
 	}
 	return nil
@@ -132,7 +132,7 @@ func (c *Client) HGet(key, field string) (string, error) {
 	bytes := MakeHGetRequest(key, field).ToBytes()
 	reply := c.Send(bytes)
 
-	if isErrReply(reply) {
+	if hasError(reply) {
 		return "", errWithMsg(reply)
 	}
 
@@ -146,7 +146,7 @@ func (c *Client) HGet(key, field string) (string, error) {
 func (c *Client) HSet(key, field, value string) error {
 	bytes := MakeHSetRequest(key, field, value).ToBytes()
 	reply := c.Send(bytes)
-	if isErrReply(reply) {
+	if hasError(reply) {
 		return errWithMsg(reply)
 	}
 	return nil
@@ -296,6 +296,6 @@ func errWithMsg(reply iface.Reply) error {
 	return errors.New(strings.Trim(utils.B2S(reply.ToBytes()[1:]), CRLF))
 }
 
-func isErrReply(reply iface.Reply) bool {
+func hasError(reply iface.Reply) bool {
 	return string(reply.ToBytes()[0]) == "-"
 }

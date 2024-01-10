@@ -31,7 +31,7 @@ func (msg *Message) SetData() []byte {
 	panic("implement me")
 }
 
-func (msg *Message) SetDataLen(u uint32) {
+func (msg *Message) SetDataLen(n uint32) {
 	//TODO implement me
 	panic("implement me")
 }

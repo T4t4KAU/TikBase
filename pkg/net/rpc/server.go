@@ -4,7 +4,7 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
-	"github.com/T4t4KAU/TikBase/pkg/rpc/codec"
+	"github.com/T4t4KAU/TikBase/pkg/net/rpc/codec"
 	"io"
 	"log"
 	"net"

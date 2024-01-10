@@ -2,8 +2,8 @@ package logq
 
 import (
 	"fmt"
+	"github.com/T4t4KAU/TikBase/pkg/log"
 	"github.com/T4t4KAU/TikBase/pkg/queue"
-	"github.com/T4t4KAU/TikBase/pkg/tlog"
 	"log"
 	"os"
 	"testing"
@@ -28,9 +28,9 @@ func LogConsumer(ch queue.Subscriber) {
 func TestLogQueue_Write(t *testing.T) {
 	ch := New("test log", LogConsumer)
 
-	logger := tlog.New(tlog.WithLevel(tlog.InfoLevel),
-		tlog.WithOutput(ch),
-		tlog.WithFormatter(&tlog.TextFormatter{IgnoreBasicFields: false}),
+	logger := log.New(log.WithLevel(log.InfoLevel),
+		log.WithOutput(ch),
+		log.WithFormatter(&log.TextFormatter{IgnoreBasicFields: false}),
 	)
 
 	for i := 0; i < 50; i++ {
