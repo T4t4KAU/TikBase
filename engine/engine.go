@@ -27,19 +27,32 @@ func NewEngine(name string) (iface.Engine, error) {
 }
 
 // 解析参数
-
-func parseSetStringArgs(args [][]byte) (string, error) {
-	if len(args) < 2 {
+func parseStrGetArgs(args [][]byte) (string, error) {
+	if len(args) < 1 {
 		return "", errno.ErrParseArgsError
 	}
-	return string(args[1]), nil
+	return utils.B2S(args[0]), nil
 }
 
-func parseExpireKeyArgs(args [][]byte) (int64, error) {
+func parseStrSetArgs(args [][]byte) (string, string, error) {
 	if len(args) < 2 {
-		return 0, errno.ErrParseArgsError
+		return "", "", errno.ErrParseArgsError
 	}
-	return utils.B2I64(args[1]), nil
+	return utils.B2S(args[0]), utils.B2S(args[1]), nil
+}
+
+func parseDelKeyArgs(args [][]byte) (string, error) {
+	if len(args) < 1 {
+		return "", errno.ErrParseArgsError
+	}
+	return utils.B2S(args[0]), nil
+}
+
+func parseExpireKeyArgs(args [][]byte) (string, int64, error) {
+	if len(args) < 2 {
+		return "", 0, errno.ErrParseArgsError
+	}
+	return utils.B2S(args[0]), utils.B2I64(args[1]), nil
 }
 
 func parseHashSetArgs(args [][]byte) (string, []byte, []byte, error) {

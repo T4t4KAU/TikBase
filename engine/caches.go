@@ -122,11 +122,11 @@ func (eng *CacheEngine) initExecFunc() {
 	eng.registerExecFunc(iface.GET_STR, eng.ExecStrGet)
 	eng.registerExecFunc(iface.SET_STR, eng.ExecStrSet)
 	eng.registerExecFunc(iface.DEL, eng.ExecDelKey)
+	eng.registerExecFunc(iface.EXPIRE, eng.ExecExpire)
 }
 
 func (eng *CacheEngine) ExecStrSet(args [][]byte) iface.Result {
-	key := string(args[0])
-	val, err := parseSetStringArgs(args)
+	key, val, err := parseStrSetArgs(args)
 	if err != nil {
 		NewCacheErrorResult(err)
 	}
@@ -135,7 +135,10 @@ func (eng *CacheEngine) ExecStrSet(args [][]byte) iface.Result {
 }
 
 func (eng *CacheEngine) ExecStrGet(args [][]byte) iface.Result {
-	key := string(args[0])
+	key, err := parseStrGetArgs(args)
+	if err != nil {
+		return NewCacheErrorResult(err)
+	}
 	val, err := eng.Get(key)
 	if err != nil {
 		return NewCacheErrorResult(err)
@@ -144,14 +147,16 @@ func (eng *CacheEngine) ExecStrGet(args [][]byte) iface.Result {
 }
 
 func (eng *CacheEngine) ExecDelKey(args [][]byte) iface.Result {
-	key := string(args[0])
-	err := eng.Del(key)
+	key, err := parseDelKeyArgs(args)
+	if err != nil {
+		return NewCacheErrorResult(err)
+	}
+	err = eng.Del(key)
 	return NewCacheErrorResult(err)
 }
 
 func (eng *CacheEngine) ExecExpire(args [][]byte) iface.Result {
-	key := string(args[0])
-	ttl, err := parseExpireKeyArgs(args)
+	key, ttl, err := parseExpireKeyArgs(args)
 	if err != nil {
 		return NewCacheErrorResult(err)
 	}
