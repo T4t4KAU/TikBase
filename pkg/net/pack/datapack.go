@@ -24,10 +24,7 @@ func (pack *DataPack) Pack(msg iface.IMessage) ([]byte, error) {
 	if err := binary.Write(b, binary.LittleEndian, msg.GetId()); err != nil {
 		return nil, err
 	}
-	if err := binary.Write(b, binary.LittleEndian, msg.GetDataLen()); err != nil {
-		return nil, err
-	}
-	if err := binary.Write(b, binary.LittleEndian, msg.GetDataLen()); err != nil {
+	if err := binary.Write(b, binary.LittleEndian, msg.GetData()); err != nil {
 		return nil, err
 	}
 
@@ -38,10 +35,6 @@ func (pack *DataPack) Unpack(data []byte) (iface.IMessage, error) {
 	b := bytes.NewReader(data)
 
 	msg := &Message{}
-
-	if err := binary.Read(b, binary.LittleEndian, &msg.DataLen); err != nil {
-		return nil, err
-	}
 
 	if err := binary.Read(b, binary.LittleEndian, &msg.DataLen); err != nil {
 		return nil, err

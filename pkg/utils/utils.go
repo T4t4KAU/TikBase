@@ -70,6 +70,16 @@ func B2I64(b []byte) int64 {
 	return int64(binary.BigEndian.Uint64(b))
 }
 
+func U642B(e uint64) []byte {
+	b := make([]byte, 8)
+	binary.BigEndian.PutUint64(b, e)
+	return b
+}
+
+func B2U64(b []byte) uint64 {
+	return binary.BigEndian.Uint64(b)
+}
+
 func B2F64(b []byte) float64 {
 	val, _ := strconv.ParseFloat(B2S(b), 64)
 	return val

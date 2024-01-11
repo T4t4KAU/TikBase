@@ -1,14 +1,16 @@
 package raft
 
 import (
-	"encoding/json"
+	"fmt"
 	"github.com/T4t4KAU/TikBase/iface"
+	"github.com/T4t4KAU/TikBase/pkg/utils"
+	"github.com/bytedance/sonic"
 	"github.com/hashicorp/raft"
 	"io"
 )
 
 type FSM struct {
-	engine   iface.Engine
+	eng      iface.Engine
 	raft     *raft.Raft
 	notifyCh chan bool
 }
@@ -19,16 +21,17 @@ type LogEntry struct {
 }
 
 func (fsm *FSM) Apply(entry *raft.Log) any {
-	en := LogEntry{}
-	if err := json.Unmarshal(entry.Data, &en); err != nil {
-		panic("failed to unmarshal raft log entry")
+	var c command
+	if err := sonic.Unmarshal(entry.Data, &c); err != nil {
+		panic(fmt.Sprintf("failed to unmarshal command: %s", err.Error()))
 	}
 
-	return nil
+	args := [][]byte{utils.S2B(c.Key), c.Value}
+	return fsm.eng.Exec(c.Ins, args)
 }
 
 func (fsm *FSM) Snapshot() (raft.FSMSnapshot, error) {
-	return &snapshot{}, nil
+	return &Snapshot{}, nil
 }
 
 func (fsm *FSM) Restore(snapshot io.ReadCloser) error {

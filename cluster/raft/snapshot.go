@@ -1,14 +1,36 @@
 package raft
 
-import "github.com/hashicorp/raft"
+import (
+	"github.com/T4t4KAU/TikBase/iface"
+	"github.com/bytedance/sonic"
+	"github.com/hashicorp/raft"
+)
 
-type snapshot struct {
+type Snapshot struct {
+	store map[string]iface.Value
 }
 
-func (s *snapshot) Persist(sink raft.SnapshotSink) error {
-	//TODO implement me
-	panic("implement me")
+func (s *Snapshot) Persist(sink raft.SnapshotSink) error {
+	err := func() error {
+		b, e := sonic.Marshal(s.store)
+		if e != nil {
+			return e
+		}
+
+		if _, e = sink.Write(b); e != nil {
+			return e
+		}
+
+		return sink.Close()
+	}()
+
+	if err != nil {
+		_ = sink.Cancel()
+		return err
+	}
+
+	return nil
 }
 
-func (s *snapshot) Release() {
+func (s *Snapshot) Release() {
 }
