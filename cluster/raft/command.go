@@ -8,6 +8,7 @@ import (
 type command struct {
 	Ins   iface.INS `json:"op,omitempty"`
 	Key   string    `json:"key,omitempty"`
+	Field string    `json:"field,omitempty"`
 	Value []byte    `json:"value,omitempty"`
 }
 

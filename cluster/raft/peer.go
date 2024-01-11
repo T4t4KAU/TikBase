@@ -141,6 +141,102 @@ func (peer *Peer) Del(key string) error {
 	return peer.raftNode.Apply(b, peer.option.Timeout).Error()
 }
 
+func (peer *Peer) HSet(key, field string, val []byte) error {
+	if peer.raftNode.State() != raft.Leader {
+		return raft.ErrNotLeader
+	}
+
+	c := &command{
+		Ins:   iface.SET_STR,
+		Key:   key,
+		Field: field,
+		Value: val,
+	}
+
+	b, err := sonic.Marshal(c)
+	if err != nil {
+		return err
+	}
+
+	return peer.raftNode.Apply(b, peer.option.Timeout).Error()
+}
+
+func (peer *Peer) HDel(key, field string) error {
+	if peer.raftNode.State() != raft.Leader {
+		return raft.ErrNotLeader
+	}
+
+	c := &command{
+		Ins:   iface.SET_STR,
+		Key:   key,
+		Field: field,
+	}
+
+	b, err := sonic.Marshal(c)
+	if err != nil {
+		return err
+	}
+
+	return peer.raftNode.Apply(b, peer.option.Timeout).Error()
+}
+
+func (peer *Peer) SAdd(key string, element []byte) error {
+	if peer.raftNode.State() != raft.Leader {
+		return raft.ErrNotLeader
+	}
+
+	c := &command{
+		Ins:   iface.ADD_SET,
+		Key:   key,
+		Value: element,
+	}
+
+	b, err := sonic.Marshal(c)
+	if err != nil {
+		return err
+	}
+
+	return peer.raftNode.Apply(b, peer.option.Timeout).Error()
+}
+
+func (peer *Peer) SRem(key string, element []byte) error {
+	if peer.raftNode.State() != raft.Leader {
+		return raft.ErrNotLeader
+	}
+
+	c := &command{
+		Ins:   iface.REM_SET,
+		Key:   key,
+		Value: element,
+	}
+
+	b, err := sonic.Marshal(c)
+	if err != nil {
+		return err
+	}
+
+	return peer.raftNode.Apply(b, peer.option.Timeout).Error()
+}
+
+func (peer *Peer) LPush(key string, element []byte) error {
+	if peer.raftNode.State() != raft.Leader {
+		return raft.ErrNotLeader
+	}
+
+	c := &command{
+		Ins:   iface.LEFT_PUSH_LIST,
+		Key:   key,
+		Value: element,
+	}
+
+	b, err := sonic.Marshal(c)
+	if err != nil {
+		return err
+	}
+
+	return peer.raftNode.Apply(b, peer.option.Timeout).Error()
+}
+
 func (peer *Peer) Join(nodeId, httpAddr, addr string) error {
 	config := peer.raftNode.GetConfiguration()
 	if err := config.Error(); err != nil {
