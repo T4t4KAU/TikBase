@@ -237,6 +237,45 @@ func (peer *Peer) LPush(key string, element []byte) error {
 	return peer.raftNode.Apply(b, peer.option.Timeout).Error()
 }
 
+func (peer *Peer) LPop(key string, element []byte) ([]byte, error) {
+	if peer.raftNode.State() != raft.Leader {
+		return nil, raft.ErrNotLeader
+	}
+
+	c := &command{
+		Ins:   iface.LEFT_POP_LIST,
+		Key:   key,
+		Value: element,
+	}
+
+	b, err := sonic.Marshal(c)
+	if err != nil {
+		return nil, err
+	}
+
+	res := peer.raftNode.Apply(b, peer.option.Timeout).(iface.Result)
+	return res.Data(), res.Error()
+}
+
+func (peer *Peer) RPush(key string, element []byte) error {
+	if peer.raftNode.State() != raft.Leader {
+		return raft.ErrNotLeader
+	}
+
+	c := &command{
+		Ins:   iface.RIGHT_PUSH_LIST,
+		Key:   key,
+		Value: element,
+	}
+
+	b, err := sonic.Marshal(c)
+	if err != nil {
+		return err
+	}
+
+	return peer.raftNode.Apply(b, peer.option.Timeout).Error()
+}
+
 func (peer *Peer) Join(nodeId, httpAddr, addr string) error {
 	config := peer.raftNode.GetConfiguration()
 	if err := config.Error(); err != nil {
