@@ -27,7 +27,7 @@ func (fsm *FSM) Apply(entry *raft.Log) any {
 	}
 
 	args := [][]byte{utils.S2B(c.Key), c.Value}
-	return fsm.eng.Exec(c.Ins, args)
+	return fsm.eng.Exec(c.Ins, args).Error()
 }
 
 func (fsm *FSM) Snapshot() (raft.FSMSnapshot, error) {

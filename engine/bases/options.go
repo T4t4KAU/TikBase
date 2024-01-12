@@ -5,10 +5,9 @@ import (
 )
 
 const (
-	BT IndexerType = iota + 1
-
-	ART // 自适应基数树
-	SL  // 跳表
+	BT  IndexerType = iota + 1
+	ART             // 自适应基数树
+	SL              // 跳表
 )
 
 var name2index = map[string]IndexerType{
