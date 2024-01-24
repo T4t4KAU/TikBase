@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	ErrInvalidCRC = errors.New("invalid crc value, log record maybe corrupted")
+	ErrInvalidCRC = errors.New("invalid crc value, tlog record maybe corrupted")
 )
 
 const (

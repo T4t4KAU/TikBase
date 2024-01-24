@@ -2,18 +2,11 @@ package raft
 
 import (
 	"fmt"
-	"github.com/T4t4KAU/TikBase/iface"
 	"github.com/T4t4KAU/TikBase/pkg/utils"
 	"github.com/bytedance/sonic"
 	"github.com/hashicorp/raft"
 	"io"
 )
-
-type FSM struct {
-	eng      iface.Engine
-	raft     *raft.Raft
-	notifyCh chan bool
-}
 
 type LogEntry struct {
 	Key   string
@@ -26,8 +19,8 @@ func (fsm *FSM) Apply(entry *raft.Log) any {
 		panic(fmt.Sprintf("failed to unmarshal command: %s", err.Error()))
 	}
 
-	args := [][]byte{utils.S2B(c.Key), c.Value}
-	return fsm.eng.Exec(c.Ins, args).Error()
+	args := utils.KeyValueBytes(c.Key, c.Value)
+	return fsm.store.Exec(c.Ins, args).Error()
 }
 
 func (fsm *FSM) Snapshot() (raft.FSMSnapshot, error) {

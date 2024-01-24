@@ -1,4 +1,4 @@
-package log
+package tlog
 
 import (
 	"bytes"
@@ -12,10 +12,10 @@ const (
 	FmtEmptySeparate = ""
 )
 
-// Level log level
+// Level tlog level
 type Level uint8
 
-// const log level
+// const tlog level
 const (
 	// DebugLevel logs are typically voluminous, and are usually disabled in
 	// production.
@@ -34,7 +34,7 @@ const (
 	FatalLevel
 )
 
-// LevelNameMapping log level string name mapping
+// LevelNameMapping tlog level string name mapping
 var LevelNameMapping = map[Level]string{
 	DebugLevel: "DEBUG",
 	InfoLevel:  "INFO",
@@ -77,7 +77,7 @@ func (l *Level) UnmarshalText(text []byte) error {
 	return nil
 }
 
-// log options
+// tlog options
 type options struct {
 	output        io.Writer
 	level         Level

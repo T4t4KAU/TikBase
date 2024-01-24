@@ -8,7 +8,6 @@ import (
 var logo = " _____ _ _    ____                 \n|_   _(_) | _| __ )  __ _ ___  ___ \n  | | | | |/ /  _ \\ / _` / __|/ _ \\\n  | | | |   <| |_) | (_| \\__ \\  __/\n  |_| |_|_|\\_\\____/ \\__,_|___/\\___|\n"
 
 func start() {
-
 	server, err := config.ReadServerConfigFile("./config/server-config.yaml")
 	if err != nil {
 		panic(err)

@@ -203,3 +203,11 @@ func ValidateAddress(address string) bool {
 
 	return true
 }
+
+func KeyBytes(key string) [][]byte {
+	return [][]byte{S2B(key)}
+}
+
+func KeyValueBytes(key string, value []byte) [][]byte {
+	return [][]byte{S2B(key), value}
+}

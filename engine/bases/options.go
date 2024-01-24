@@ -11,9 +11,9 @@ const (
 )
 
 var name2index = map[string]IndexerType{
-	"bt":  BT,
-	"art": ART,
-	"sl":  SL,
+	"BT":  BT,
+	"ART": ART,
+	"SL":  SL,
 }
 
 type Options struct {

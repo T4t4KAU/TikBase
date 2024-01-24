@@ -1,4 +1,4 @@
-package log
+package tlog
 
 import (
 	"bytes"
@@ -11,23 +11,25 @@ import (
 )
 
 func TestLog(t *testing.T) {
-	Info("std log")
+	Info("std tlog")
 	SetOptions(WithLevel(DebugLevel))
-	Debug("change std log to debug level")
+	Debug("change std tlog to debug level")
 	SetOptions(WithFormatter(&TextFormatter{IgnoreBasicFields: false}))
 
 	// 输出到文件
-	fd, err := os.OpenFile("test.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	fd, err := os.OpenFile("test.tlog", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		log.Fatalln("create file test.log failed")
+		log.Fatalln("create file test.tlog failed")
 	}
-	defer fd.Close()
+	defer func() {
+		_ = fd.Close()
+	}()
 
 	logger := New(WithLevel(InfoLevel),
 		WithOutput(fd),
 		WithFormatter(&TextFormatter{IgnoreBasicFields: false}),
 	)
-	logger.Info("custom log with json formatter")
+	logger.Info("custom tlog with json formatter")
 }
 
 func TestSendLog(t *testing.T) {
@@ -50,7 +52,7 @@ func TestSendLog(t *testing.T) {
 	}()
 
 	for i := 0; i < 50; i++ {
-		logger.Info("test log")
+		logger.Info("test tlog")
 		q.Publish(queue.Message{
 			Topic: "test",
 			Data:  buff.String(),
