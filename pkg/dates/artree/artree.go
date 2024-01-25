@@ -2,6 +2,7 @@ package artree
 
 import (
 	"bytes"
+	"encoding/gob"
 	"github.com/T4t4KAU/TikBase/engine/data"
 	"github.com/T4t4KAU/TikBase/iface"
 	goart "github.com/plar/go-adaptive-radix-tree"
@@ -146,4 +147,30 @@ func (tree *ARTree) newIterator(t goart.Tree, reverse bool) *Iterator {
 		reverse:   reverse,
 		values:    values,
 	}
+}
+
+func (tree *ARTree) Snapshot() ([]byte, error) {
+	var index int
+	values := make([]*Item, tree.Size())
+	saveValues := func(node goart.Node) bool {
+		item := &Item{
+			key: node.Key(),
+			pos: node.Value().(*data.LogRecordPos),
+		}
+		values[index] = item
+		index++
+
+		return true
+	}
+
+	tree.tree.ForEach(saveValues)
+	shot := make([]byte, 0)
+	buffer := bytes.NewBuffer(shot)
+
+	err := gob.NewEncoder(buffer).Encode(values)
+	if err != nil {
+		return buffer.Bytes(), err
+	}
+
+	return buffer.Bytes(), nil
 }

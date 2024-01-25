@@ -163,3 +163,7 @@ func (eng *CacheEngine) ExecExpire(args [][]byte) iface.Result {
 	err = eng.Expire(key, ttl)
 	return NewCacheErrorResult(err)
 }
+
+func (eng *CacheEngine) Snapshot() ([]byte, error) {
+	return eng.Cache.SnapShot()
+}

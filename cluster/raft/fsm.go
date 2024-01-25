@@ -8,11 +8,6 @@ import (
 	"io"
 )
 
-type LogEntry struct {
-	Key   string
-	Value string
-}
-
 func (fsm *FSM) Apply(entry *raft.Log) any {
 	var c command
 	if err := sonic.Unmarshal(entry.Data, &c); err != nil {

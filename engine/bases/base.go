@@ -1,6 +1,8 @@
 package bases
 
 import (
+	"bytes"
+	"encoding/gob"
 	"errors"
 	"github.com/T4t4KAU/TikBase/engine/data"
 	"github.com/T4t4KAU/TikBase/engine/values"
@@ -481,6 +483,33 @@ func (b *Base) Backup(dir string) error {
 
 	// 将数据目录复制
 	return utils.CopyDir(b.options.DirPath, dir, []string{fileLockName})
+}
+
+func (b *Base) Snapshot() ([]byte, error) {
+	type Item struct {
+		Key   []byte
+		Value []byte
+	}
+
+	it := b.index.Iterator(false)
+	items := make([]*Item, b.index.Size())
+
+	for it.Rewind(); it.Valid(); it.Next() {
+		value, err := b.getValueByPosition(it.Value())
+		if err != nil {
+			return nil, err
+		}
+		item := &Item{it.Key(), value}
+		items = append(items, item)
+	}
+
+	shot := make([]byte, 0)
+	buffer := bytes.NewBuffer(shot)
+	err := gob.NewEncoder(buffer).Encode(items)
+	if err != nil {
+		return buffer.Bytes(), err
+	}
+	return buffer.Bytes(), nil
 }
 
 // 通过位置信息获取值

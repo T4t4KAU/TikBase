@@ -36,6 +36,7 @@ func (ins INS) String() string {
 
 type Engine interface {
 	Exec(ins INS, args [][]byte) Result
+	Snapshot() ([]byte, error)
 }
 
 type KVStore interface {
@@ -83,7 +84,9 @@ type Iterator interface {
 	Valid() bool
 
 	Key() []byte
+
 	Value() *data.LogRecordPos
+
 	Close()
 }
 

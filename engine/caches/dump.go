@@ -1,10 +1,12 @@
 package caches
 
 import (
+	"bytes"
 	"encoding/gob"
 	"github.com/T4t4KAU/TikBase/pkg/utils"
 	"os"
 	"sync"
+	"sync/atomic"
 )
 
 // 持久化结构体
@@ -26,6 +28,24 @@ func newDump(c *Cache) *dump {
 		Segments:    &c.segments,
 		Options:     c.options,
 	}
+}
+
+func (c *Cache) SnapShot() ([]byte, error) {
+	// 设置持久化标识为1
+	atomic.StoreInt32(&c.dumping, 1)
+	defer atomic.StoreInt32(&c.dumping, 0)
+	return newDump(c).snapshot()
+}
+
+func (d *dump) snapshot() ([]byte, error) {
+	data := make([]byte, 0)
+	buffer := bytes.NewBuffer(data)
+
+	err := gob.NewEncoder(buffer).Encode(d)
+	if err != nil {
+		return data, err
+	}
+	return buffer.Bytes(), nil
 }
 
 // 将dump实例持久化文件中

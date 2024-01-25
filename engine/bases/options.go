@@ -10,7 +10,7 @@ const (
 	SL              // 跳表
 )
 
-var name2index = map[string]IndexerType{
+var nameIndexers = map[string]IndexerType{
 	"BT":  BT,
 	"ART": ART,
 	"SL":  SL,
@@ -71,7 +71,7 @@ var DefaultWriteBatchOptions = WriteBatchOptions{
 }
 
 func NewIndexerType(name string) IndexerType {
-	if res, ok := name2index[name]; ok {
+	if res, ok := nameIndexers[name]; ok {
 		return res
 	}
 	return ART
