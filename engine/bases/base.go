@@ -27,6 +27,12 @@ const (
 	fileLockName = "flock"
 )
 
+type Item struct {
+	Key   []byte
+	Type  iface.Type
+	Value []byte
+}
+
 // NewIndexer 根据类型初始化索引
 func NewIndexer(typ IndexerType) iface.Indexer {
 	switch typ {
@@ -486,10 +492,6 @@ func (b *Base) Backup(dir string) error {
 }
 
 func (b *Base) Snapshot() ([]byte, error) {
-	type Item struct {
-		Key   []byte
-		Value []byte
-	}
 
 	it := b.index.Iterator(false)
 	items := make([]*Item, b.index.Size())
@@ -499,7 +501,7 @@ func (b *Base) Snapshot() ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		item := &Item{it.Key(), value}
+		item := &Item{it.Key(), 0, value}
 		items = append(items, item)
 	}
 
@@ -510,6 +512,26 @@ func (b *Base) Snapshot() ([]byte, error) {
 		return buffer.Bytes(), err
 	}
 	return buffer.Bytes(), nil
+}
+
+func (b *Base) RecoverFromBytes(data []byte) error {
+	items := make([]*Item, 0)
+
+	buffer := bytes.NewBuffer(data)
+	err := gob.NewDecoder(buffer).Decode(&items)
+	if err != nil {
+		return err
+	}
+
+	for _, item := range items {
+		val := values.New(item.Value, 0, item.Type)
+		err = b.Set(utils.B2S(item.Key), &val)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // 通过位置信息获取值

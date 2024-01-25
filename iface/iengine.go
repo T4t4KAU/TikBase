@@ -37,6 +37,7 @@ func (ins INS) String() string {
 type Engine interface {
 	Exec(ins INS, args [][]byte) Result
 	Snapshot() ([]byte, error)
+	RecoverFromBytes(data []byte) error
 }
 
 type KVStore interface {

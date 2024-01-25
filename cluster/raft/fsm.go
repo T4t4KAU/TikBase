@@ -19,10 +19,20 @@ func (fsm *FSM) Apply(entry *raft.Log) any {
 }
 
 func (fsm *FSM) Snapshot() (raft.FSMSnapshot, error) {
-	return &Snapshot{}, nil
+	data, err := fsm.store.Snapshot()
+	if err != nil {
+		return nil, err
+	}
+	return &Snapshot{
+		data: data,
+	}, nil
 }
 
 func (fsm *FSM) Restore(snapshot io.ReadCloser) error {
-	//TODO implement me
-	panic("implement me")
+	data := make([]byte, 0)
+	_, err := snapshot.Read(data)
+	if err != nil {
+		return err
+	}
+	return fsm.store.RecoverFromBytes(data)
 }

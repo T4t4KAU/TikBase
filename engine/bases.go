@@ -289,3 +289,7 @@ func (eng *BaseEngine) ExecZSetAdd(args [][]byte) iface.Result {
 	_, err = eng.ZAdd(key, score, member)
 	return NewBaseErrResult(err)
 }
+
+func (eng *BaseEngine) RecoverFromBytes(data []byte) error {
+	return eng.Base.RecoverFromBytes(data)
+}

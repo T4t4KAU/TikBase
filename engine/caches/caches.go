@@ -1,6 +1,8 @@
 package caches
 
 import (
+	"bytes"
+	"encoding/gob"
 	"github.com/T4t4KAU/TikBase/iface"
 	"sync"
 	"sync/atomic"
@@ -190,4 +192,25 @@ func (c *Cache) waitForDumping() {
 		// 每次循环等待一定时间
 		time.Sleep(time.Duration(c.options.CasSleepTime) * time.Microsecond)
 	}
+}
+
+func (c *Cache) RecoverFromBytes(data []byte) error {
+	d := newEmptyDump()
+	buffer := bytes.NewBuffer(data)
+	if err := gob.NewDecoder(buffer).Decode(d); err != nil {
+		return nil
+	}
+
+	// 初始化对象
+	for _, seg := range *d.Segments {
+		seg.options = *d.Options
+		seg.mutex = &sync.RWMutex{}
+	}
+
+	c.segmentSize = d.SegmentSize
+	c.segments = *d.Segments
+	c.options = d.Options
+	c.dumping = 0
+
+	return nil
 }

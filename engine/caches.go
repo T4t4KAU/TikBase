@@ -167,3 +167,7 @@ func (eng *CacheEngine) ExecExpire(args [][]byte) iface.Result {
 func (eng *CacheEngine) Snapshot() ([]byte, error) {
 	return eng.Cache.SnapShot()
 }
+
+func (eng *CacheEngine) RecoverFromBytes(data []byte) error {
+	return eng.Cache.RecoverFromBytes(data)
+}

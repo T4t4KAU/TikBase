@@ -1,18 +1,17 @@
 package raft
 
 import (
-	"github.com/T4t4KAU/TikBase/iface"
 	"github.com/bytedance/sonic"
 	"github.com/hashicorp/raft"
 )
 
 type Snapshot struct {
-	store map[string]iface.Value
+	data []byte
 }
 
 func (s *Snapshot) Persist(sink raft.SnapshotSink) error {
 	err := func() error {
-		b, e := sonic.Marshal(s.store)
+		b, e := sonic.Marshal(s.data)
 		if e != nil {
 			return e
 		}
