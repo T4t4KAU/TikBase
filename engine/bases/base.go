@@ -492,7 +492,6 @@ func (b *Base) Backup(dir string) error {
 }
 
 func (b *Base) Snapshot() ([]byte, error) {
-
 	it := b.index.Iterator(false)
 	items := make([]*Item, b.index.Size())
 

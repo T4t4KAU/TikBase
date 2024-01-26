@@ -39,7 +39,7 @@ type Peer struct {
 type FSM Peer
 
 // NewPeer 创建节点
-func NewPeer(option Option, id string, fsm FSM) (*Peer, error) {
+func NewPeer(option Option, id string) (*Peer, error) {
 	eng, err := engine.NewEngine(option.Store)
 	if err != nil {
 		return nil, err
@@ -257,7 +257,7 @@ func (peer *Peer) HSet(key, field string, val []byte) error {
 	}
 
 	c := &command{
-		Ins:   iface.SET_STR,
+		Ins:   iface.SET_HASH,
 		Key:   key,
 		Field: field,
 		Value: val,
@@ -278,7 +278,7 @@ func (peer *Peer) HDel(key, field string) error {
 	}
 
 	c := &command{
-		Ins:   iface.SET_STR,
+		Ins:   iface.DEL_HASH,
 		Key:   key,
 		Field: field,
 	}
@@ -396,7 +396,7 @@ func (peer *Peer) RPush(key string, element []byte) error {
 }
 
 // Join 节点加入集群
-func (peer *Peer) Join(nodeId, httpAddr, addr string) error {
+func (peer *Peer) Join(nodeId, joinAddr, raftAddr string) error {
 	config := peer.raftNode.GetConfiguration()
 	if err := config.Error(); err != nil {
 		return err
@@ -404,20 +404,24 @@ func (peer *Peer) Join(nodeId, httpAddr, addr string) error {
 
 	for _, s := range config.Configuration().Servers {
 		// 节点已经存在
-		if s.ID == raft.ServerID(nodeId) || s.Address == raft.ServerAddress(addr) {
+		if s.ID == raft.ServerID(nodeId) || s.Address == raft.ServerAddress(raftAddr) {
 			return nil
 		}
 
 		future := peer.raftNode.RemoveServer(s.ID, 0, 0)
 		if err := future.Error(); err != nil {
-			return fmt.Errorf("error removing existing node %s at %s: %s", nodeId, addr, err)
+			return fmt.Errorf("error removing existing node %s at %s: %s", nodeId, raftAddr, err)
 		}
 	}
 
 	// 追加节点
-	f := peer.raftNode.AddVoter(raft.ServerID(nodeId), raft.ServerAddress(addr), 0, 0)
+	f := peer.raftNode.AddVoter(raft.ServerID(nodeId), raft.ServerAddress(raftAddr), 0, 0)
 	if f.Error() != nil {
 		return f.Error()
+	}
+
+	if err := peer.SetMeta(nodeId, joinAddr); err != nil {
+		return err
 	}
 
 	return nil

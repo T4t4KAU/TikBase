@@ -1,2 +1,0 @@
-replicas: 3
-heartbeat_timeout: 100

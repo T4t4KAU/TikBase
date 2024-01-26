@@ -13,9 +13,9 @@ type Option struct {
 
 var DefaultOption = Option{
 	RaftDir:       "raft",
-	RaftBind:      "127.0.0.1",
+	RaftBind:      "127.0.0.1:9092",
 	MaxPool:       10,
-	SnapshotCount: 10,
+	SnapshotCount: 2,
 	Timeout:       raftTimeout,
 	Store:         "BASES",
 }

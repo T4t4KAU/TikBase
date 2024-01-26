@@ -387,7 +387,7 @@ func (b *Base) ZAdd(key string, score float64, member []byte) (bool, error) {
 	}
 
 	if exist {
-		// 权值系统 直接返回
+		// 权值相等 直接返回
 		if score == val.Score() {
 			return false, nil
 		}
