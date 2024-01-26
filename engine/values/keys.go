@@ -1,4 +1,4 @@
-package bases
+package values
 
 import (
 	"encoding/binary"
@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	maxMetadataSize   = 1 + binary.MaxVarintLen64*2 + binary.MaxVarintLen32
-	extraListMetaSize = binary.MaxVarintLen64 * 2
-	initialListFlag   = math.MaxUint64 / 2
+	MaxMetadataSize   = 1 + binary.MaxVarintLen64*2 + binary.MaxVarintLen32
+	ExtraListMetaSize = binary.MaxVarintLen64 * 2
+	InitialListFlag   = math.MaxUint64 / 2
 	scoreKeyPrefix    = "!score"
 )
 
@@ -91,30 +91,30 @@ func (sk *SetInternalKey) String() string {
 }
 
 type ListInternalKey struct {
-	key     []byte
-	version int64 // 版本号
-	index   uint64
+	Key     []byte
+	Version int64 // 版本号
+	Index   uint64
 }
 
 func NewListInternalKey(key string, version int64, index uint64) *ListInternalKey {
 	return &ListInternalKey{
-		key:     utils.S2B(key),
-		version: version,
-		index:   index,
+		Key:     utils.S2B(key),
+		Version: version,
+		Index:   index,
 	}
 }
 
 func (lk *ListInternalKey) Encode() []byte {
-	b := make([]byte, len(lk.key)+8+8)
+	b := make([]byte, len(lk.Key)+8+8)
 	var index = 0
 
-	copy(b[index:index+len(lk.key)], lk.key)
-	index += len(lk.key)
+	copy(b[index:index+len(lk.Key)], lk.Key)
+	index += len(lk.Key)
 
-	binary.LittleEndian.PutUint64(b[index:index+8], uint64(lk.version))
+	binary.LittleEndian.PutUint64(b[index:index+8], uint64(lk.Version))
 	index += 8
 
-	binary.LittleEndian.PutUint64(b[index:], lk.index)
+	binary.LittleEndian.PutUint64(b[index:], lk.Index)
 
 	return b
 }

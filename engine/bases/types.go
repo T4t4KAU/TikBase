@@ -1,7 +1,6 @@
 package bases
 
 import (
-	"encoding/binary"
 	"errors"
 	"github.com/T4t4KAU/TikBase/engine/values"
 	"github.com/T4t4KAU/TikBase/iface"
@@ -10,43 +9,19 @@ import (
 	"time"
 )
 
-// Meta 元数据 支撑复杂数据类型
-// 对于HASH、LIST、SET、ZSET 数据类型 存储引擎会先保存 对应的元信息
-type Meta struct {
-	Expire   int64
-	Version  int64
-	Size     uint32
-	Head     uint64
-	Tail     uint64
-	DataType iface.Type
-}
-
-func newMeta(dataType iface.Type, expire int64, version int64, size uint32) *Meta {
-	return &Meta{
-		Expire:   expire,
-		Version:  version,
-		Size:     size,
-		DataType: dataType,
-	}
-}
-
-func (meta *Meta) Value() values.Value {
-	return values.NewMeta(meta.Encode())
-}
-
 // FindMeta 查找元信息
-func (b *Base) FindMeta(key string, dataType iface.Type) (*Meta, error) {
+func (b *Base) FindMeta(key string, dataType iface.Type) (*values.Meta, error) {
 	val, err := b.Get(key)
 	if err != nil && !errors.Is(err, errno.ErrKeyNotFound) {
 		return nil, err
 	}
 
-	var meta *Meta
+	var meta *values.Meta
 	var exist = true
 	if errors.Is(err, errno.ErrKeyNotFound) {
 		exist = false
 	} else {
-		meta = DecodeMeta(val.Bytes()) // 解析元信息
+		meta = values.DecodeMeta(val.Bytes()) // 解析元信息
 		if meta.DataType != dataType {
 			return nil, errno.ErrWrongTypeOperation
 		}
@@ -57,92 +32,15 @@ func (b *Base) FindMeta(key string, dataType iface.Type) (*Meta, error) {
 
 	if !exist {
 		// 不存在则创建
-		meta = newMeta(dataType, 0, time.Now().UnixNano(), 0)
+		meta = values.NewMeta(dataType, 0, time.Now().UnixNano(), 0)
 		// 对于LIST 要初始化首尾
 		if dataType == iface.LIST {
-			meta.Head = initialListFlag
-			meta.Tail = initialListFlag
+			meta.Head = values.InitialListFlag
+			meta.Tail = values.InitialListFlag
 		}
 	}
 
 	return meta, nil
-}
-
-// DecodeMeta 解码元数据
-func DecodeMeta(b []byte) *Meta {
-	dataType := iface.Type(b[0])
-
-	var index = 1
-	expire, n := binary.Varint(b[index:])
-	index += n
-	version, n := binary.Varint(b[index:])
-	index += n
-	size, n := binary.Varint(b[index:])
-	index += n
-
-	var head uint64 = 0
-	var tail uint64 = 0
-
-	if dataType == iface.LIST {
-		head, n = binary.Uvarint(b[index:])
-		index += n
-		tail, _ = binary.Uvarint(b[index:])
-	}
-
-	return &Meta{
-		Expire:   expire,
-		Version:  version,
-		Size:     uint32(size),
-		Head:     head,
-		Tail:     tail,
-		DataType: dataType,
-	}
-}
-
-// Encode 将元数据编码
-func (meta *Meta) Encode() []byte {
-	var size = maxMetadataSize
-
-	if meta.DataType == iface.LIST {
-		size += extraListMetaSize
-	}
-	b := make([]byte, size)
-	b[0] = byte(meta.DataType)
-
-	var index = 1
-	index += binary.PutVarint(b[index:], meta.Expire)      // 过期时间
-	index += binary.PutVarint(b[index:], meta.Version)     // 版本号
-	index += binary.PutVarint(b[index:], int64(meta.Size)) // 数据大小
-
-	// 对于列表类型 额外加入首位
-	if meta.DataType == iface.LIST {
-		index += binary.PutUvarint(b[index:], meta.Head)
-		index += binary.PutUvarint(b[index:], meta.Tail)
-	}
-
-	return b[:index]
-}
-
-func EncodeMeta(meta *Meta) []byte {
-	var size = maxMetadataSize
-
-	if meta.DataType == iface.LIST {
-		size += extraListMetaSize
-	}
-	b := make([]byte, size)
-	b[0] = byte(meta.DataType)
-
-	var index = 1
-	index += binary.PutVarint(b[index:], meta.Expire)
-	index += binary.PutVarint(b[index:], meta.Version)
-	index += binary.PutVarint(b[index:], int64(meta.Size))
-
-	if meta.DataType == iface.LIST {
-		index += binary.PutUvarint(b[index:], meta.Head)
-		index += binary.PutUvarint(b[index:], meta.Tail)
-	}
-
-	return b[:index]
 }
 
 // HSet HashSet操作
@@ -152,7 +50,7 @@ func (b *Base) HSet(key string, field, value []byte) (bool, error) {
 		return false, err
 	}
 
-	encKey := NewHashInternalKey(key, meta.Version, field).Encode()
+	encKey := values.NewHashInternalKey(key, meta.Version, field).Encode()
 
 	var exist = true
 	if _, err = b.Get(utils.B2S(encKey)); errors.Is(err, errno.ErrKeyNotFound) {
@@ -184,7 +82,7 @@ func (b *Base) HGet(key string, field []byte) (iface.Value, error) {
 		return nil, nil
 	}
 
-	hashKey := NewHashInternalKey(key, meta.Version, field).String()
+	hashKey := values.NewHashInternalKey(key, meta.Version, field).String()
 	return b.Get(hashKey)
 }
 
@@ -198,7 +96,7 @@ func (b *Base) HDel(key string, field []byte) (bool, error) {
 		return false, errno.ErrHashDataIsEmpty
 	}
 
-	encKey := NewHashInternalKey(key, meta.Version, field).Encode()
+	encKey := values.NewHashInternalKey(key, meta.Version, field).Encode()
 
 	var exist = true
 	if _, err = b.Get(utils.B2S(encKey)); errors.Is(err, errno.ErrKeyNotFound) {
@@ -225,7 +123,7 @@ func (b *Base) SAdd(key string, member []byte) (bool, error) {
 		return false, err
 	}
 
-	encKey := NewSetInternalKey(key, meta.Version, member).Encode()
+	encKey := values.NewSetInternalKey(key, meta.Version, member).Encode()
 
 	if _, err = b.Get(utils.B2S(encKey)); errors.Is(err, errno.ErrKeyNotFound) {
 		wb := b.NewWriteBatch()
@@ -250,7 +148,7 @@ func (b *Base) SIsMember(key string, member []byte) (bool, error) {
 		return false, errno.ErrSetDataIsEmpty
 	}
 
-	encKey := NewSetInternalKey(key, meta.Version, member).Encode()
+	encKey := values.NewSetInternalKey(key, meta.Version, member).Encode()
 	_, err = b.Get(utils.B2S(encKey))
 	if err != nil && !errors.Is(err, errno.ErrKeyNotFound) {
 		return false, err
@@ -271,7 +169,7 @@ func (b *Base) SRem(key string, member []byte) (bool, error) {
 		return false, errno.ErrSetDataIsEmpty
 	}
 
-	setKey := NewSetInternalKey(key, meta.Version, member).Encode()
+	setKey := values.NewSetInternalKey(key, meta.Version, member).Encode()
 	if _, err = b.Get(utils.B2S(setKey)); errors.Is(err, errno.ErrKeyNotFound) {
 		return false, errno.ErrSetMemberNotFound
 	}
@@ -292,11 +190,11 @@ func (b *Base) pushInner(key string, member []byte, isLeft bool) (uint32, error)
 		return 0, err
 	}
 
-	listKey := NewListInternalKey(key, meta.Version, 0)
+	listKey := values.NewListInternalKey(key, meta.Version, 0)
 	if isLeft {
-		listKey.index = meta.Head - 1
+		listKey.Index = meta.Head - 1
 	} else {
-		listKey.index = meta.Tail
+		listKey.Index = meta.Tail
 	}
 
 	wb := b.NewWriteBatch()
@@ -326,11 +224,11 @@ func (b *Base) popInner(key string, isLeft bool) (iface.Value, error) {
 		return nil, nil
 	}
 
-	listKey := NewListInternalKey(key, meta.Version, 0)
+	listKey := values.NewListInternalKey(key, meta.Version, 0)
 	if isLeft {
-		listKey.index = meta.Head
+		listKey.Index = meta.Head
 	} else {
-		listKey.index = meta.Tail - 1
+		listKey.Index = meta.Tail - 1
 	}
 
 	elem, err := b.Get(listKey.String())
@@ -374,7 +272,7 @@ func (b *Base) ZAdd(key string, score float64, member []byte) (bool, error) {
 		return false, err
 	}
 
-	zsetKey := NewZSetInternalKey(key, meta.Version, member, score)
+	zsetKey := values.NewZSetInternalKey(key, meta.Version, member, score)
 
 	var exist = true
 	// 先查看是否存在
@@ -400,7 +298,7 @@ func (b *Base) ZAdd(key string, score float64, member []byte) (bool, error) {
 	}
 
 	if exist {
-		oldKey := NewZSetInternalKey(key, meta.Version, member, val.Score())
+		oldKey := values.NewZSetInternalKey(key, meta.Version, member, val.Score())
 		_ = wb.Delete(oldKey.EncodeWithScore())
 	}
 
@@ -422,7 +320,7 @@ func (b *Base) ZScore(key string, member []byte) (float64, error) {
 		return -1, errno.ErrZSetDataIsEmpty
 	}
 
-	zsetKey := NewZSetInternalKey(key, meta.Version, member, 0)
+	zsetKey := values.NewZSetInternalKey(key, meta.Version, member, 0)
 	val, err := b.Get(utils.B2S(zsetKey.EncodeWithMember()))
 	if err != nil {
 		return -1, err

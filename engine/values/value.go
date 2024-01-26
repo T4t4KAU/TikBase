@@ -29,15 +29,6 @@ func New(data []byte, ttl int64, typ iface.Type) Value {
 	}
 }
 
-func NewMeta(data []byte) Value {
-	return Value{
-		Data:    data,
-		TTL:     0,
-		Created: time.Now().Unix(),
-		Type:    iface.META_DATA,
-	}
-}
-
 func MewString(data []byte, ttl int64) Value {
 	return Value{
 		Data:    data,
