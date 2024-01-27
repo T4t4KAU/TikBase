@@ -29,7 +29,7 @@ func New(data []byte, ttl int64, typ iface.Type) Value {
 	}
 }
 
-func MewString(data []byte, ttl int64) Value {
+func NewStr(data []byte, ttl int64) Value {
 	return Value{
 		Data:    data,
 		TTL:     ttl,

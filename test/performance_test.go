@@ -84,7 +84,7 @@ func startServer(proto, engName string) {
 		handler = tiko.NewHandler(eng)
 	}
 
-	p := poll.New(poll.Config{
+	p, _ := poll.New(poll.Config{
 		Address:    "127.0.0.1:9999",
 		MaxConnect: 1000,
 		Timeout:    time.Second,

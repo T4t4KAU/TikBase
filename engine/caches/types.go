@@ -48,11 +48,29 @@ func (c *Cache) HSet(key string, field, value []byte) (bool, error) {
 		return false, err
 	}
 
-	_ = values.NewHashInternalKey(key, meta.Version, field).Encode()
+	hashKey := values.NewHashInternalKey(key, meta.Version, field).String()
 
-	// TODO:
+	var exist = true
+	if _, err = c.Get(hashKey); errors.Is(err, errno.ErrKeyNotFound) {
+		exist = false
+	}
+	if !exist {
+		meta.Size++
+	}
 
 	return true, nil
+}
+
+func (c *Cache) HGet(key string, field []byte) (iface.Value, error) {
+	meta, err := c.FindMeta(key, iface.HASH)
+	if err != nil {
+		return nil, err
+	}
+	if meta.Size == 0 {
+		return nil, nil
+	}
+	hashKey := values.NewHashInternalKey(key, meta.Version, field).String()
+	return c.Get(hashKey)
 }
 
 type Dict struct {

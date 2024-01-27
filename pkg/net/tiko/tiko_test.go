@@ -11,7 +11,7 @@ import (
 
 func startServer() {
 	eng, _ := engine.NewCacheEngine()
-	p := poll.New(poll.Config{
+	p, _ := poll.New(poll.Config{
 		Address:    "127.0.0.1:9999",
 		MaxConnect: 20,
 		Timeout:    time.Second,

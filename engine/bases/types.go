@@ -117,6 +117,7 @@ func (b *Base) HDel(key string, field []byte) (bool, error) {
 	return exist, nil
 }
 
+// SAdd 向集合添加元素
 func (b *Base) SAdd(key string, member []byte) (bool, error) {
 	meta, err := b.FindMeta(key, iface.SET)
 	if err != nil {

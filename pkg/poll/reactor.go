@@ -14,7 +14,7 @@ type Reactor struct {
 	handler iface.Handler
 }
 
-func NewReactor(n int32) *Reactor {
+func NewReactor(n int32, name string) *Reactor {
 	return &Reactor{
 		workers: conc.NewPool("subReactors", n),
 		nworker: n,

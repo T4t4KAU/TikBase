@@ -84,11 +84,12 @@ func TestParseStream2(t *testing.T) {
 
 func startServer() {
 	eng, _ := engine.NewBaseEngine()
-	p := poll.New(poll.Config{
+	p, _ := poll.New(poll.Config{
 		Address:    "127.0.0.1:9999",
 		MaxConnect: 20,
 		Timeout:    time.Second,
 	}, NewHandler(eng))
+
 	err := p.Run()
 	if err != nil {
 		panic(err)

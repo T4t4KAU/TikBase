@@ -114,7 +114,7 @@ func (c *Cache) SetString(key string, value string, ttl int64) error {
 	return c.SetWithTTL(key, []byte(value), ttl, iface.STRING)
 }
 
-func (c *Cache) AddSetElem(key string, element string) bool {
+func (c *Cache) AddSetElem(key string, element []byte) bool {
 	// TODO: 支持集合类型
 	return true
 }

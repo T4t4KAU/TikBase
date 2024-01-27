@@ -47,7 +47,7 @@ func Start(server config.ServerConfig, store config.StoreConfig) (err error) {
 		panic(err)
 	}
 
-	p := poll.New(poll.Config{
+	p, _ := poll.New(poll.Config{
 		Address:    ":" + strconv.Itoa(server.ListenPort),
 		MaxConnect: int32(server.WorkersNum),
 		Timeout:    time.Second,
