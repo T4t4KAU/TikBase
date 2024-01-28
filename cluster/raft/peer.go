@@ -26,13 +26,14 @@ const (
 	openTimeout         = 60 * time.Second
 )
 
+// Peer 单机节点
 type Peer struct {
-	id        string
+	id        string // 节点ID
 	raftNode  *raft.Raft
-	store     iface.Engine
-	dirPath   string
-	address   string
-	snapCount int
+	store     iface.Engine // 存储引擎
+	dirPath   string       // 存储路径
+	address   string       // 通信地址
+	snapCount int          // 快照数目
 	maxPool   int
 }
 
@@ -53,6 +54,10 @@ func NewPeer(option Option, id string) (*Peer, error) {
 		snapCount: option.SnapshotCount,
 		maxPool:   option.MaxPool,
 	}, nil
+}
+
+func (peer *Peer) Engine() iface.Engine {
+	return peer.store
 }
 
 // ID 返回节点ID
@@ -96,6 +101,7 @@ func (peer *Peer) Bootstrap(single bool, localId string) error {
 	}
 	peer.raftNode = ra
 
+	// 单节点启动
 	if single && newNode {
 		conf := raft.Configuration{
 			Servers: []raft.Server{
@@ -180,6 +186,7 @@ func (peer *Peer) WaitForAppliedIndex(index uint64, timeout time.Duration) error
 	}
 }
 
+// WaitForApplied 等待日志应用
 func (peer *Peer) WaitForApplied(timeout time.Duration) error {
 	if timeout == 0 {
 		return nil
@@ -190,6 +197,7 @@ func (peer *Peer) WaitForApplied(timeout time.Duration) error {
 	return nil
 }
 
+// 一致读
 func (peer *Peer) consistentRead() error {
 	future := peer.raftNode.VerifyLeader()
 	if err := future.Error(); err != nil {

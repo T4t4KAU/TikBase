@@ -6,6 +6,7 @@ import (
 	"github.com/T4t4KAU/TikBase/engine/values"
 	"github.com/T4t4KAU/TikBase/iface"
 	"github.com/T4t4KAU/TikBase/pkg/config"
+	"github.com/T4t4KAU/TikBase/pkg/utils"
 )
 
 type CacheEngine struct {
@@ -130,7 +131,7 @@ func (eng *CacheEngine) ExecStrSet(args [][]byte) iface.Result {
 	if err != nil {
 		NewCacheErrorResult(err)
 	}
-	err = eng.SetString(key, val, values.NeverExpire)
+	err = eng.Set(key, utils.S2B(val), values.NeverExpire)
 	return NewCacheErrorResult(err)
 }
 

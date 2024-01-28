@@ -84,6 +84,7 @@ func (meta *Meta) Encode() []byte {
 	return b[:index]
 }
 
+// EncodeMeta 元数据编码
 func EncodeMeta(meta *Meta) []byte {
 	var size = MaxMetadataSize
 

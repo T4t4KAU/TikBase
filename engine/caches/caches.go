@@ -75,9 +75,8 @@ func (c *Cache) Get(key string) (iface.Value, error) {
 	return c.segmentOf(key).get(key)
 }
 
-// Set 保存键值对到缓存
-func (c *Cache) Set(key string, value iface.Value) error {
-	return c.SetWithTTL(key, value.Bytes(), value.Time(), value.Attr())
+func (c *Cache) Set(key string, value []byte, ttl int64) error {
+	return c.SetWithTTL(key, value, ttl, iface.STRING)
 }
 
 // Expire 设置超时时间
@@ -108,15 +107,6 @@ func (c *Cache) Exist(key string) error {
 	c.waitForDumping()
 	_, err := c.segmentOf(key).get(key)
 	return err
-}
-
-func (c *Cache) SetString(key string, value string, ttl int64) error {
-	return c.SetWithTTL(key, []byte(value), ttl, iface.STRING)
-}
-
-func (c *Cache) AddSetElem(key string, element []byte) bool {
-	// TODO: 支持集合类型
-	return true
 }
 
 // SetWithTTL 添加到指定的数据到缓存中 设置相应有效期

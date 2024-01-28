@@ -11,6 +11,7 @@ type ExecFunc func(args [][]byte) iface.Result
 
 var engines = make(map[string]iface.Engine)
 
+// RegisterEngine 注册存储引擎
 func RegisterEngine(name string, eng iface.Engine) {
 	engines[name] = eng
 }
@@ -26,7 +27,10 @@ func NewEngine(name string) (iface.Engine, error) {
 	}
 }
 
-// 解析参数
+//
+// 对参数进行解析
+//
+
 func parseStrGetArgs(args [][]byte) (string, error) {
 	if len(args) < 1 {
 		return "", errno.ErrParseArgsError

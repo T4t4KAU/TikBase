@@ -30,6 +30,7 @@ func newDump(c *Cache) *dump {
 	}
 }
 
+// 生成内存快照
 func (c *Cache) SnapShot() ([]byte, error) {
 	// 设置持久化标识为1
 	atomic.StoreInt32(&c.dumping, 1)

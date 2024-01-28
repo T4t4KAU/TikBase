@@ -1,6 +1,6 @@
 package caches
 
-// Status 缓存信息
+// Status 缓存状态
 type Status struct {
 	Count     int   // 记录缓存数据个数
 	KeySize   int64 // 记录key占用空间大小

@@ -102,3 +102,7 @@ var insMap = map[INS]string{
 type IWriteBatch interface {
 	Commit() error
 }
+
+type IService interface {
+	Start() error
+}

@@ -6,40 +6,40 @@ import (
 	"net/rpc"
 )
 
-type JoinService struct {
+type Service struct {
 	peer   *Peer
 	nodeId string
 	poll   *poll.NetPoll
 }
 
-type JoinArgs struct {
+type Args struct {
 	NodeId      string
 	ServiceAddr string
 	RaftAddr    string
 }
 
-type JoinReply struct {
+type Reply struct {
 	Success bool
 }
 
-func NewJoinService(nodeId, addr string, peer *Peer) (*JoinService, error) {
+func NewService(nodeId, addr string, peer *Peer) *Service {
 	p, err := poll.New(poll.Config{
 		Address:    addr,
 		MaxConnect: 10,
 		Timeout:    raftTimeout,
-	}, &JoinServiceHandler{})
+	}, &ServiceHandler{})
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
-	return &JoinService{
+	return &Service{
 		peer:   peer,
 		nodeId: nodeId,
 		poll:   p,
-	}, nil
+	}
 }
 
-func (s *JoinService) AddNode(args JoinArgs, reply *JoinReply) error {
+func (s *Service) AddNode(args Args, reply *Reply) error {
 	err := s.peer.Join(args.NodeId, args.ServiceAddr, args.RaftAddr)
 	if err != nil {
 		reply.Success = false
@@ -49,7 +49,7 @@ func (s *JoinService) AddNode(args JoinArgs, reply *JoinReply) error {
 	return nil
 }
 
-func (s *JoinService) Start() error {
+func (s *Service) Start() error {
 	err := rpc.Register(s)
 	if err != nil {
 		return err
@@ -57,8 +57,8 @@ func (s *JoinService) Start() error {
 	return s.poll.Run()
 }
 
-type JoinServiceHandler struct{}
+type ServiceHandler struct{}
 
-func (h *JoinServiceHandler) Handle(conn iface.Connection) {
+func (h *ServiceHandler) Handle(conn iface.Connection) {
 	rpc.ServeConn(conn)
 }

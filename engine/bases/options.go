@@ -11,9 +11,9 @@ const (
 )
 
 var nameIndexers = map[string]IndexerType{
-	"BT":  BT,
-	"ART": ART,
-	"SL":  SL,
+	"BT":  BT,  // B+树
+	"ART": ART, // 自适应基数树
+	"SL":  SL,  // 跳表
 }
 
 type Options struct {

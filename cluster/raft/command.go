@@ -5,6 +5,7 @@ import (
 	"github.com/bytedance/sonic"
 )
 
+// 状态机命令
 type command struct {
 	Ins   iface.INS `json:"op,omitempty"`
 	Key   string    `json:"key,omitempty"`
@@ -12,6 +13,7 @@ type command struct {
 	Value []byte    `json:"value,omitempty"`
 }
 
+// ConsistencyLevel 一致性级别
 type ConsistencyLevel int
 
 const (

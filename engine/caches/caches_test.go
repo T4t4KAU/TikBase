@@ -1,8 +1,6 @@
 package caches
 
 import (
-	"github.com/T4t4KAU/TikBase/engine/values"
-	"github.com/T4t4KAU/TikBase/iface"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
@@ -10,8 +8,7 @@ import (
 
 func TestCache_Set(t *testing.T) {
 	c, _ := New()
-	v := values.New([]byte("value"), 0, iface.STRING)
-	err := c.Set("key", &v)
+	err := c.Set("key", []byte("value"), 0)
 	assert.Nil(t, err)
 	res, _ := c.Get("key")
 	println(res.String())
@@ -19,8 +16,7 @@ func TestCache_Set(t *testing.T) {
 
 func TestCache_Expire(t *testing.T) {
 	c, _ := New()
-	v := values.New([]byte("value"), 0, iface.STRING)
-	err := c.Set("key", &v)
+	err := c.Set("key", []byte("value"), 0)
 	assert.Nil(t, err)
 
 	res, _ := c.Get("key")

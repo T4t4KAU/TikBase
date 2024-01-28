@@ -5,6 +5,7 @@ import (
 	"github.com/T4t4KAU/TikBase/iface"
 )
 
+// Iterator 迭代器
 type Iterator struct {
 	iterator iface.Iterator
 	base     *Base
