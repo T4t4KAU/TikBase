@@ -60,14 +60,6 @@ type Base struct {
 	reclaimableSize int64        // 可回收磁盘空间容量
 }
 
-// Stat 状态信息
-type Stat struct {
-	keyNum          uint  // key的数量
-	DataFileNum     uint  // 数据文件个数
-	ReclaimableSize int64 // 数据可回收的空间 字节为单位
-	DiskSize        int64 // 所占磁盘空间大小
-}
-
 func New() (*Base, error) {
 	return NewBaseWith(DefaultOptions)
 }
@@ -234,28 +226,6 @@ func (b *Base) Del(key string) error {
 	}
 
 	return nil
-}
-
-// Stat 返回数据库统计信息
-func (b *Base) Stat() *Stat {
-	b.mutex.RLock()
-	defer b.mutex.RUnlock()
-
-	var dataFilesNum = uint(len(b.olderFiles))
-	if b.activeFile != nil {
-		dataFilesNum++
-	}
-	dirSize, err := utils.DirSize(b.options.DirPath)
-	if err != nil {
-		panic(err)
-	}
-
-	return &Stat{
-		keyNum:          uint(b.index.Size()),
-		DataFileNum:     dataFilesNum,
-		ReclaimableSize: b.reclaimableSize,
-		DiskSize:        dirSize,
-	}
 }
 
 // 设置当前活跃文件

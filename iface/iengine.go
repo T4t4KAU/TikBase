@@ -106,3 +106,16 @@ type IWriteBatch interface {
 type IService interface {
 	Start() error
 }
+
+type MemTable interface {
+	Put(key, value []byte)
+	Get(key []byte) ([]byte, bool)
+}
+
+type Filter interface {
+	Add(key []byte)
+	Exist(bitmap, key []byte) bool
+	Hash() []byte
+	Reset()
+	KeyLen() int
+}

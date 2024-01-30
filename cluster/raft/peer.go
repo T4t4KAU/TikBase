@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/T4t4KAU/TikBase/engine"
 	"github.com/T4t4KAU/TikBase/iface"
+	"github.com/T4t4KAU/TikBase/pkg/errno"
+	"github.com/T4t4KAU/TikBase/pkg/tlog"
 	"github.com/T4t4KAU/TikBase/pkg/utils"
 	"github.com/bytedance/sonic"
 	"github.com/hashicorp/raft"
@@ -31,7 +33,7 @@ type Peer struct {
 	id        string // 节点ID
 	raftNode  *raft.Raft
 	store     iface.Engine // 存储引擎
-	dirPath   string       // 存储路径
+	dirPath   string       // 日志存储路径
 	address   string       // 通信地址
 	snapCount int          // 快照数目
 	maxPool   int
@@ -40,7 +42,7 @@ type Peer struct {
 type FSM Peer
 
 // NewPeer 创建节点
-func NewPeer(option Option, id string) (*Peer, error) {
+func NewPeer(option Option, id string, eng iface.Engine) (*Peer, error) {
 	eng, err := engine.NewEngine(option.Store)
 	if err != nil {
 		return nil, err
@@ -103,6 +105,7 @@ func (peer *Peer) Bootstrap(single bool, localId string) error {
 
 	// 单节点启动
 	if single && newNode {
+		tlog.Infof("bootstrap needed")
 		conf := raft.Configuration{
 			Servers: []raft.Server{
 				{
@@ -113,7 +116,7 @@ func (peer *Peer) Bootstrap(single bool, localId string) error {
 		}
 		ra.BootstrapCluster(conf)
 	} else {
-
+		tlog.Infof("no bootstrap needed")
 	}
 
 	return nil
@@ -134,6 +137,7 @@ func (peer *Peer) LeaderID() (string, error) {
 	addr := peer.LeaderAddr()
 	config := peer.raftNode.GetConfiguration()
 	if err := config.Error(); err != nil {
+		tlog.Errorf("failed to get raft configuration: %v", err)
 		return "", err
 	}
 
@@ -147,7 +151,7 @@ func (peer *Peer) LeaderID() (string, error) {
 	return "", nil
 }
 
-// WaitForLeader 阻塞直到发现一个leader
+// WaitForLeader 阻塞直到发现一个Leader
 func (peer *Peer) WaitForLeader(timeout time.Duration) (string, error) {
 	ticker := time.NewTicker(leaderWaitDelay)
 	defer ticker.Stop()
@@ -177,6 +181,7 @@ func (peer *Peer) WaitForAppliedIndex(index uint64, timeout time.Duration) error
 	for {
 		select {
 		case <-ticker.C:
+			// 日志更新结束
 			if peer.raftNode.AppliedIndex() >= index {
 				return nil
 			}
@@ -191,8 +196,10 @@ func (peer *Peer) WaitForApplied(timeout time.Duration) error {
 	if timeout == 0 {
 		return nil
 	}
+
+	tlog.Infof("waiting for up to %s for application of initial logs", timeout)
 	if err := peer.WaitForAppliedIndex(peer.raftNode.LastIndex(), timeout); err != nil {
-		return err
+		return errno.ErrRaftOpenTimeout
 	}
 	return nil
 }
@@ -405,14 +412,18 @@ func (peer *Peer) RPush(key string, element []byte) error {
 
 // Join 节点加入集群
 func (peer *Peer) Join(nodeId, joinAddr, raftAddr string) error {
+	tlog.Infof("received join request for remote node %s at %s", nodeId, raftAddr)
+
 	config := peer.raftNode.GetConfiguration()
 	if err := config.Error(); err != nil {
+		tlog.Infof("failed to get raft configuration: %v", err)
 		return err
 	}
 
 	for _, s := range config.Configuration().Servers {
 		// 节点已经存在
 		if s.ID == raft.ServerID(nodeId) || s.Address == raft.ServerAddress(raftAddr) {
+			tlog.Infof("node %s at %s already memeber of region, ignoring join request", nodeId, raftAddr)
 			return nil
 		}
 
@@ -432,6 +443,7 @@ func (peer *Peer) Join(nodeId, joinAddr, raftAddr string) error {
 		return err
 	}
 
+	tlog.Infof("node %s at %s joined successfully", nodeId, raftAddr)
 	return nil
 }
 

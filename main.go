@@ -8,28 +8,35 @@ import (
 var logo = " _____ _ _    ____                 \n|_   _(_) | _| __ )  __ _ ___  ___ \n  | | | | |/ /  _ \\ / _` / __|/ _ \\\n  | | | |   <| |_) | (_| \\__ \\  __/\n  |_| |_|_|\\_\\____/ \\__,_|___/\\___|\n"
 
 func start() {
-	server, err := config.ReadServerConfigFile("./config/server-config.yaml")
+	serverConf, err := config.ReadServerConfigFile("./config/server-config.yaml")
 	if err != nil {
 		panic(err)
 	}
 
-	var cfg config.StoreConfig
+	var storeConf config.StoreConfig
 
-	switch server.EngineName {
+	switch serverConf.EngineName {
 	case "base":
-		cfg, err = config.ReadBaseConfigFile("./config/base-config.yaml")
+		storeConf, err = config.ReadBaseConfigFile("./config/base-config.yaml")
 	case "cache":
-		cfg, err = config.ReadCacheConfigFile("./config/cache-config.yaml")
+		storeConf, err = config.ReadCacheConfigFile("./config/cache-config.yaml")
+	default:
+		panic("unknown engine name")
 	}
 	if err != nil {
 		panic(err)
 	}
 
-	print("listening at port:", server.ListenPort)
-	print("   using protocol:", server.Protocol)
-	println("   using engine:", server.EngineName)
+	replicaConf, err := config.ReadReplicaConfigFile("./config/replica-config.yaml")
+	if err != nil {
+		panic(err)
+	}
 
-	err = proxy.Start(server, cfg)
+	print("listening at port:", serverConf.ListenPort)
+	print("   using protocol:", serverConf.Protocol)
+	println("   using engine:", serverConf.EngineName)
+
+	err = proxy.Start(serverConf, storeConf, replicaConf)
 	if err != nil {
 		panic(err)
 	}

@@ -22,3 +22,12 @@ func TestReadBaseConfigFile(t *testing.T) {
 	}
 	fmt.Printf("%#v\n", c)
 }
+
+func TestReadReplicaConfigFile(t *testing.T) {
+	c, err := ReadReplicaConfigFile("../../conf/replica-config.yaml")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	fmt.Printf("%#v\n", c)
+}

@@ -2,22 +2,16 @@ package proxy
 
 import (
 	"errors"
+	"github.com/T4t4KAU/TikBase/cluster/region"
 	"github.com/T4t4KAU/TikBase/engine"
 	"github.com/T4t4KAU/TikBase/iface"
 	"github.com/T4t4KAU/TikBase/pkg/config"
-	"github.com/T4t4KAU/TikBase/pkg/net/http"
 	"github.com/T4t4KAU/TikBase/pkg/net/resp"
 	"github.com/T4t4KAU/TikBase/pkg/net/tiko"
 	"github.com/T4t4KAU/TikBase/pkg/poll"
 	"strconv"
 	"time"
 )
-
-type Proxy struct {
-	limiter *Limiter
-	eng     iface.Engine
-	reactor *poll.NetPoll
-}
 
 func NewHandler(name string, eng iface.Engine) (iface.Handler, error) {
 	switch name {
@@ -30,7 +24,7 @@ func NewHandler(name string, eng iface.Engine) (iface.Handler, error) {
 	}
 }
 
-func Start(server config.ServerConfig, store config.StoreConfig) (err error) {
+func Start(server config.ServerConfig, store config.StoreConfig, replica config.ReplicaConfig) (err error) {
 	var eng iface.Engine
 
 	switch server.EngineName {
@@ -47,23 +41,21 @@ func Start(server config.ServerConfig, store config.StoreConfig) (err error) {
 		panic(err)
 	}
 
+	svc := region.New(replica.Id, replica.Address, eng, replica)
+	go func() {
+		svc.Start()
+	}()
+
 	p, _ := poll.New(poll.Config{
 		Address:    ":" + strconv.Itoa(server.ListenPort),
 		MaxConnect: int32(server.WorkersNum),
-		Timeout:    time.Second,
+		Timeout:    2 * time.Second,
 	}, handler)
 
 	err = p.Run()
 	if err != nil {
 		panic(err)
 	}
-
-	go func() {
-		err := http.StartServer(":9090", eng)
-		if err != nil {
-			panic(err)
-		}
-	}()
 
 	return nil
 }

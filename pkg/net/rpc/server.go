@@ -115,13 +115,13 @@ func (srv *Server) readRequestHeader(cc codec.Codec) (*codec.Header, error) {
 func (srv *Server) findService(serviceMethod string) (svc *service, mtype *methodType, err error) {
 	index := strings.LastIndex(serviceMethod, ".")
 	if index < 0 {
-		err = errors.New("rpc server: service/method request ill-formed: " + serviceMethod)
+		err = errors.New("rpc server: cluster/method request ill-formed: " + serviceMethod)
 		return
 	}
 	serviceName, methodName := serviceMethod[:index], serviceMethod[index+1:]
 	svci, ok := srv.serviceMap.Load(serviceName)
 	if !ok {
-		err = errors.New("rpc server: can't find service " + serviceName)
+		err = errors.New("rpc server: can't find cluster " + serviceName)
 		return
 	}
 	svc = svci.(*service)
@@ -220,7 +220,7 @@ func Accept(lis net.Listener) {
 func (srv *Server) Register(rcvr interface{}) error {
 	s := newService(rcvr)
 	if _, ok := srv.serviceMap.LoadOrStore(s.name, s); ok {
-		return errors.New("rpc: service already defined: " + s.name)
+		return errors.New("rpc: cluster already defined: " + s.name)
 	}
 	return nil
 }

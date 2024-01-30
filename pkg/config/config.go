@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"github.com/T4t4KAU/TikBase/engine/bases"
-
 	"github.com/spf13/viper"
 )
 
@@ -140,4 +139,30 @@ func BaseEngineConfig(config BaseStoreConfig) (bases.Options, bases.WriteBatchOp
 	}
 
 	return baseOption, txOption, iterOption
+}
+
+type ReplicaConfig struct {
+	Id            string `mapstructure:"node_id"`
+	Count         int    `mapstructure:"replicas"`
+	Address       string `mapstructure:"bind_addr"`
+	DirPath       string `mapstructure:"dir_path"`
+	WorkerNum     int    `mapstructure:"worker_num"`
+	SnapshotCount int    `mapstructure:"snapshot_count"`
+	Timeout       int    `mapstructure:"timeout"`
+}
+
+func ReadReplicaConfigFile(filePath string) (ReplicaConfig, error) {
+	viper.SetConfigFile(filePath)
+	viper.SetConfigType("yaml")
+	err := viper.ReadInConfig()
+	if err != nil {
+		return ReplicaConfig{}, err
+	}
+
+	var config ReplicaConfig
+	err = viper.Unmarshal(&config)
+	if err != nil {
+		return ReplicaConfig{}, fmt.Errorf("failed to unmarshal config: %w", err)
+	}
+	return config, nil
 }

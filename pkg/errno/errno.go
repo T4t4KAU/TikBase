@@ -26,6 +26,7 @@ var (
 	ErrZSetDataIsEmpty = errors.New("zset data is empty")
 
 	ErrConnectionClosed = errors.New("connection closed")
+	ErrRaftOpenTimeout  = errors.New("timeout waiting for initial logs application")
 )
 
 var (

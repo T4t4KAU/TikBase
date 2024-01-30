@@ -22,6 +22,7 @@ type Reply struct {
 	Success bool
 }
 
+// NewService 创建共识服务
 func NewService(nodeId, addr string, peer *Peer) *Service {
 	p, err := poll.New(poll.Config{
 		Address:    addr,
@@ -39,6 +40,7 @@ func NewService(nodeId, addr string, peer *Peer) *Service {
 	}
 }
 
+// AddNode 添加节点
 func (s *Service) AddNode(args Args, reply *Reply) error {
 	err := s.peer.Join(args.NodeId, args.ServiceAddr, args.RaftAddr)
 	if err != nil {
@@ -49,6 +51,7 @@ func (s *Service) AddNode(args Args, reply *Reply) error {
 	return nil
 }
 
+// Start 启动服务
 func (s *Service) Start() error {
 	err := rpc.Register(s)
 	if err != nil {

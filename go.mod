@@ -3,8 +3,11 @@ module github.com/T4t4KAU/TikBase
 go 1.20
 
 require (
+	github.com/bytedance/sonic v1.10.2
 	github.com/gofrs/flock v0.8.1
 	github.com/google/btree v1.1.2
+	github.com/hashicorp/raft v1.6.0
+	github.com/hashicorp/raft-boltdb v0.0.0-20231211162105-6c830fa4535e
 	github.com/plar/go-adaptive-radix-tree v1.0.5
 	github.com/spf13/viper v1.17.0
 	github.com/stretchr/testify v1.8.4
@@ -15,7 +18,6 @@ require (
 require (
 	github.com/armon/go-metrics v0.4.1 // indirect
 	github.com/boltdb/bolt v1.3.1 // indirect
-	github.com/bytedance/sonic v1.10.2 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
 	github.com/chenzhuoyu/iasm v0.9.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
@@ -27,8 +29,6 @@ require (
 	github.com/hashicorp/go-msgpack/v2 v2.1.1 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/hashicorp/raft v1.6.0 // indirect
-	github.com/hashicorp/raft-boltdb v0.0.0-20231211162105-6c830fa4535e // indirect
 	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect

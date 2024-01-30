@@ -211,3 +211,25 @@ func KeyBytes(key string) [][]byte {
 func KeyValueBytes(key string, value []byte) [][]byte {
 	return [][]byte{S2B(key), value}
 }
+
+func SharePrefixLen(a, b []byte) int {
+	var i int
+
+	for ; i < len(a) && i < len(b); i++ {
+		if a[i] != b[i] {
+			break
+		}
+	}
+
+	return i
+}
+
+func GetSeparatorBetween(a, b []byte) []byte {
+	if len(a) == 0 {
+		sep := make([]byte, len(b))
+		copy(sep, b)
+		return append(sep[:len(b)-1], sep[len(b)-1]-1)
+	}
+
+	return a
+}

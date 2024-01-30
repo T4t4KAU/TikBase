@@ -58,7 +58,7 @@ func newService(rcvr interface{}) *service {
 
 	// 结构体是否导出
 	if !ast.IsExported(s.name) {
-		log.Fatalf("rpc server: %s is not a valid service name", s.name)
+		log.Fatalf("rpc server: %s is not a valid region name", s.name)
 	}
 
 	// 注册所有方法
