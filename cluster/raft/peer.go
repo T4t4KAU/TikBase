@@ -72,6 +72,7 @@ func (peer *Peer) Bootstrap(single bool, localId string) error {
 	config := raft.DefaultConfig()
 	config.LocalID = raft.ServerID(localId)
 
+	// 检查普及是否存在 如果不存在则说明是新节点
 	newNode := !pathExists(filepath.Join(peer.dirPath, "raft.db"))
 	addr, err := net.ResolveTCPAddr("tcp", peer.address)
 	if err != nil {

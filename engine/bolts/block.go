@@ -9,6 +9,7 @@ import (
 )
 
 type Block struct {
+	conf         *Config
 	buffer       [30]byte
 	record       *bytes.Buffer
 	entriesCount int
@@ -18,9 +19,16 @@ type Block struct {
 type MemTableConstructor func() iface.MemTable
 
 type Index struct {
-	Key             []byte
-	PrevBlockOffset uint64
-	PrevBlockSize   uint64
+	Key             []byte // 索引的key
+	PrevBlockOffset uint64 // 索引前一个block起始位置在sstable中的偏移
+	PrevBlockSize   uint64 // 索引前一个block的大小
+}
+
+func NewBlock(conf *Config) *Block {
+	return &Block{
+		conf:   conf,
+		record: bytes.NewBuffer([]byte{}),
+	}
 }
 
 func (b *Block) Append(key, value []byte) {

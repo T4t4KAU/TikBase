@@ -41,9 +41,9 @@ type Engine interface {
 }
 
 type KVStore interface {
-	Get(key string) (Value, bool)
-	Set(key string, value Value) bool
-	Del(key string) bool
+	Get(key string) (Value, error)
+	Set(key string, value Value) error
+	Del(key string) error
 }
 
 type Result interface {

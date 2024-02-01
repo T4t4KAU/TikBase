@@ -2,6 +2,11 @@ package bolts
 
 import "bytes"
 
+type KVPair struct {
+	Key   []byte
+	Value []byte
+}
+
 type Node struct {
 	conf          *Config
 	file          string
@@ -43,7 +48,7 @@ func (n *Node) Get(key []byte) ([]byte, bool, error) {
 	}
 
 	bitmap := n.blockToFilter[index.PrevBlockOffset]
-	if ok = n.conf.filter.Exist(bitmap, key); !ok {
+	if ok = n.conf.Filter.Exist(bitmap, key); !ok {
 		return nil, false, nil
 	}
 
