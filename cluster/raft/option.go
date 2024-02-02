@@ -12,7 +12,7 @@ type Option struct {
 }
 
 var DefaultOption = Option{
-	RaftDir:       "raft",
+	RaftDir:       "./raft",
 	RaftBind:      "127.0.0.1:9092",
 	MaxPool:       10,
 	SnapshotCount: 2,

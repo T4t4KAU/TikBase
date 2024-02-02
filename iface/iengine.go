@@ -27,6 +27,28 @@ const (
 	NIL
 )
 
+var ternaryIns = map[INS]struct{}{
+	GET_HASH: {},
+	SET_HASH: {},
+	DEL_HASH: {},
+}
+
+var binaryIns = map[INS]struct{}{
+	SET_STR: {},
+	GET_STR: {},
+	DEL:     {},
+}
+
+func (ins INS) BIN() bool {
+	_, ok := binaryIns[ins]
+	return ok
+}
+
+func (ins INS) TER() bool {
+	_, ok := ternaryIns[ins]
+	return ok
+}
+
 func (ins INS) String() string {
 	if s, ok := insMap[ins]; ok {
 		return s

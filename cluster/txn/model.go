@@ -50,6 +50,7 @@ type Transaction struct {
 	CreatedAt  time.Time
 }
 
+// NewTransaction 创建事务
 func NewTransaction(txId string, componentEntities []*ComponentEntity) *Transaction {
 	entities := make([]*ComponentTryEntity, 0, len(componentEntities))
 	for _, componentEntity := range componentEntities {

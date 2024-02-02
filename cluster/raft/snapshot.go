@@ -1,7 +1,7 @@
 package raft
 
 import (
-	"github.com/bytedance/sonic"
+	"encoding/json"
 	"github.com/hashicorp/raft"
 )
 
@@ -11,7 +11,7 @@ type Snapshot struct {
 
 func (s *Snapshot) Persist(sink raft.SnapshotSink) error {
 	err := func() error {
-		b, e := sonic.Marshal(s.data)
+		b, e := json.Marshal(s.data)
 		if e != nil {
 			return e
 		}

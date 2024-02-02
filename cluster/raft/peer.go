@@ -1,13 +1,13 @@
 package raft
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/T4t4KAU/TikBase/engine"
 	"github.com/T4t4KAU/TikBase/iface"
 	"github.com/T4t4KAU/TikBase/pkg/errno"
 	"github.com/T4t4KAU/TikBase/pkg/tlog"
 	"github.com/T4t4KAU/TikBase/pkg/utils"
-	"github.com/bytedance/sonic"
 	"github.com/hashicorp/raft"
 	raftboltdb "github.com/hashicorp/raft-boltdb"
 	"net"
@@ -130,10 +130,12 @@ func pathExists(path string) bool {
 	return true
 }
 
+// LeaderAddr 返回主节点地址
 func (peer *Peer) LeaderAddr() string {
 	return string(peer.raftNode.Leader())
 }
 
+// LeaderID 返回主节点ID
 func (peer *Peer) LeaderID() (string, error) {
 	addr := peer.LeaderAddr()
 	config := peer.raftNode.GetConfiguration()
@@ -142,6 +144,7 @@ func (peer *Peer) LeaderID() (string, error) {
 		return "", err
 	}
 
+	// 遍历所有节点
 	servers := peer.raftNode.GetConfiguration().Configuration().Servers
 	for _, server := range servers {
 		if server.Address == raft.ServerAddress(addr) {
@@ -224,7 +227,7 @@ func (peer *Peer) Set(key string, val []byte) error {
 		Key:   key,
 		Value: val,
 	}
-	b, err := sonic.Marshal(c)
+	b, err := json.Marshal(c)
 	if err != nil {
 		return err
 	}
@@ -279,7 +282,7 @@ func (peer *Peer) HSet(key, field string, val []byte) error {
 		Value: val,
 	}
 
-	b, err := sonic.Marshal(c)
+	b, err := json.Marshal(c)
 	if err != nil {
 		return err
 	}
@@ -299,7 +302,7 @@ func (peer *Peer) HDel(key, field string) error {
 		Field: field,
 	}
 
-	b, err := sonic.Marshal(c)
+	b, err := json.Marshal(c)
 	if err != nil {
 		return err
 	}
@@ -308,6 +311,7 @@ func (peer *Peer) HDel(key, field string) error {
 	return f.Error()
 }
 
+// SAdd 向集合中添加元素
 func (peer *Peer) SAdd(key string, element []byte) error {
 	if peer.raftNode.State() != raft.Leader {
 		return raft.ErrNotLeader
@@ -319,7 +323,7 @@ func (peer *Peer) SAdd(key string, element []byte) error {
 		Value: element,
 	}
 
-	b, err := sonic.Marshal(c)
+	b, err := json.Marshal(c)
 	if err != nil {
 		return err
 	}
@@ -328,6 +332,7 @@ func (peer *Peer) SAdd(key string, element []byte) error {
 	return f.Error()
 }
 
+// SRem 判断元素在集合中是否存在
 func (peer *Peer) SRem(key string, element []byte) error {
 	if peer.raftNode.State() != raft.Leader {
 		return raft.ErrNotLeader
@@ -339,7 +344,7 @@ func (peer *Peer) SRem(key string, element []byte) error {
 		Value: element,
 	}
 
-	b, err := sonic.Marshal(c)
+	b, err := json.Marshal(c)
 	if err != nil {
 		return err
 	}
@@ -348,6 +353,7 @@ func (peer *Peer) SRem(key string, element []byte) error {
 	return f.Error()
 }
 
+// LPush 添加新元素
 func (peer *Peer) LPush(key string, element []byte) error {
 	if peer.raftNode.State() != raft.Leader {
 		return raft.ErrNotLeader
@@ -359,7 +365,7 @@ func (peer *Peer) LPush(key string, element []byte) error {
 		Value: element,
 	}
 
-	b, err := sonic.Marshal(c)
+	b, err := json.Marshal(c)
 	if err != nil {
 		return err
 	}
@@ -368,6 +374,7 @@ func (peer *Peer) LPush(key string, element []byte) error {
 	return f.Error()
 }
 
+// LPop 从列表中弹出元素
 func (peer *Peer) LPop(key string, element []byte) ([]byte, error) {
 	if peer.raftNode.State() != raft.Leader {
 		return nil, raft.ErrNotLeader
@@ -379,7 +386,7 @@ func (peer *Peer) LPop(key string, element []byte) ([]byte, error) {
 		Value: element,
 	}
 
-	b, err := sonic.Marshal(c)
+	b, err := json.Marshal(c)
 	if err != nil {
 		return nil, err
 	}
@@ -392,6 +399,7 @@ func (peer *Peer) LPop(key string, element []byte) ([]byte, error) {
 	return peer.Get(key, Default)
 }
 
+// RPush 向列表右边追加元素
 func (peer *Peer) RPush(key string, element []byte) error {
 	if peer.raftNode.State() != raft.Leader {
 		return raft.ErrNotLeader
@@ -403,7 +411,7 @@ func (peer *Peer) RPush(key string, element []byte) error {
 		Value: element,
 	}
 
-	b, err := sonic.Marshal(c)
+	b, err := json.Marshal(c)
 	if err != nil {
 		return err
 	}
@@ -448,15 +456,18 @@ func (peer *Peer) Join(nodeId, joinAddr, raftAddr string) error {
 	return nil
 }
 
+// SetMeta 设置元数据
 func (peer *Peer) SetMeta(key, value string) error {
 	return peer.Set(key, utils.S2B(value))
 }
 
+// GetMeta 获取元数据
 func (peer *Peer) GetMeta(key string) (string, error) {
 	val, err := peer.Get(key, Stale)
 	return utils.B2S(val), err
 }
 
+// DelMeta 删除元数据
 func (peer *Peer) DelMeta(key string) error {
 	return peer.Del(key)
 }

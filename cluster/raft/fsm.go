@@ -1,9 +1,8 @@
 package raft
 
 import (
+	"encoding/json"
 	"fmt"
-	"github.com/T4t4KAU/TikBase/pkg/utils"
-	"github.com/bytedance/sonic"
 	"github.com/hashicorp/raft"
 	"io"
 )
@@ -13,13 +12,12 @@ func (fsm *FSM) Apply(entry *raft.Log) any {
 	var c command
 
 	// 反序列化数据
-	if err := sonic.Unmarshal(entry.Data, &c); err != nil {
+	if err := json.Unmarshal(entry.Data, &c); err != nil {
 		panic(fmt.Sprintf("failed to unmarshal command: %s", err.Error()))
 	}
 
 	// 封装执行参数
-	args := utils.KeyValueBytes(c.Key, c.Value)
-	return fsm.store.Exec(c.Ins, args).Error()
+	return fsm.store.Exec(c.Ins, c.Args()).Error()
 }
 
 // Snapshot 状态机快照

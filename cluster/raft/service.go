@@ -62,6 +62,7 @@ func (s *Service) Start() error {
 
 type ServiceHandler struct{}
 
+// Handle 处理连接
 func (h *ServiceHandler) Handle(conn iface.Connection) {
 	rpc.ServeConn(conn)
 }

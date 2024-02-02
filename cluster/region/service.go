@@ -11,6 +11,7 @@ type Service struct {
 	services map[string]iface.IService
 }
 
+// New 创建服务
 func New(nodeId, addr string, eng iface.Engine, conf config.ReplicaConfig) *Service {
 	svc := &Service{
 		services: make(map[string]iface.IService),
@@ -32,6 +33,7 @@ func New(nodeId, addr string, eng iface.Engine, conf config.ReplicaConfig) *Serv
 	return svc
 }
 
+// Start 启动服务
 func (s *Service) Start() {
 	for _, svc := range s.services {
 		go func(service iface.IService) {
@@ -47,6 +49,7 @@ func (s *Service) Register(name string, service iface.IService) {
 	s.services[name] = service
 }
 
+// Remove 删除服务
 func (s *Service) Remove(name string) bool {
 	if _, ok := s.services[name]; ok {
 		delete(s.services, name)

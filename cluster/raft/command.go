@@ -1,11 +1,12 @@
 package raft
 
 import (
+	"encoding/json"
 	"github.com/T4t4KAU/TikBase/iface"
-	"github.com/bytedance/sonic"
+	"github.com/T4t4KAU/TikBase/pkg/utils"
 )
 
-// 状态机命令
+// Raft 状态机指令
 type command struct {
 	Ins   iface.INS `json:"op,omitempty"`
 	Key   string    `json:"key,omitempty"`
@@ -23,5 +24,24 @@ const (
 )
 
 func (c command) Encode() ([]byte, error) {
-	return sonic.Marshal(c)
+	return json.Marshal(c)
+}
+
+func (c command) Args() [][]byte {
+	if c.Ins.BIN() {
+		return [][]byte{
+			utils.S2B(c.Key),
+			c.Value,
+		}
+	} else if c.Ins.TER() {
+		return [][]byte{
+			utils.S2B(c.Key),
+			utils.S2B(c.Field),
+			c.Value,
+		}
+	} else {
+		return [][]byte{
+			utils.S2B(c.Key),
+		}
+	}
 }
