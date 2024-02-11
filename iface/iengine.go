@@ -1,6 +1,8 @@
 package iface
 
-import "github.com/T4t4KAU/TikBase/engine/data"
+import (
+	"github.com/T4t4KAU/TikBase/engine/data"
+)
 
 type INS int
 
@@ -127,11 +129,6 @@ type IWriteBatch interface {
 
 type IService interface {
 	Start() error
-}
-
-type MemTable interface {
-	Put(key, value []byte)
-	Get(key []byte) ([]byte, bool)
 }
 
 type Filter interface {

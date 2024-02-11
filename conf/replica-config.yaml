@@ -1,7 +1,7 @@
 node_id: 2
-replicas: 3
-bind_addr: "127.0.0.1:10043"
-dir_path: "./temp/raftdb"
+bind_addr: "192.168.68.3:10041"
+dir_path: "./temp"
 worker_num: 10
 snapshot_count: 2
 timeout: 600
+join_addr: "192.168.68.2:10041"

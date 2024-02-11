@@ -46,13 +46,13 @@ func Start(server config.ServerConfig, store config.StoreConfig, replica config.
 		svc.Start()
 	}()
 
-	p, _ := poll.New(poll.Config{
+	po, _ := poll.New(poll.Config{
 		Address:    ":" + strconv.Itoa(server.ListenPort),
 		MaxConnect: int32(server.WorkersNum),
 		Timeout:    2 * time.Second,
 	}, handler)
 
-	err = p.Run()
+	err = po.Run()
 	if err != nil {
 		panic(err)
 	}

@@ -54,6 +54,10 @@ func (p *NetPoll) Run() error {
 	return nil
 }
 
+func (p *NetPoll) Close() {
+	p.closeCh <- struct{}{}
+}
+
 func (p *NetPoll) EventLoop() {
 	lis, err := net.Listen("tcp", p.address)
 	if err != nil {

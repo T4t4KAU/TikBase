@@ -8,7 +8,7 @@ import (
 var logo = " _____ _ _    ____                 \n|_   _(_) | _| __ )  __ _ ___  ___ \n  | | | | |/ /  _ \\ / _` / __|/ _ \\\n  | | | |   <| |_) | (_| \\__ \\  __/\n  |_| |_|_|\\_\\____/ \\__,_|___/\\___|\n"
 
 func start() {
-	serverConf, err := config.ReadServerConfigFile("./config/server-config.yaml")
+	serverConf, err := config.ReadServerConfigFile("./conf/server-config.yaml")
 	if err != nil {
 		panic(err)
 	}
@@ -17,9 +17,9 @@ func start() {
 
 	switch serverConf.EngineName {
 	case "base":
-		storeConf, err = config.ReadBaseConfigFile("./config/base-config.yaml")
+		storeConf, err = config.ReadBaseConfigFile("./conf/base-config.yaml")
 	case "cache":
-		storeConf, err = config.ReadCacheConfigFile("./config/cache-config.yaml")
+		storeConf, err = config.ReadCacheConfigFile("./conf/cache-config.yaml")
 	default:
 		panic("unknown engine name")
 	}
@@ -27,7 +27,7 @@ func start() {
 		panic(err)
 	}
 
-	replicaConf, err := config.ReadReplicaConfigFile("./config/replica-config.yaml")
+	replicaConf, err := config.ReadReplicaConfigFile("./conf/replica-config.yaml")
 	if err != nil {
 		panic(err)
 	}

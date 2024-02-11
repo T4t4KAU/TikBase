@@ -1,8 +1,10 @@
 package raft
 
 import (
+	"fmt"
 	"github.com/T4t4KAU/TikBase/iface"
 	"github.com/T4t4KAU/TikBase/pkg/poll"
+	"github.com/T4t4KAU/TikBase/pkg/utils"
 	"net/rpc"
 )
 
@@ -13,9 +15,9 @@ type Service struct {
 }
 
 type Args struct {
-	NodeId      string
-	ServiceAddr string
-	RaftAddr    string
+	NodeId   string
+	JoinAddr string
+	RaftAddr string
 }
 
 type Reply struct {
@@ -24,9 +26,10 @@ type Reply struct {
 
 // NewService 创建共识服务
 func NewService(nodeId, addr string, peer *Peer) *Service {
-	p, err := poll.New(poll.Config{
-		Address:    addr,
-		MaxConnect: 10,
+	_, port := utils.SplitAddressAndPort(addr)
+	po, err := poll.New(poll.Config{
+		Address:    "127.0.0.1:" + port,
+		MaxConnect: 20,
 		Timeout:    raftTimeout,
 	}, &ServiceHandler{})
 	if err != nil {
@@ -36,13 +39,13 @@ func NewService(nodeId, addr string, peer *Peer) *Service {
 	return &Service{
 		peer:   peer,
 		nodeId: nodeId,
-		poll:   p,
+		poll:   po,
 	}
 }
 
 // AddNode 添加节点
 func (s *Service) AddNode(args Args, reply *Reply) error {
-	err := s.peer.Join(args.NodeId, args.ServiceAddr, args.RaftAddr)
+	err := s.peer.Join(args.NodeId, args.JoinAddr, args.RaftAddr)
 	if err != nil {
 		reply.Success = false
 		return err
@@ -53,11 +56,24 @@ func (s *Service) AddNode(args Args, reply *Reply) error {
 
 // Start 启动服务
 func (s *Service) Start() error {
-	err := rpc.Register(s)
+	fmt.Printf("start raft service at %s...\n", s.peer.address)
+	err := rpc.RegisterName("RaftService", s)
 	if err != nil {
 		return err
 	}
+
+	// 启动节点
+	err = s.peer.Bootstrap(s.nodeId)
+	if err != nil {
+		return err
+	}
+
+	// 开启RPC服务监听
 	return s.poll.Run()
+}
+
+func (s *Service) Close() {
+	s.poll.Close()
 }
 
 type ServiceHandler struct{}

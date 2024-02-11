@@ -16,7 +16,7 @@ func (fsm *FSM) Apply(entry *raft.Log) any {
 		panic(fmt.Sprintf("failed to unmarshal command: %s", err.Error()))
 	}
 
-	// 封装执行参数
+	// 执行命令
 	return fsm.store.Exec(c.Ins, c.Args()).Error()
 }
 

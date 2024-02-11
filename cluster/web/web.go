@@ -5,11 +5,13 @@ import (
 	"github.com/T4t4KAU/TikBase/pkg/net/http"
 )
 
+// Service Web服务
 type Service struct {
-	Address string
-	eng     iface.Engine
+	Address string       // 服务地址
+	eng     iface.Engine // 存储引擎
 }
 
+// NewService 创建Web服务
 func NewService(addr string, eng iface.Engine) *Service {
 	return &Service{
 		Address: addr,
@@ -17,6 +19,7 @@ func NewService(addr string, eng iface.Engine) *Service {
 	}
 }
 
+// Start 启动服务
 func (s *Service) Start() error {
 	return http.StartServer(s.Address, s.eng)
 }

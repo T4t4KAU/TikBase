@@ -3,7 +3,6 @@ package raft
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/T4t4KAU/TikBase/engine"
 	"github.com/T4t4KAU/TikBase/iface"
 	"github.com/T4t4KAU/TikBase/pkg/errno"
 	"github.com/T4t4KAU/TikBase/pkg/tlog"
@@ -14,10 +13,6 @@ import (
 	"os"
 	"path/filepath"
 	"time"
-)
-
-const (
-	FileName = "raft.db"
 )
 
 const (
@@ -37,17 +32,13 @@ type Peer struct {
 	address   string       // 通信地址
 	snapCount int          // 快照数目
 	maxPool   int
+	single    bool
 }
 
 type FSM Peer
 
 // NewPeer 创建节点
 func NewPeer(option Option, id string, eng iface.Engine) (*Peer, error) {
-	eng, err := engine.NewEngine(option.Store)
-	if err != nil {
-		return nil, err
-	}
-
 	return &Peer{
 		id:        id,
 		store:     eng,
@@ -55,6 +46,7 @@ func NewPeer(option Option, id string, eng iface.Engine) (*Peer, error) {
 		dirPath:   option.RaftDir,
 		snapCount: option.SnapshotCount,
 		maxPool:   option.MaxPool,
+		single:    option.Single,
 	}, nil
 }
 
@@ -68,7 +60,7 @@ func (peer *Peer) ID() string {
 }
 
 // Bootstrap 节点启动
-func (peer *Peer) Bootstrap(single bool, localId string) error {
+func (peer *Peer) Bootstrap(localId string) error {
 	config := raft.DefaultConfig()
 	config.LocalID = raft.ServerID(localId)
 
@@ -83,12 +75,13 @@ func (peer *Peer) Bootstrap(single bool, localId string) error {
 		return err
 	}
 
+	// 创建文件快照
 	snapshots, err := raft.NewFileSnapshotStore(peer.dirPath, retainSnapshotCount, os.Stderr)
 	if err != nil {
 		return fmt.Errorf("file snapshot store: %s", err)
 	}
 
-	var logStore raft.LogStore
+	var logStore raft.LogStore // 日志存储
 	var stableStore raft.StableStore
 
 	boltDB, err := raftboltdb.NewBoltStore(filepath.Join(peer.dirPath, "raft.db"))
@@ -98,6 +91,7 @@ func (peer *Peer) Bootstrap(single bool, localId string) error {
 	logStore = boltDB
 	stableStore = boltDB
 
+	// 创建状态机
 	ra, err := raft.NewRaft(config, (*FSM)(peer), logStore, stableStore, snapshots, transport)
 	if err != nil {
 		return fmt.Errorf("new raft: %s", err)
@@ -105,7 +99,7 @@ func (peer *Peer) Bootstrap(single bool, localId string) error {
 	peer.raftNode = ra
 
 	// 单节点启动
-	if single && newNode {
+	if peer.single && newNode {
 		tlog.Infof("bootstrap needed")
 		conf := raft.Configuration{
 			Servers: []raft.Server{
@@ -236,22 +230,6 @@ func (peer *Peer) Set(key string, val []byte) error {
 	return f.Error()
 }
 
-func (peer *Peer) Get(key string, level ConsistencyLevel) ([]byte, error) {
-	if peer.raftNode.State() != raft.Leader {
-		return []byte{}, raft.ErrNotLeader
-	}
-
-	if level == Consistent {
-		if err := peer.consistentRead(); err != nil {
-			return []byte{}, err
-		}
-	}
-
-	args := utils.KeyBytes(key)
-	res := peer.store.Exec(iface.GET_STR, args)
-	return res.Data(), res.Error()
-}
-
 func (peer *Peer) Del(key string) error {
 	if peer.raftNode.State() != raft.Leader {
 		return raft.ErrNotLeader
@@ -268,155 +246,6 @@ func (peer *Peer) Del(key string) error {
 
 	f := peer.raftNode.Apply(b, raftTimeout)
 	return f.Error()
-}
-
-func (peer *Peer) HSet(key, field string, val []byte) error {
-	if peer.raftNode.State() != raft.Leader {
-		return raft.ErrNotLeader
-	}
-
-	c := &command{
-		Ins:   iface.SET_HASH,
-		Key:   key,
-		Field: field,
-		Value: val,
-	}
-
-	b, err := json.Marshal(c)
-	if err != nil {
-		return err
-	}
-
-	f := peer.raftNode.Apply(b, raftTimeout)
-	return f.Error()
-}
-
-func (peer *Peer) HDel(key, field string) error {
-	if peer.raftNode.State() != raft.Leader {
-		return raft.ErrNotLeader
-	}
-
-	c := &command{
-		Ins:   iface.DEL_HASH,
-		Key:   key,
-		Field: field,
-	}
-
-	b, err := json.Marshal(c)
-	if err != nil {
-		return err
-	}
-
-	f := peer.raftNode.Apply(b, raftTimeout)
-	return f.Error()
-}
-
-// SAdd 向集合中添加元素
-func (peer *Peer) SAdd(key string, element []byte) error {
-	if peer.raftNode.State() != raft.Leader {
-		return raft.ErrNotLeader
-	}
-
-	c := &command{
-		Ins:   iface.ADD_SET,
-		Key:   key,
-		Value: element,
-	}
-
-	b, err := json.Marshal(c)
-	if err != nil {
-		return err
-	}
-
-	f := peer.raftNode.Apply(b, raftTimeout)
-	return f.Error()
-}
-
-// SRem 判断元素在集合中是否存在
-func (peer *Peer) SRem(key string, element []byte) error {
-	if peer.raftNode.State() != raft.Leader {
-		return raft.ErrNotLeader
-	}
-
-	c := &command{
-		Ins:   iface.REM_SET,
-		Key:   key,
-		Value: element,
-	}
-
-	b, err := json.Marshal(c)
-	if err != nil {
-		return err
-	}
-
-	f := peer.raftNode.Apply(b, raftTimeout)
-	return f.Error()
-}
-
-// LPush 添加新元素
-func (peer *Peer) LPush(key string, element []byte) error {
-	if peer.raftNode.State() != raft.Leader {
-		return raft.ErrNotLeader
-	}
-
-	c := &command{
-		Ins:   iface.LEFT_PUSH_LIST,
-		Key:   key,
-		Value: element,
-	}
-
-	b, err := json.Marshal(c)
-	if err != nil {
-		return err
-	}
-
-	f := peer.raftNode.Apply(b, raftTimeout)
-	return f.Error()
-}
-
-// LPop 从列表中弹出元素
-func (peer *Peer) LPop(key string, element []byte) ([]byte, error) {
-	if peer.raftNode.State() != raft.Leader {
-		return nil, raft.ErrNotLeader
-	}
-
-	c := &command{
-		Ins:   iface.LEFT_POP_LIST,
-		Key:   key,
-		Value: element,
-	}
-
-	b, err := json.Marshal(c)
-	if err != nil {
-		return nil, err
-	}
-
-	err = peer.raftNode.Apply(b, raftTimeout).Error()
-	if err != nil {
-		return nil, err
-	}
-
-	return peer.Get(key, Default)
-}
-
-// RPush 向列表右边追加元素
-func (peer *Peer) RPush(key string, element []byte) error {
-	if peer.raftNode.State() != raft.Leader {
-		return raft.ErrNotLeader
-	}
-
-	c := &command{
-		Ins:   iface.RIGHT_PUSH_LIST,
-		Key:   key,
-		Value: element,
-	}
-
-	b, err := json.Marshal(c)
-	if err != nil {
-		return err
-	}
-
-	return peer.raftNode.Apply(b, raftTimeout).Error()
 }
 
 // Join 节点加入集群
@@ -459,12 +288,6 @@ func (peer *Peer) Join(nodeId, joinAddr, raftAddr string) error {
 // SetMeta 设置元数据
 func (peer *Peer) SetMeta(key, value string) error {
 	return peer.Set(key, utils.S2B(value))
-}
-
-// GetMeta 获取元数据
-func (peer *Peer) GetMeta(key string) (string, error) {
-	val, err := peer.Get(key, Stale)
-	return utils.B2S(val), err
 }
 
 // DelMeta 删除元数据

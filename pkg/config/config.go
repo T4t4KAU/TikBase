@@ -149,6 +149,7 @@ type ReplicaConfig struct {
 	WorkerNum     int    `mapstructure:"worker_num"`
 	SnapshotCount int    `mapstructure:"snapshot_count"`
 	Timeout       int    `mapstructure:"timeout"`
+	JoinAddr      string `mapstructure:"join_addr"`
 }
 
 func ReadReplicaConfigFile(filePath string) (ReplicaConfig, error) {

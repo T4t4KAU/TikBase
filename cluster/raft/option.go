@@ -9,6 +9,7 @@ type Option struct {
 	SnapshotCount int
 	Timeout       time.Duration
 	Store         string
+	Single        bool
 }
 
 var DefaultOption = Option{

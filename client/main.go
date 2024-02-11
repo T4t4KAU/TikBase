@@ -20,7 +20,7 @@ var (
 	errNumOfArguments = errors.New("invalid number of arguments")
 	errInvalidCommand = errors.New("invalid command")
 
-	address = "127.0.0.1:9096"
+	address = "192.168.68.2:9096"
 )
 
 func main() {
@@ -29,7 +29,7 @@ func main() {
 
 	var err error
 	// 创建客户端
-	cli, err = client.New("127.0.0.1:9096", "resp")
+	cli, err = client.New(address, "resp")
 	if err != nil {
 		panic(err)
 	}

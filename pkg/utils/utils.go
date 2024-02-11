@@ -204,6 +204,14 @@ func ValidateAddress(address string) bool {
 	return true
 }
 
+func SplitAddressAndPort(address string) (string, string) {
+	if !strings.Contains(address, ":") {
+		return address, ""
+	}
+	parts := strings.Split(address, ":")
+	return parts[0], parts[1]
+}
+
 func KeyBytes(key string) [][]byte {
 	return [][]byte{S2B(key)}
 }
