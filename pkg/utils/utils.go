@@ -241,3 +241,10 @@ func GetSeparatorBetween(a, b []byte) []byte {
 
 	return a
 }
+
+func PathExists(path string) bool {
+	if _, err := os.Lstat(path); err != nil && os.IsNotExist(err) {
+		return false
+	}
+	return true
+}

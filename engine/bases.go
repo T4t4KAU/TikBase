@@ -37,6 +37,10 @@ func (r *BaseResult) Status() int {
 	return 0
 }
 
+func (r *BaseResult) String() string {
+	return utils.B2S(r.data)
+}
+
 func NewBaseResult(succ bool, data []byte, err error) *BaseResult {
 	return &BaseResult{
 		succ: true,

@@ -19,7 +19,15 @@ func NewService(addr string, eng iface.Engine) *Service {
 	}
 }
 
+func (s *Service) Name() string {
+	return "web-service"
+}
+
 // Start 启动服务
 func (s *Service) Start() error {
-	return http.StartServer(s.Address, s.eng)
+	go func() {
+		_ = http.StartServer(s.Address, s.eng)
+	}()
+
+	return nil
 }

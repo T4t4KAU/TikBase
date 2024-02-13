@@ -72,6 +72,10 @@ func (s *Service) Start() error {
 	return s.poll.Run()
 }
 
+func (s *Service) Name() string {
+	return "raft-service"
+}
+
 func (s *Service) Close() {
 	s.poll.Close()
 }
@@ -81,4 +85,8 @@ type ServiceHandler struct{}
 // Handle 处理连接
 func (h *ServiceHandler) Handle(conn iface.Connection) {
 	rpc.ServeConn(conn)
+}
+
+func AddNode(nodeId, joinAddr, serviceAddr, raftAddr string) (bool, error) {
+	return true, nil
 }

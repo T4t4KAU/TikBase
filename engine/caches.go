@@ -77,6 +77,10 @@ func (r *CacheResult) Data() []byte {
 	return r.data
 }
 
+func (r *CacheResult) String() string {
+	return utils.B2S(r.data)
+}
+
 func NewSuccCacheResult() *CacheResult {
 	return &CacheResult{
 		succ: true,

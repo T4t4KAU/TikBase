@@ -41,7 +41,7 @@ func Start(server config.ServerConfig, store config.StoreConfig, replica config.
 		panic(err)
 	}
 
-	svc := region.New(replica.Id, replica.Address, eng, replica)
+	svc := region.New(replica.Id, eng, replica)
 	go func() {
 		svc.Start()
 	}()

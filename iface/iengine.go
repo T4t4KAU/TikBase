@@ -75,6 +75,7 @@ type Result interface {
 	Error() error
 	Status() int
 	Data() []byte
+	String() string
 }
 
 // Indexer 抽象索引接口，后续如果想要接入其他的数据结构，则直接实现这个接口即可
@@ -128,7 +129,8 @@ type IWriteBatch interface {
 }
 
 type IService interface {
-	Start() error
+	Start() error // 启动服务
+	Name() string // 服务名称
 }
 
 type Filter interface {

@@ -65,11 +65,12 @@ func (peer *Peer) Bootstrap(localId string) error {
 	config.LocalID = raft.ServerID(localId)
 
 	// 检查普及是否存在 如果不存在则说明是新节点
-	newNode := !pathExists(filepath.Join(peer.dirPath, "raft.db"))
+	newNode := !utils.PathExists(filepath.Join(peer.dirPath, "raft.db"))
 	addr, err := net.ResolveTCPAddr("tcp", peer.address)
 	if err != nil {
 		return err
 	}
+
 	transport, err := raft.NewTCPTransport(peer.address, addr, 3, 10*time.Second, os.Stderr)
 	if err != nil {
 		return err
@@ -109,19 +110,14 @@ func (peer *Peer) Bootstrap(localId string) error {
 				},
 			},
 		}
+
+		// 启动集群
 		ra.BootstrapCluster(conf)
 	} else {
 		tlog.Infof("no bootstrap needed")
 	}
 
 	return nil
-}
-
-func pathExists(path string) bool {
-	if _, err := os.Lstat(path); err != nil && os.IsNotExist(err) {
-		return false
-	}
-	return true
 }
 
 // LeaderAddr 返回主节点地址
@@ -248,8 +244,26 @@ func (peer *Peer) Del(key string) error {
 	return f.Error()
 }
 
+func (peer *Peer) Get(key string, level ConsistencyLevel) (string, error) {
+	if level != Stale {
+		if peer.raftNode.State() != raft.Leader {
+			return "", raft.ErrNotLeader
+		}
+	}
+
+	if level == Consistent {
+		if err := peer.consistentRead(); err != nil {
+			return "", err
+		}
+	}
+
+	keyBytes := utils.KeyBytes(key)
+	res := peer.Engine().Exec(iface.GET_STR, keyBytes)
+	return res.String(), res.Error()
+}
+
 // Join 节点加入集群
-func (peer *Peer) Join(nodeId, joinAddr, raftAddr string) error {
+func (peer *Peer) Join(nodeId, serviceAddr, raftAddr string) error {
 	tlog.Infof("received join request for remote node %s at %s", nodeId, raftAddr)
 
 	config := peer.raftNode.GetConfiguration()
@@ -261,13 +275,15 @@ func (peer *Peer) Join(nodeId, joinAddr, raftAddr string) error {
 	for _, s := range config.Configuration().Servers {
 		// 节点已经存在
 		if s.ID == raft.ServerID(nodeId) || s.Address == raft.ServerAddress(raftAddr) {
-			tlog.Infof("node %s at %s already memeber of region, ignoring join request", nodeId, raftAddr)
-			return nil
-		}
+			if s.Address == raft.ServerAddress(raftAddr) && s.ID == raft.ServerID(nodeId) {
+				tlog.Infof("node %s at %s already member of cluster, ignoring join request", nodeId, raftAddr)
+				return nil
+			}
 
-		future := peer.raftNode.RemoveServer(s.ID, 0, 0)
-		if err := future.Error(); err != nil {
-			return fmt.Errorf("error removing existing node %s at %s: %s", nodeId, raftAddr, err)
+			future := peer.raftNode.RemoveServer(s.ID, 0, 0)
+			if err := future.Error(); err != nil {
+				return fmt.Errorf("error removing existing node %s at %s: %s", nodeId, raftAddr, err)
+			}
 		}
 	}
 
@@ -277,7 +293,7 @@ func (peer *Peer) Join(nodeId, joinAddr, raftAddr string) error {
 		return f.Error()
 	}
 
-	if err := peer.SetMeta(nodeId, joinAddr); err != nil {
+	if err := peer.SetMeta(nodeId, serviceAddr); err != nil {
 		return err
 	}
 
@@ -293,4 +309,22 @@ func (peer *Peer) SetMeta(key, value string) error {
 // DelMeta 删除元数据
 func (peer *Peer) DelMeta(key string) error {
 	return peer.Del(key)
+}
+
+func (peer *Peer) GetMeta(key string) (string, error) {
+	return peer.Get(key, Stale)
+}
+
+func (peer *Peer) LeaderAPIAddr() string {
+	id, err := peer.LeaderID()
+	if err != nil {
+		return ""
+	}
+
+	addr, err := peer.GetMeta(id)
+	if err != nil {
+		return ""
+	}
+
+	return addr
 }
