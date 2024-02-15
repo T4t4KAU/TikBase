@@ -1,10 +1,12 @@
 package raft
 
 import (
+	"errors"
 	"fmt"
 	"github.com/T4t4KAU/TikBase/iface"
 	"github.com/T4t4KAU/TikBase/pkg/poll"
 	"github.com/T4t4KAU/TikBase/pkg/utils"
+	"github.com/hashicorp/raft"
 	"net/rpc"
 )
 
@@ -15,20 +17,22 @@ type Service struct {
 }
 
 type Args struct {
-	NodeId   string
-	JoinAddr string
-	RaftAddr string
+	NodeId      string
+	JoinAddr    string
+	RaftAddr    string
+	ServiceAddr string
 }
 
 type Reply struct {
 	Success bool
+	Message string
 }
 
 // NewService 创建共识服务
 func NewService(nodeId, addr string, peer *Peer) *Service {
 	_, port := utils.SplitAddressAndPort(addr)
 	po, err := poll.New(poll.Config{
-		Address:    "127.0.0.1:" + port,
+		Address:    ":" + port,
 		MaxConnect: 20,
 		Timeout:    raftTimeout,
 	}, &ServiceHandler{})
@@ -47,7 +51,19 @@ func NewService(nodeId, addr string, peer *Peer) *Service {
 func (s *Service) AddNode(args Args, reply *Reply) error {
 	err := s.peer.Join(args.NodeId, args.JoinAddr, args.RaftAddr)
 	if err != nil {
+		if errors.Is(err, raft.ErrNotLeader) {
+			leader := s.peer.LeaderAddr()
+			succ, err := AddNode(args.NodeId, args.JoinAddr, args.ServiceAddr, args.RaftAddr, leader)
+			if err != nil {
+				reply.Message = err.Error()
+				return err
+			}
+			reply.Success = succ
+			return nil
+		}
+
 		reply.Success = false
+		reply.Message = err.Error()
 		return err
 	}
 	reply.Success = true
@@ -73,7 +89,7 @@ func (s *Service) Start() error {
 }
 
 func (s *Service) Name() string {
-	return "raft-service"
+	return "RaftService"
 }
 
 func (s *Service) Close() {
@@ -87,6 +103,25 @@ func (h *ServiceHandler) Handle(conn iface.Connection) {
 	rpc.ServeConn(conn)
 }
 
-func AddNode(nodeId, joinAddr, serviceAddr, raftAddr string) (bool, error) {
+// AddNode 发送RPC请求
+func AddNode(nodeId, joinAddr, serviceAddr, raftAddr, targetAddr string) (bool, error) {
+	cli, err := rpc.Dial("tcp", targetAddr)
+	if err != nil {
+		return false, err
+	}
+
+	args := Args{
+		NodeId:      nodeId,
+		JoinAddr:    joinAddr,
+		RaftAddr:    raftAddr,
+		ServiceAddr: serviceAddr,
+	}
+
+	var reply Reply
+	err = cli.Call("RaftService.AddNode", args, &reply)
+	if err != nil {
+		return false, err
+	}
+
 	return true, nil
 }

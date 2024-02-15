@@ -32,7 +32,7 @@ type Peer struct {
 	address   string       // 通信地址
 	snapCount int          // 快照数目
 	maxPool   int
-	single    bool
+	single    bool // 单节点
 }
 
 type FSM Peer
@@ -50,6 +50,7 @@ func NewPeer(option Option, id string, eng iface.Engine) (*Peer, error) {
 	}, nil
 }
 
+// Engine 返回存储引擎
 func (peer *Peer) Engine() iface.Engine {
 	return peer.store
 }
@@ -61,11 +62,11 @@ func (peer *Peer) ID() string {
 
 // Bootstrap 节点启动
 func (peer *Peer) Bootstrap(localId string) error {
-	config := raft.DefaultConfig()
-	config.LocalID = raft.ServerID(localId)
+	config := raft.DefaultConfig()                     // 使用默认配置
+	config.LocalID = raft.ServerID(localId)            // 本地节点ID
+	raftPath := filepath.Join(peer.dirPath, "raft.db") // raft日志存储路径
 
-	// 检查普及是否存在 如果不存在则说明是新节点
-	newNode := !utils.PathExists(filepath.Join(peer.dirPath, "raft.db"))
+	newNode := !utils.PathExists(raftPath) // 检查普及是否存在 如果不存在则说明是新节点
 	addr, err := net.ResolveTCPAddr("tcp", peer.address)
 	if err != nil {
 		return err
@@ -85,10 +86,11 @@ func (peer *Peer) Bootstrap(localId string) error {
 	var logStore raft.LogStore // 日志存储
 	var stableStore raft.StableStore
 
-	boltDB, err := raftboltdb.NewBoltStore(filepath.Join(peer.dirPath, "raft.db"))
+	boltDB, err := raftboltdb.NewBoltStore(raftPath) // 初始化数据访问接口
 	if err != nil {
 		return fmt.Errorf("new raft: %s", err)
 	}
+
 	logStore = boltDB
 	stableStore = boltDB
 
@@ -125,7 +127,7 @@ func (peer *Peer) LeaderAddr() string {
 	return string(peer.raftNode.Leader())
 }
 
-// LeaderID 返回主节点ID
+// LeaderID 返回领导者节点ID
 func (peer *Peer) LeaderID() (string, error) {
 	addr := peer.LeaderAddr()
 	config := peer.raftNode.GetConfiguration()
@@ -147,6 +149,7 @@ func (peer *Peer) LeaderID() (string, error) {
 
 // WaitForLeader 阻塞直到发现一个Leader
 func (peer *Peer) WaitForLeader(timeout time.Duration) (string, error) {
+	// 创建定时器
 	ticker := time.NewTicker(leaderWaitDelay)
 	defer ticker.Stop()
 	timer := time.NewTimer(timeout)
@@ -167,6 +170,7 @@ func (peer *Peer) WaitForLeader(timeout time.Duration) (string, error) {
 
 // WaitForAppliedIndex 阻塞直到一个日志项被应用
 func (peer *Peer) WaitForAppliedIndex(index uint64, timeout time.Duration) error {
+	// 创建定时器
 	ticker := time.NewTicker(appliedWaitDelay)
 	defer ticker.Stop()
 	timer := time.NewTimer(timeout)
@@ -198,7 +202,7 @@ func (peer *Peer) WaitForApplied(timeout time.Duration) error {
 	return nil
 }
 
-// 一致读
+// 一致性读
 func (peer *Peer) consistentRead() error {
 	future := peer.raftNode.VerifyLeader()
 	if err := future.Error(); err != nil {
@@ -212,11 +216,13 @@ func (peer *Peer) Set(key string, val []byte) error {
 		return raft.ErrNotLeader
 	}
 
+	// 创建SET命令
 	c := &command{
 		Ins:   iface.SET_STR,
 		Key:   key,
 		Value: val,
 	}
+
 	b, err := json.Marshal(c)
 	if err != nil {
 		return err
@@ -231,10 +237,12 @@ func (peer *Peer) Del(key string) error {
 		return raft.ErrNotLeader
 	}
 
+	// 创建DEL命令
 	c := &command{
 		Ins: iface.DEL,
 		Key: key,
 	}
+
 	b, err := c.Encode()
 	if err != nil {
 		return err
@@ -272,6 +280,7 @@ func (peer *Peer) Join(nodeId, serviceAddr, raftAddr string) error {
 		return err
 	}
 
+	// 遍历服务器
 	for _, s := range config.Configuration().Servers {
 		// 节点已经存在
 		if s.ID == raft.ServerID(nodeId) || s.Address == raft.ServerAddress(raftAddr) {
