@@ -28,20 +28,8 @@ func (c command) Encode() ([]byte, error) {
 }
 
 func (c command) Args() [][]byte {
-	if c.Ins.BIN() {
-		return [][]byte{
-			utils.S2B(c.Key),
-			c.Value,
-		}
-	} else if c.Ins.TER() {
-		return [][]byte{
-			utils.S2B(c.Key),
-			utils.S2B(c.Field),
-			c.Value,
-		}
-	} else {
-		return [][]byte{
-			utils.S2B(c.Key),
-		}
+	return [][]byte{
+		utils.S2B(c.Key),
+		c.Value,
 	}
 }

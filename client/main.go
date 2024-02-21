@@ -20,7 +20,7 @@ var (
 	errNumOfArguments = errors.New("invalid number of arguments")
 	errInvalidCommand = errors.New("invalid command")
 
-	address = "192.168.68.2:9096"
+	address = "127.0.0.1:9096"
 )
 
 func main() {

@@ -29,7 +29,7 @@ func startNetPoll() {
 		MaxConnect: 20,
 		Timeout:    10 * time.Second,
 	}
-	p := New(config, &testHandler{})
+	p, _ := New(config, &testHandler{})
 	err := p.Run()
 	if err != nil {
 		panic(err)

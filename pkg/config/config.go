@@ -141,7 +141,7 @@ func BaseEngineConfig(config BaseStoreConfig) (bases.Options, bases.WriteBatchOp
 	return baseOption, txOption, iterOption
 }
 
-type ReplicaConfig struct {
+type RegionConfig struct {
 	Id            string `mapstructure:"node_id"`
 	Count         int    `mapstructure:"replicas"`
 	Address       string `mapstructure:"bind_addr"`
@@ -154,18 +154,18 @@ type ReplicaConfig struct {
 	TargetAddr    string `mapstructure:"target_addr"`
 }
 
-func ReadReplicaConfigFile(filePath string) (ReplicaConfig, error) {
+func ReadRegionConfigFile(filePath string) (RegionConfig, error) {
 	viper.SetConfigFile(filePath)
 	viper.SetConfigType("yaml")
 	err := viper.ReadInConfig()
 	if err != nil {
-		return ReplicaConfig{}, err
+		return RegionConfig{}, err
 	}
 
-	var config ReplicaConfig
+	var config RegionConfig
 	err = viper.Unmarshal(&config)
 	if err != nil {
-		return ReplicaConfig{}, fmt.Errorf("failed to unmarshal config: %w", err)
+		return RegionConfig{}, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 	return config, nil
 }

@@ -60,6 +60,10 @@ func (peer *Peer) ID() string {
 	return peer.id
 }
 
+func (peer *Peer) State() raft.RaftState {
+	return peer.raftNode.State()
+}
+
 // Bootstrap 节点启动
 func (peer *Peer) Bootstrap(localId string) error {
 	config := raft.DefaultConfig()                     // 使用默认配置
@@ -289,6 +293,7 @@ func (peer *Peer) Join(nodeId, serviceAddr, raftAddr string) error {
 				return nil
 			}
 
+			// 移除节点
 			future := peer.raftNode.RemoveServer(s.ID, 0, 0)
 			if err := future.Error(); err != nil {
 				return fmt.Errorf("error removing existing node %s at %s: %s", nodeId, raftAddr, err)
@@ -302,9 +307,7 @@ func (peer *Peer) Join(nodeId, serviceAddr, raftAddr string) error {
 		return f.Error()
 	}
 
-	if err := peer.SetMeta(nodeId, serviceAddr); err != nil {
-		return err
-	}
+	// TODO: SetMeta
 
 	tlog.Infof("node %s at %s joined successfully", nodeId, raftAddr)
 	return nil

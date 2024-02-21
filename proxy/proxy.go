@@ -24,7 +24,7 @@ func NewHandler(name string, eng iface.Engine) (iface.Handler, error) {
 	}
 }
 
-func Start(server config.ServerConfig, store config.StoreConfig, replica config.ReplicaConfig) (err error) {
+func Start(server config.ServerConfig, store config.StoreConfig, replica config.RegionConfig) (err error) {
 	var eng iface.Engine
 
 	switch server.EngineName {
@@ -41,10 +41,18 @@ func Start(server config.ServerConfig, store config.StoreConfig, replica config.
 		panic(err)
 	}
 
-	svc := region.New(replica.Id, eng, replica)
+	service, err := region.New(&replica, eng)
+	if err != nil {
+		panic(err)
+	}
+
 	go func() {
-		svc.Start()
+		service.Start()
 	}()
+
+	if replica.JoinAddr != "" {
+
+	}
 
 	po, _ := poll.New(poll.Config{
 		Address:    ":" + strconv.Itoa(server.ListenPort),

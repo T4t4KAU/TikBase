@@ -25,9 +25,5 @@ func (s *Service) Name() string {
 
 // Start 启动服务
 func (s *Service) Start() error {
-	go func() {
-		_ = http.StartServer(s.Address, s.eng)
-	}()
-
-	return nil
+	return http.StartServer(s.Address, s.eng)
 }
