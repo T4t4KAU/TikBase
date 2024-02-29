@@ -3,6 +3,8 @@ package region
 import (
 	"github.com/T4t4KAU/TikBase/cluster/consis"
 	"github.com/T4t4KAU/TikBase/cluster/consis/raft"
+	"github.com/T4t4KAU/TikBase/cluster/slice"
+	"github.com/T4t4KAU/TikBase/cluster/txn"
 	"github.com/T4t4KAU/TikBase/iface"
 	"github.com/T4t4KAU/TikBase/pkg/config"
 	"sync"
@@ -11,11 +13,14 @@ import (
 
 type Region struct {
 	services map[string]iface.IService
+	*slice.Slice
+	tx *txn.TxManager
 }
 
 func New(config *config.RegionConfig, eng iface.Engine) (*Region, error) {
 	re := &Region{}
 
+	// 创建节点
 	peer, err := raft.NewPeer(raft.Option{
 		RaftDir:       config.DirPath,
 		RaftBind:      config.Address,
@@ -28,6 +33,7 @@ func New(config *config.RegionConfig, eng iface.Engine) (*Region, error) {
 		return &Region{}, err
 	}
 
+	/// 注册服务
 	re.registerService("consis-service", consis.NewService(peer, config.ServiceAddr))
 
 	return re, nil

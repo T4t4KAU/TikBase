@@ -7,6 +7,7 @@ import (
 	"net"
 )
 
+// Start 启动服务
 func (s *Service) Start() error {
 	addr, err := net.ResolveTCPAddr("tcp", s.address)
 	if err != nil {

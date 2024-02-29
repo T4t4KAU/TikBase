@@ -1,4 +1,4 @@
-package cluster
+package chash
 
 import (
 	"github.com/T4t4KAU/TikBase/pkg/utils"

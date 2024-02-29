@@ -5,6 +5,7 @@ import (
 	"github.com/spaolacci/murmur3"
 )
 
+// BloomFilter 布隆过滤器
 type BloomFilter struct {
 	length     int
 	hashedKeys []uint32
