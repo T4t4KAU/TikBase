@@ -14,7 +14,7 @@ import (
 type Region struct {
 	services map[string]iface.IService
 	*slice.Slice
-	tx *txn.TxManager
+	txm *txn.TxManager
 }
 
 func New(config *config.RegionConfig, eng iface.Engine) (*Region, error) {

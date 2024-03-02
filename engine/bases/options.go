@@ -9,7 +9,7 @@ const (
 	ART             // 自适应基数树
 	SL              // 跳表
 )
-
+  
 var nameIndexers = map[string]IndexerType{
 	"BT":  BT,  // B+树
 	"ART": ART, // 自适应基数树
