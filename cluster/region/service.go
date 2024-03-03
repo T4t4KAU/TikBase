@@ -1,8 +1,8 @@
 package region
 
 import (
-	"github.com/T4t4KAU/TikBase/cluster/consis"
-	"github.com/T4t4KAU/TikBase/cluster/consis/raft"
+	"github.com/T4t4KAU/TikBase/cluster/replica"
+	"github.com/T4t4KAU/TikBase/cluster/replica/raft"
 	"github.com/T4t4KAU/TikBase/cluster/slice"
 	"github.com/T4t4KAU/TikBase/cluster/txn"
 	"github.com/T4t4KAU/TikBase/iface"
@@ -13,8 +13,8 @@ import (
 
 type Region struct {
 	services map[string]iface.IService
+	txm      *txn.TxManager
 	*slice.Slice
-	txm *txn.TxManager
 }
 
 func New(config *config.RegionConfig, eng iface.Engine) (*Region, error) {
@@ -34,7 +34,7 @@ func New(config *config.RegionConfig, eng iface.Engine) (*Region, error) {
 	}
 
 	/// 注册服务
-	re.registerService("consis-service", consis.NewService(peer, config.ServiceAddr))
+	re.registerService("replica-service", replica.NewService(peer, config.ServiceAddr))
 
 	return re, nil
 }

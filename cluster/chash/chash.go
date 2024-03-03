@@ -1,6 +1,7 @@
 package chash
 
 import (
+	"errors"
 	"github.com/T4t4KAU/TikBase/pkg/utils"
 	"sort"
 	"strconv"
@@ -62,16 +63,16 @@ func (c *ConsistentHash) RemoveNode(node string) {
 }
 
 // GetNode 根据 key 获取对应的节点
-func (c *ConsistentHash) GetNode(key string) string {
+func (c *ConsistentHash) GetNode(key string) (string, error) {
 	if len(c.Nodes) == 0 {
-		return ""
+		return "", errors.New("no node")
 	}
-	hash := c.Hash([]byte(key))
+	hash := c.Hash(utils.S2B(key))
 	idx := sort.Search(len(c.Nodes), func(i int) bool {
 		return c.Nodes[i] >= hash
 	})
 	if idx == len(c.Nodes) {
 		idx = 0
 	}
-	return c.KeysMapping[c.Nodes[idx]]
+	return c.KeysMapping[c.Nodes[idx]], nil
 }

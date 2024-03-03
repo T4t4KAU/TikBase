@@ -11,8 +11,8 @@ import (
 func (fsm *FSM) Apply(entry *raft.Log) any {
 	var c command
 
-	// 反序列化数据
-	if err := json.Unmarshal(entry.Data, &c); err != nil {
+	// 反序列化数据 获取执行命令
+	if err := unmarshal(entry.Data, &c); err != nil {
 		panic(fmt.Sprintf("failed to unmarshal command: %s", err.Error()))
 	}
 
@@ -39,4 +39,12 @@ func (fsm *FSM) Restore(snapshot io.ReadCloser) error {
 		return err
 	}
 	return fsm.store.RecoverFromBytes(data)
+}
+
+func unmarshal(data []byte, v any) error {
+	return json.Unmarshal(data, v)
+}
+
+func marshal(v any) ([]byte, error) {
+	return json.Marshal(v)
 }

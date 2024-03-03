@@ -28,8 +28,5 @@ func (c command) Encode() ([]byte, error) {
 }
 
 func (c command) Args() [][]byte {
-	return [][]byte{
-		utils.S2B(c.Key),
-		c.Value,
-	}
+	return utils.KeyValueBytes(c.Key, c.Value)
 }

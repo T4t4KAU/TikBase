@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestHashing(t *testing.T) {
+func TestHashing1(t *testing.T) {
 	hash := New(3, DefaultHash)
 
 	// Given the above hash function, this will give replicas with "hashes":
@@ -19,7 +19,8 @@ func TestHashing(t *testing.T) {
 	}
 
 	for k, v := range testCases {
-		if hash.GetNode(k) != v {
+		node, _ := hash.GetNode(k)
+		if node != v {
 			t.Errorf("Asking for %s, should have yielded %s", k, v)
 		}
 	}
@@ -31,9 +32,26 @@ func TestHashing(t *testing.T) {
 	testCases["27"] = "8"
 
 	for k, v := range testCases {
-		if hash.GetNode(k) != v {
+		node, _ := hash.GetNode(k)
+		if node != v {
 			t.Errorf("Asking for %s, should have yielded %s", k, v)
 		}
 	}
+}
 
+func TestHashing2(t *testing.T) {
+	hash := New(3, DefaultHash)
+	hash.AddNode("127.0.0.1:1234", "127.0.0.1:5678", "127.0.0.1:2345")
+
+	node, _ := hash.GetNode("key12345")
+	println(node)
+
+	node, _ = hash.GetNode("key233232")
+	println(node)
+
+	node, _ = hash.GetNode("key33232")
+	println(node)
+
+	node, _ = hash.GetNode("key43445566")
+	println(node)
 }

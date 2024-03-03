@@ -1,4 +1,4 @@
-namespace go consis
+namespace go replica
 
 struct JoinReq {
     1: required string raft_addr
@@ -10,6 +10,6 @@ struct JoinResp {
     1: required string message
 }
 
-service ConsisService {
+service ReplicaService {
     JoinResp Join(1: JoinReq req)
 }

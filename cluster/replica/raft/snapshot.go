@@ -1,7 +1,6 @@
 package raft
 
 import (
-	"encoding/json"
 	"github.com/hashicorp/raft"
 )
 
@@ -11,7 +10,7 @@ type Snapshot struct {
 
 func (s *Snapshot) Persist(sink raft.SnapshotSink) error {
 	err := func() error {
-		b, e := json.Marshal(s.data)
+		b, e := marshal(s.data)
 		if e != nil {
 			return e
 		}

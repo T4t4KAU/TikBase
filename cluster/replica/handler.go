@@ -1,9 +1,9 @@
-package consis
+package replica
 
 import (
 	"context"
-	"github.com/T4t4KAU/TikBase/cluster/consis/raft"
-	consis "github.com/T4t4KAU/TikBase/pkg/rpc/consis"
+	"github.com/T4t4KAU/TikBase/cluster/replica/raft"
+	"github.com/T4t4KAU/TikBase/pkg/rpc/replica"
 )
 
 type Service struct {
@@ -19,8 +19,8 @@ func NewService(peer *raft.Peer, addr string) *Service {
 }
 
 // Join implements the ConsisServiceImpl interface.
-func (s *Service) Join(ctx context.Context, req *consis.JoinReq) (resp *consis.JoinResp, err error) {
-	resp = new(consis.JoinResp)
+func (s *Service) Join(ctx context.Context, req *replica.JoinReq) (resp *replica.JoinResp, err error) {
+	resp = new(replica.JoinResp)
 
 	err = s.peer.Join(req.NodeId, req.ServiceAddr, req.RaftAddr)
 	if err != nil {

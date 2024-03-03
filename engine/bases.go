@@ -184,7 +184,7 @@ func (eng *BaseEngine) ExecDelKey(args [][]byte) iface.Result {
 }
 
 func (eng *BaseEngine) ExecHashSet(args [][]byte) iface.Result {
-	key, field, value, err := parseHashSetArgs(args)
+	key, field, value, err := ParseHashSetArgs(args)
 	if err != nil {
 		return NewBaseErrResult(err)
 	}
@@ -196,7 +196,7 @@ func (eng *BaseEngine) ExecHashSet(args [][]byte) iface.Result {
 }
 
 func (eng *BaseEngine) ExecHashGet(args [][]byte) iface.Result {
-	key, field, err := parseHashGetArgs(args)
+	key, field, err := ParseHashGetArgs(args)
 	if err != nil {
 		return NewBaseErrResult(err)
 	}
@@ -208,7 +208,7 @@ func (eng *BaseEngine) ExecHashGet(args [][]byte) iface.Result {
 }
 
 func (eng *BaseEngine) ExecHashDel(args [][]byte) iface.Result {
-	key, field, err := parseHashDelArgs(args)
+	key, field, err := ParseHashDelArgs(args)
 	if err != nil {
 		return NewBaseErrResult(err)
 	}
@@ -217,7 +217,7 @@ func (eng *BaseEngine) ExecHashDel(args [][]byte) iface.Result {
 }
 
 func (eng *BaseEngine) ExecListLeftPush(args [][]byte) iface.Result {
-	key, element, err := parseListPushArgs(args)
+	key, element, err := ParseListPushArgs(args)
 	if err != nil {
 		return NewBaseErrResult(err)
 	}
@@ -226,7 +226,7 @@ func (eng *BaseEngine) ExecListLeftPush(args [][]byte) iface.Result {
 }
 
 func (eng *BaseEngine) ExecListRightPush(args [][]byte) iface.Result {
-	key, element, err := parseListPushArgs(args)
+	key, element, err := ParseListPushArgs(args)
 	if err != nil {
 		return NewBaseErrResult(err)
 	}
@@ -235,7 +235,7 @@ func (eng *BaseEngine) ExecListRightPush(args [][]byte) iface.Result {
 }
 
 func (eng *BaseEngine) ExecListLeftPop(args [][]byte) iface.Result {
-	key, err := parseListPopArgs(args)
+	key, err := ParseListPopArgs(args)
 	if err != nil {
 		return NewBaseErrResult(err)
 	}
@@ -247,7 +247,7 @@ func (eng *BaseEngine) ExecListLeftPop(args [][]byte) iface.Result {
 }
 
 func (eng *BaseEngine) ExecListRightPop(args [][]byte) iface.Result {
-	key, err := parseListPopArgs(args)
+	key, err := ParseListPopArgs(args)
 	if err != nil {
 		return NewBaseErrResult(err)
 	}
@@ -259,7 +259,7 @@ func (eng *BaseEngine) ExecListRightPop(args [][]byte) iface.Result {
 }
 
 func (eng *BaseEngine) ExecSetAdd(args [][]byte) iface.Result {
-	key, value, err := parseSetAddArgs(args)
+	key, value, err := ParseSetAddArgs(args)
 	if err != nil {
 		return NewBaseErrResult(err)
 	}
@@ -268,7 +268,7 @@ func (eng *BaseEngine) ExecSetAdd(args [][]byte) iface.Result {
 }
 
 func (eng *BaseEngine) ExecSetRem(args [][]byte) iface.Result {
-	key, member, err := parseSetRemArgs(args)
+	key, member, err := ParseSetRemArgs(args)
 	if err != nil {
 		return NewBaseErrResult(err)
 	}
@@ -277,7 +277,7 @@ func (eng *BaseEngine) ExecSetRem(args [][]byte) iface.Result {
 }
 
 func (eng *BaseEngine) ExecSetIsMember(args [][]byte) iface.Result {
-	key, member, err := parseSetIsMemberArgs(args)
+	key, member, err := ParseSetIsMemberArgs(args)
 	if err != nil {
 		return NewBaseErrResult(err)
 	}
@@ -286,7 +286,7 @@ func (eng *BaseEngine) ExecSetIsMember(args [][]byte) iface.Result {
 }
 
 func (eng *BaseEngine) ExecZSetAdd(args [][]byte) iface.Result {
-	key, score, member, err := parseZSetAddArgs(args)
+	key, score, member, err := ParseZSetAddArgs(args)
 	if err != nil {
 		return NewBaseErrResult(err)
 	}

@@ -131,7 +131,7 @@ func (eng *CacheEngine) initExecFunc() {
 }
 
 func (eng *CacheEngine) ExecStrSet(args [][]byte) iface.Result {
-	key, val, err := parseStrSetArgs(args)
+	key, val, err := ParseStrSetArgs(args)
 	if err != nil {
 		NewCacheErrorResult(err)
 	}
@@ -140,7 +140,7 @@ func (eng *CacheEngine) ExecStrSet(args [][]byte) iface.Result {
 }
 
 func (eng *CacheEngine) ExecStrGet(args [][]byte) iface.Result {
-	key, err := parseStrGetArgs(args)
+	key, err := ParseStrGetArgs(args)
 	if err != nil {
 		return NewCacheErrorResult(err)
 	}
@@ -152,7 +152,7 @@ func (eng *CacheEngine) ExecStrGet(args [][]byte) iface.Result {
 }
 
 func (eng *CacheEngine) ExecDelKey(args [][]byte) iface.Result {
-	key, err := parseDelKeyArgs(args)
+	key, err := ParseDelKeyArgs(args)
 	if err != nil {
 		return NewCacheErrorResult(err)
 	}
@@ -161,7 +161,7 @@ func (eng *CacheEngine) ExecDelKey(args [][]byte) iface.Result {
 }
 
 func (eng *CacheEngine) ExecExpire(args [][]byte) iface.Result {
-	key, ttl, err := parseExpireKeyArgs(args)
+	key, ttl, err := ParseExpireKeyArgs(args)
 	if err != nil {
 		return NewCacheErrorResult(err)
 	}
