@@ -1,6 +1,7 @@
 package slice
 
 type Options struct {
+	Name                 string
 	Address              string
 	ServerType           string
 	VirtualNodeCount     int

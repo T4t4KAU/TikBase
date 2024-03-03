@@ -40,18 +40,18 @@ func TestHashing1(t *testing.T) {
 }
 
 func TestHashing2(t *testing.T) {
-	hash := New(3, DefaultHash)
-	hash.AddNode("127.0.0.1:1234", "127.0.0.1:5678", "127.0.0.1:2345")
+	hash := New(1, DefaultHash)
+	hash.AddNode("node1", "node2", "node3")
 
-	node, _ := hash.GetNode("key12345")
+	node, _ := hash.GetNode("hello")
 	println(node)
 
-	node, _ = hash.GetNode("key233232")
+	node, _ = hash.GetNode("key2")
 	println(node)
 
-	node, _ = hash.GetNode("key33232")
+	node, _ = hash.GetNode("key3")
 	println(node)
 
-	node, _ = hash.GetNode("key43445566")
+	node, _ = hash.GetNode("key4")
 	println(node)
 }

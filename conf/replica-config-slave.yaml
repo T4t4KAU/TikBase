@@ -1,4 +1,4 @@
-node_id: 2
+node_id: node2
 bind_addr: "127.0.0.1:10043"
 service_addr: "127.0.0.1:10044"
 dir_path: "./temp"

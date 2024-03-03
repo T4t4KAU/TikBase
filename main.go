@@ -7,19 +7,28 @@ import (
 
 var logo = " _____ _ _    ____                 \n|_   _(_) | _| __ )  __ _ ___  ___ \n  | | | | |/ /  _ \\ / _` / __|/ _ \\\n  | | | |   <| |_) | (_| \\__ \\  __/\n  |_| |_|_|\\_\\____/ \\__,_|___/\\___|\n"
 
+var (
+	ServerConfFile    = "./conf/server-config.yaml"
+	BaseConfigFile    = "./conf/base-config.yaml"
+	CacheConfigFile   = "./conf/cache-config.yaml"
+	ReplicaConfigFile = "./conf/replica-config-master.yaml"
+)
+
 func start() {
-	serverConf, err := config.ReadServerConfigFile("./conf/server-config.yaml")
+	// 读取服务器配置文件
+	serverConf, err := config.ReadServerConfigFile(ServerConfFile)
 	if err != nil {
 		panic(err)
 	}
 
 	var storeConf config.StoreConfig
 
+	// 读取存储配置文件
 	switch serverConf.EngineName {
 	case "base":
-		storeConf, err = config.ReadBaseConfigFile("./conf/base-config.yaml")
+		storeConf, err = config.ReadBaseConfigFile(BaseConfigFile)
 	case "cache":
-		storeConf, err = config.ReadCacheConfigFile("./conf/cache-config.yaml")
+		storeConf, err = config.ReadCacheConfigFile(CacheConfigFile)
 	default:
 		panic("unknown engine name")
 	}
@@ -27,7 +36,8 @@ func start() {
 		panic(err)
 	}
 
-	replicaConf, err := config.ReadRegionConfigFile("./conf/replica-config.yaml")
+	// 读取副本配置文件
+	replicaConf, err := config.ReadReplicaConfigFile(ReplicaConfigFile)
 	if err != nil {
 		panic(err)
 	}
@@ -36,6 +46,7 @@ func start() {
 	print("   using protocol:", serverConf.Protocol)
 	println("   using engine:", serverConf.EngineName)
 
+	// 启动代理
 	err = proxy.Start(serverConf, storeConf, replicaConf)
 	if err != nil {
 		panic(err)

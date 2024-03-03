@@ -1,8 +1,8 @@
 package tiko
 
 import (
-	"github.com/T4t4KAU/TikBase/pkg/tlog"
 	"github.com/T4t4KAU/TikBase/pkg/utils"
+	"github.com/cloudwego/kitex/pkg/klog"
 	"io"
 	"runtime/debug"
 )
@@ -22,7 +22,7 @@ func ParseStream(reader io.Reader) chan *Payload {
 func parse0(reader io.Reader, ch chan *Payload) {
 	defer func() {
 		if err := recover(); err != nil {
-			tlog.Error(err, utils.B2S(debug.Stack()))
+			klog.Error(err, utils.B2S(debug.Stack()))
 		}
 	}()
 

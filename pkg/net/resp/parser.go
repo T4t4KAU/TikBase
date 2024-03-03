@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"github.com/T4t4KAU/TikBase/iface"
 	"github.com/T4t4KAU/TikBase/pkg/errno"
-	"github.com/T4t4KAU/TikBase/pkg/tlog"
 	"github.com/T4t4KAU/TikBase/pkg/utils"
+	"github.com/cloudwego/kitex/pkg/klog"
 	"io"
 	"runtime/debug"
 	"strconv"
@@ -68,7 +68,7 @@ func ParseOne(data []byte) (iface.Reply, error) {
 func parse0(rawReader io.Reader, ch chan<- *Payload) {
 	defer func() {
 		if err := recover(); err != nil {
-			tlog.Error(err, utils.B2S(debug.Stack()))
+			klog.Error(err, utils.B2S(debug.Stack()))
 		}
 	}()
 

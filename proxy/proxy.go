@@ -24,7 +24,7 @@ func NewHandler(name string, eng iface.Engine) (iface.Handler, error) {
 	}
 }
 
-func Start(server config.ServerConfig, store config.StoreConfig, replica config.RegionConfig) (err error) {
+func Start(server config.ServerConfig, store config.StoreConfig, replica config.ReplicaConfig) (err error) {
 	var eng iface.Engine
 
 	switch server.EngineName {
@@ -51,7 +51,7 @@ func Start(server config.ServerConfig, store config.StoreConfig, replica config.
 	}()
 
 	if replica.JoinAddr != "" {
-
+		// TODO: 启动副本存储
 	}
 
 	po, _ := poll.New(poll.Config{

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/T4t4KAU/TikBase/iface"
 	"github.com/T4t4KAU/TikBase/pkg/errno"
-	"github.com/T4t4KAU/TikBase/pkg/tlog"
 	"github.com/T4t4KAU/TikBase/pkg/utils"
+	"github.com/cloudwego/kitex/pkg/klog"
 	"github.com/hashicorp/raft"
 	raftboltdb "github.com/hashicorp/raft-boltdb"
 	"net"
@@ -65,7 +65,9 @@ func (peer *Peer) State() raft.RaftState {
 }
 
 // Bootstrap 节点启动
-func (peer *Peer) Bootstrap(localId string) error {
+func (peer *Peer) Bootstrap() error {
+	localId := peer.id
+
 	config := raft.DefaultConfig()                     // 使用默认配置
 	config.LocalID = raft.ServerID(localId)            // 本地节点ID
 	raftPath := filepath.Join(peer.dirPath, "raft.db") // raft日志存储路径
@@ -107,7 +109,7 @@ func (peer *Peer) Bootstrap(localId string) error {
 
 	// 单节点启动
 	if peer.single && newNode {
-		tlog.Infof("bootstrap needed")
+		klog.Infof("bootstrap needed")
 		conf := raft.Configuration{
 			Servers: []raft.Server{
 				{
@@ -120,7 +122,7 @@ func (peer *Peer) Bootstrap(localId string) error {
 		// 启动集群
 		ra.BootstrapCluster(conf)
 	} else {
-		tlog.Infof("no bootstrap needed")
+		klog.Infof("no bootstrap needed")
 	}
 
 	return nil
@@ -136,7 +138,7 @@ func (peer *Peer) LeaderID() (string, error) {
 	addr := peer.LeaderAddr()
 	config := peer.raftNode.GetConfiguration()
 	if err := config.Error(); err != nil {
-		tlog.Errorf("failed to get raft configuration: %v", err)
+		klog.Errorf("failed to get raft configuration: %v", err)
 		return "", err
 	}
 
@@ -199,7 +201,7 @@ func (peer *Peer) WaitForApplied(timeout time.Duration) error {
 		return nil
 	}
 
-	tlog.Infof("waiting for up to %s for application of initial logs", timeout)
+	klog.Infof("waiting for up to %s for application of initial logs", timeout)
 	if err := peer.WaitForAppliedIndex(peer.raftNode.LastIndex(), timeout); err != nil {
 		return errno.ErrRaftOpenTimeout
 	}
@@ -276,11 +278,11 @@ func (peer *Peer) Get(key string, level ConsistencyLevel) (string, error) {
 
 // Join 节点加入集群
 func (peer *Peer) Join(nodeId, serviceAddr, raftAddr string) error {
-	tlog.Infof("received join request for remote node %s at %s", nodeId, raftAddr)
+	klog.Infof("received join request for remote node %s at %s", nodeId, raftAddr)
 
 	config := peer.raftNode.GetConfiguration()
 	if err := config.Error(); err != nil {
-		tlog.Infof("failed to get raft configuration: %v", err)
+		klog.Infof("failed to get raft configuration: %v", err)
 		return err
 	}
 
@@ -289,7 +291,7 @@ func (peer *Peer) Join(nodeId, serviceAddr, raftAddr string) error {
 		// 节点已经存在
 		if s.ID == raft.ServerID(nodeId) || s.Address == raft.ServerAddress(raftAddr) {
 			if s.Address == raft.ServerAddress(raftAddr) && s.ID == raft.ServerID(nodeId) {
-				tlog.Infof("node %s at %s already member of cluster, ignoring join request", nodeId, raftAddr)
+				klog.Infof("node %s at %s already member of cluster, ignoring join request", nodeId, raftAddr)
 				return nil
 			}
 
@@ -301,7 +303,7 @@ func (peer *Peer) Join(nodeId, serviceAddr, raftAddr string) error {
 		}
 	}
 
-	// 追加节点
+	// 添加新节点
 	f := peer.raftNode.AddVoter(raft.ServerID(nodeId), raft.ServerAddress(raftAddr), 0, 0)
 	if f.Error() != nil {
 		return f.Error()
@@ -309,7 +311,7 @@ func (peer *Peer) Join(nodeId, serviceAddr, raftAddr string) error {
 
 	// TODO: SetMeta
 
-	tlog.Infof("node %s at %s joined successfully", nodeId, raftAddr)
+	klog.Infof("node %s at %s joined successfully", nodeId, raftAddr)
 	return nil
 }
 

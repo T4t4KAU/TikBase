@@ -14,6 +14,11 @@ func (s *Service) Start() error {
 		return err
 	}
 
+	err = s.peer.Bootstrap()
+	if err != nil {
+		return err
+	}
+
 	svc := replicaservice.NewServer(new(Service),
 		server.WithServerBasicInfo(&rpcinfo.EndpointBasicInfo{ServiceName: s.Name()}),
 		server.WithServiceAddr(addr),

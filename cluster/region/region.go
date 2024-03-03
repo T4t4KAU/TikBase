@@ -7,6 +7,7 @@ import (
 	"github.com/T4t4KAU/TikBase/cluster/txn"
 	"github.com/T4t4KAU/TikBase/iface"
 	"github.com/T4t4KAU/TikBase/pkg/config"
+	"github.com/cloudwego/kitex/pkg/klog"
 	"sync"
 	"time"
 )
@@ -17,8 +18,10 @@ type Region struct {
 	*slice.Slice
 }
 
-func New(config *config.RegionConfig, eng iface.Engine) (*Region, error) {
-	re := &Region{}
+func New(config *config.ReplicaConfig, eng iface.Engine) (*Region, error) {
+	re := &Region{
+		services: make(map[string]iface.IService),
+	}
 
 	// 创建节点
 	peer, err := raft.NewPeer(raft.Option{
@@ -32,6 +35,11 @@ func New(config *config.RegionConfig, eng iface.Engine) (*Region, error) {
 	if err != nil {
 		return &Region{}, err
 	}
+
+	//re.Slice, err = slice.New(slice.DefaultOptions)
+	//if err != nil {
+	//	return &Region{}, err
+	//}
 
 	/// 注册服务
 	re.registerService("replica-service", replica.NewService(peer, config.ServiceAddr))
@@ -55,4 +63,6 @@ func (r *Region) Start() {
 	}
 
 	wg.Wait()
+
+	klog.Info("all service start")
 }

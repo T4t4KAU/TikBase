@@ -7,6 +7,7 @@ require (
 	github.com/cloudwego/kitex v0.8.0
 	github.com/gofrs/flock v0.8.1
 	github.com/google/btree v1.1.2
+	github.com/hashicorp/memberlist v0.5.0
 	github.com/hashicorp/raft v1.6.0
 	github.com/hashicorp/raft-boltdb v0.0.0-20231211162105-6c830fa4535e
 	github.com/plar/go-adaptive-radix-tree v1.0.5
@@ -47,7 +48,6 @@ require (
 	github.com/hashicorp/go-sockaddr v1.0.0 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/hashicorp/memberlist v0.5.0 // indirect
 	github.com/iancoleman/strcase v0.2.0 // indirect
 	github.com/jhump/protoreflect v1.8.2 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
