@@ -1,0 +1,4 @@
+node_id: node1
+bind_addr: "127.0.0.1"
+node_count: 3
+join_addr: "127.0.0.1"

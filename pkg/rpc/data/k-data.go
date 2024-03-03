@@ -4055,12 +4055,12 @@ func (p *SAddReq) FastReadField1(buf []byte) (int, error) {
 func (p *SAddReq) FastReadField2(buf []byte) (int, error) {
 	offset := 0
 
-	if v, l, err := bthrift.Binary.ReadString(buf[offset:]); err != nil {
+	if v, l, err := bthrift.Binary.ReadBinary(buf[offset:]); err != nil {
 		return offset, err
 	} else {
 		offset += l
 
-		p.Element = v
+		p.Element = []byte(v)
 
 	}
 	return offset, nil
@@ -4107,7 +4107,7 @@ func (p *SAddReq) fastWriteField1(buf []byte, binaryWriter bthrift.BinaryWriter)
 func (p *SAddReq) fastWriteField2(buf []byte, binaryWriter bthrift.BinaryWriter) int {
 	offset := 0
 	offset += bthrift.Binary.WriteFieldBegin(buf[offset:], "element", thrift.STRING, 2)
-	offset += bthrift.Binary.WriteStringNocopy(buf[offset:], binaryWriter, p.Element)
+	offset += bthrift.Binary.WriteBinaryNocopy(buf[offset:], binaryWriter, []byte(p.Element))
 
 	offset += bthrift.Binary.WriteFieldEnd(buf[offset:])
 	return offset
@@ -4125,7 +4125,7 @@ func (p *SAddReq) field1Length() int {
 func (p *SAddReq) field2Length() int {
 	l := 0
 	l += bthrift.Binary.FieldBeginLength("element", thrift.STRING, 2)
-	l += bthrift.Binary.StringLengthNocopy(p.Element)
+	l += bthrift.Binary.BinaryLengthNocopy([]byte(p.Element))
 
 	l += bthrift.Binary.FieldEndLength()
 	return l
@@ -4441,12 +4441,12 @@ func (p *SRemReq) FastReadField1(buf []byte) (int, error) {
 func (p *SRemReq) FastReadField2(buf []byte) (int, error) {
 	offset := 0
 
-	if v, l, err := bthrift.Binary.ReadString(buf[offset:]); err != nil {
+	if v, l, err := bthrift.Binary.ReadBinary(buf[offset:]); err != nil {
 		return offset, err
 	} else {
 		offset += l
 
-		p.Element = v
+		p.Element = []byte(v)
 
 	}
 	return offset, nil
@@ -4493,7 +4493,7 @@ func (p *SRemReq) fastWriteField1(buf []byte, binaryWriter bthrift.BinaryWriter)
 func (p *SRemReq) fastWriteField2(buf []byte, binaryWriter bthrift.BinaryWriter) int {
 	offset := 0
 	offset += bthrift.Binary.WriteFieldBegin(buf[offset:], "element", thrift.STRING, 2)
-	offset += bthrift.Binary.WriteStringNocopy(buf[offset:], binaryWriter, p.Element)
+	offset += bthrift.Binary.WriteBinaryNocopy(buf[offset:], binaryWriter, []byte(p.Element))
 
 	offset += bthrift.Binary.WriteFieldEnd(buf[offset:])
 	return offset
@@ -4511,7 +4511,7 @@ func (p *SRemReq) field1Length() int {
 func (p *SRemReq) field2Length() int {
 	l := 0
 	l += bthrift.Binary.FieldBeginLength("element", thrift.STRING, 2)
-	l += bthrift.Binary.StringLengthNocopy(p.Element)
+	l += bthrift.Binary.BinaryLengthNocopy([]byte(p.Element))
 
 	l += bthrift.Binary.FieldEndLength()
 	return l

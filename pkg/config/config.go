@@ -169,3 +169,27 @@ func ReadReplicaConfigFile(filePath string) (ReplicaConfig, error) {
 	}
 	return config, nil
 }
+
+type SliceConfig struct {
+	Id               string `mapstructure:"node_id"`
+	Address          string `mapstructure:"bind_addr"`
+	JoinAddr         string `mapstructure:"join_addr"`
+	VirtualNodeCount int    `mapstructure:"node_count"`
+}
+
+func ReadSliceConfigFile(filePath string) (SliceConfig, error) {
+	viper.SetConfigFile(filePath)
+	viper.SetConfigType("yaml")
+	err := viper.ReadInConfig()
+	if err != nil {
+		return SliceConfig{}, err
+	}
+
+	var config SliceConfig
+	err = viper.Unmarshal(&config)
+	if err != nil {
+		return SliceConfig{}, fmt.Errorf("failed to unmarshal config: %w", err)
+	}
+
+	return config, nil
+}

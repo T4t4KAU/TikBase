@@ -103,7 +103,7 @@ struct RPopResp {
 
 struct SAddReq {
     1: required string key
-    2: required string element
+    2: required binary element
 }
 
 struct SAddResp {
@@ -113,7 +113,7 @@ struct SAddResp {
 
 struct SRemReq {
     1: required string key
-    2: required string element
+    2: required binary element
 }
 
 struct SRemResp {

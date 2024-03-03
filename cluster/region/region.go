@@ -1,6 +1,7 @@
 package region
 
 import (
+	"github.com/T4t4KAU/TikBase/cluster/data"
 	"github.com/T4t4KAU/TikBase/cluster/replica"
 	"github.com/T4t4KAU/TikBase/cluster/replica/raft"
 	"github.com/T4t4KAU/TikBase/cluster/slice"
@@ -18,31 +19,39 @@ type Region struct {
 	*slice.Slice
 }
 
-func New(config *config.ReplicaConfig, eng iface.Engine) (*Region, error) {
+func New(replicaConfig *config.ReplicaConfig, sliceConfig *config.SliceConfig, eng iface.Engine) (*Region, error) {
 	re := &Region{
 		services: make(map[string]iface.IService),
 	}
 
 	// 创建节点
 	peer, err := raft.NewPeer(raft.Option{
-		RaftDir:       config.DirPath,
-		RaftBind:      config.Address,
-		MaxPool:       config.WorkerNum,
-		SnapshotCount: config.SnapshotCount,
-		Timeout:       time.Duration(config.Timeout),
-		Single:        config.JoinAddr == "",
-	}, config.Id, eng)
+		RaftDir:       replicaConfig.DirPath,
+		RaftBind:      replicaConfig.Address,
+		MaxPool:       replicaConfig.WorkerNum,
+		SnapshotCount: replicaConfig.SnapshotCount,
+		Timeout:       time.Duration(replicaConfig.Timeout),
+		Single:        replicaConfig.JoinAddr == "",
+	}, replicaConfig.Id, eng)
 	if err != nil {
 		return &Region{}, err
 	}
 
-	//re.Slice, err = slice.New(slice.DefaultOptions)
-	//if err != nil {
-	//	return &Region{}, err
-	//}
+	re.Slice, err = slice.New(slice.Options{
+		Name:                 sliceConfig.Id,
+		Address:              sliceConfig.Address,
+		ServerType:           "tcp",
+		VirtualNodeCount:     sliceConfig.VirtualNodeCount,
+		UpdateCircleDuration: slice.DefaultOptions.UpdateCircleDuration,
+		Cluster:              []string{sliceConfig.JoinAddr},
+	})
+	if err != nil {
+		return &Region{}, err
+	}
 
 	/// 注册服务
-	re.registerService("replica-service", replica.NewService(peer, config.ServiceAddr))
+	re.registerService("replica-service", replica.NewService(peer, replicaConfig.ServiceAddr))
+	re.registerService("data-service", data.NewService(re.Slice))
 
 	return re, nil
 }

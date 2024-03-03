@@ -24,7 +24,7 @@ func NewHandler(name string, eng iface.Engine) (iface.Handler, error) {
 	}
 }
 
-func Start(server config.ServerConfig, store config.StoreConfig, replica config.ReplicaConfig) (err error) {
+func Start(server config.ServerConfig, store config.StoreConfig, replica config.ReplicaConfig, slices config.SliceConfig) (err error) {
 	var eng iface.Engine
 
 	switch server.EngineName {
@@ -41,7 +41,7 @@ func Start(server config.ServerConfig, store config.StoreConfig, replica config.
 		panic(err)
 	}
 
-	service, err := region.New(&replica, eng)
+	service, err := region.New(&replica, &slices, eng)
 	if err != nil {
 		panic(err)
 	}

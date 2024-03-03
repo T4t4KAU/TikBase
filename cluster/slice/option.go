@@ -6,11 +6,11 @@ type Options struct {
 	ServerType           string
 	VirtualNodeCount     int
 	UpdateCircleDuration int
-	cluster              []string
+	Cluster              []string
 }
 
 var DefaultOptions = Options{
-	Address:              "127.0.0.1:8980",
+	Address:              "127.0.0.1",
 	ServerType:           "tcp",
 	VirtualNodeCount:     1024,
 	UpdateCircleDuration: 3,

@@ -4838,7 +4838,7 @@ func (p *RPopResp) Field3DeepEqual(src string) bool {
 
 type SAddReq struct {
 	Key     string `thrift:"key,1,required" frugal:"1,required,string" json:"key"`
-	Element string `thrift:"element,2,required" frugal:"2,required,string" json:"element"`
+	Element []byte `thrift:"element,2,required" frugal:"2,required,binary" json:"element"`
 }
 
 func NewSAddReq() *SAddReq {
@@ -4853,13 +4853,13 @@ func (p *SAddReq) GetKey() (v string) {
 	return p.Key
 }
 
-func (p *SAddReq) GetElement() (v string) {
+func (p *SAddReq) GetElement() (v []byte) {
 	return p.Element
 }
 func (p *SAddReq) SetKey(val string) {
 	p.Key = val
 }
-func (p *SAddReq) SetElement(val string) {
+func (p *SAddReq) SetElement(val []byte) {
 	p.Element = val
 }
 
@@ -4962,10 +4962,10 @@ func (p *SAddReq) ReadField1(iprot thrift.TProtocol) error {
 }
 
 func (p *SAddReq) ReadField2(iprot thrift.TProtocol) error {
-	if v, err := iprot.ReadString(); err != nil {
+	if v, err := iprot.ReadBinary(); err != nil {
 		return err
 	} else {
-		p.Element = v
+		p.Element = []byte(v)
 	}
 	return nil
 }
@@ -5024,7 +5024,7 @@ func (p *SAddReq) writeField2(oprot thrift.TProtocol) (err error) {
 	if err = oprot.WriteFieldBegin("element", thrift.STRING, 2); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := oprot.WriteString(p.Element); err != nil {
+	if err := oprot.WriteBinary([]byte(p.Element)); err != nil {
 		return err
 	}
 	if err = oprot.WriteFieldEnd(); err != nil {
@@ -5066,9 +5066,9 @@ func (p *SAddReq) Field1DeepEqual(src string) bool {
 	}
 	return true
 }
-func (p *SAddReq) Field2DeepEqual(src string) bool {
+func (p *SAddReq) Field2DeepEqual(src []byte) bool {
 
-	if strings.Compare(p.Element, src) != 0 {
+	if bytes.Compare(p.Element, src) != 0 {
 		return false
 	}
 	return true
@@ -5314,7 +5314,7 @@ func (p *SAddResp) Field2DeepEqual(src string) bool {
 
 type SRemReq struct {
 	Key     string `thrift:"key,1,required" frugal:"1,required,string" json:"key"`
-	Element string `thrift:"element,2,required" frugal:"2,required,string" json:"element"`
+	Element []byte `thrift:"element,2,required" frugal:"2,required,binary" json:"element"`
 }
 
 func NewSRemReq() *SRemReq {
@@ -5329,13 +5329,13 @@ func (p *SRemReq) GetKey() (v string) {
 	return p.Key
 }
 
-func (p *SRemReq) GetElement() (v string) {
+func (p *SRemReq) GetElement() (v []byte) {
 	return p.Element
 }
 func (p *SRemReq) SetKey(val string) {
 	p.Key = val
 }
-func (p *SRemReq) SetElement(val string) {
+func (p *SRemReq) SetElement(val []byte) {
 	p.Element = val
 }
 
@@ -5438,10 +5438,10 @@ func (p *SRemReq) ReadField1(iprot thrift.TProtocol) error {
 }
 
 func (p *SRemReq) ReadField2(iprot thrift.TProtocol) error {
-	if v, err := iprot.ReadString(); err != nil {
+	if v, err := iprot.ReadBinary(); err != nil {
 		return err
 	} else {
-		p.Element = v
+		p.Element = []byte(v)
 	}
 	return nil
 }
@@ -5500,7 +5500,7 @@ func (p *SRemReq) writeField2(oprot thrift.TProtocol) (err error) {
 	if err = oprot.WriteFieldBegin("element", thrift.STRING, 2); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := oprot.WriteString(p.Element); err != nil {
+	if err := oprot.WriteBinary([]byte(p.Element)); err != nil {
 		return err
 	}
 	if err = oprot.WriteFieldEnd(); err != nil {
@@ -5542,9 +5542,9 @@ func (p *SRemReq) Field1DeepEqual(src string) bool {
 	}
 	return true
 }
-func (p *SRemReq) Field2DeepEqual(src string) bool {
+func (p *SRemReq) Field2DeepEqual(src []byte) bool {
 
-	if strings.Compare(p.Element, src) != 0 {
+	if bytes.Compare(p.Element, src) != 0 {
 		return false
 	}
 	return true

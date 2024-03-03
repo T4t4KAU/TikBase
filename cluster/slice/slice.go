@@ -18,8 +18,8 @@ type Slice struct {
 }
 
 func New(options Options) (*Slice, error) {
-	if options.cluster == nil || len(options.cluster) == 0 {
-		options.cluster = []string{options.Address}
+	if options.Cluster == nil || len(options.Cluster) == 0 {
+		options.Cluster = []string{options.Address}
 	}
 
 	manager, err := createNodeManager(options)
@@ -52,7 +52,7 @@ func createNodeManager(options Options) (*memberlist.Memberlist, error) {
 	}
 
 	// 加入到指定的集群
-	_, err = manager.Join(options.cluster)
+	_, err = manager.Join(options.Cluster)
 	return manager, err
 }
 

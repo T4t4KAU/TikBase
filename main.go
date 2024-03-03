@@ -12,6 +12,7 @@ var (
 	BaseConfigFile    = "./conf/base-config.yaml"
 	CacheConfigFile   = "./conf/cache-config.yaml"
 	ReplicaConfigFile = "./conf/replica-config-master.yaml"
+	SliceConfigFile   = "./conf/slice-config.yaml"
 )
 
 func start() {
@@ -42,12 +43,17 @@ func start() {
 		panic(err)
 	}
 
+	sliceConf, err := config.ReadSliceConfigFile(SliceConfigFile)
+	if err != nil {
+		panic(err)
+	}
+
 	print("listening at port:", serverConf.ListenPort)
 	print("   using protocol:", serverConf.Protocol)
 	println("   using engine:", serverConf.EngineName)
 
 	// 启动代理
-	err = proxy.Start(serverConf, storeConf, replicaConf)
+	err = proxy.Start(serverConf, storeConf, replicaConf, sliceConf)
 	if err != nil {
 		panic(err)
 	}
