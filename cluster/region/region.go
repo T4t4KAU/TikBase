@@ -20,7 +20,7 @@ type Region struct {
 	*slice.Slice
 }
 
-func New(replicaConfig *config.ReplicaConfig, sliceConfig *config.SliceConfig, eng iface.Engine) (*Region, error) {
+func New(replicaConfig *config.ReplicaConfig, serverConfig *config.ServerConfig, eng iface.Engine) (*Region, error) {
 	re := &Region{
 		services: make(map[string]iface.IService),
 	}
@@ -39,12 +39,12 @@ func New(replicaConfig *config.ReplicaConfig, sliceConfig *config.SliceConfig, e
 	}
 
 	re.Slice, err = slice.New(slice.Options{
-		Name:                 sliceConfig.Id,
-		Address:              sliceConfig.Address,
+		Name:                 serverConfig.Id,
+		Address:              serverConfig.Address,
 		ServerType:           "tcp",
-		VirtualNodeCount:     sliceConfig.VirtualNodeCount,
+		VirtualNodeCount:     serverConfig.VirtualNodeCount,
 		UpdateCircleDuration: slice.DefaultOptions.UpdateCircleDuration,
-		Cluster:              []string{sliceConfig.JoinAddr},
+		Cluster:              []string{serverConfig.JoinAddr},
 	}, eng)
 
 	if err != nil {
@@ -53,7 +53,7 @@ func New(replicaConfig *config.ReplicaConfig, sliceConfig *config.SliceConfig, e
 
 	/// 注册服务
 	re.registerService("replica-service", replica.NewService(peer, replicaConfig.ServiceAddr))
-	re.registerService("data-service", data.NewService(re.Slice, ":"+strconv.Itoa(sliceConfig.ServicePort)))
+	re.registerService("data-service", data.NewService(re.Slice, ":"+strconv.Itoa(serverConfig.Port)))
 
 	return re, nil
 }

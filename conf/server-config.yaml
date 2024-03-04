@@ -1,6 +1,8 @@
-listen_port: 9096
-http_port: 9090
-workers_num: 20
+node_id: node1
+service_port: 10024
+max_connect: 20
 timeout: 60
 engine: "base"
-protocol: "resp"
+bind_addr: "127.0.0.1"
+node_count: 3
+join_addr: "127.0.0.1"

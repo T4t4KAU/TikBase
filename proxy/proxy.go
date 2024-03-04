@@ -7,7 +7,7 @@ import (
 	"github.com/T4t4KAU/TikBase/pkg/config"
 )
 
-func Start(server config.ServerConfig, store config.StoreConfig, replica config.ReplicaConfig, slices config.SliceConfig) (err error) {
+func Start(server config.ServerConfig, store config.StoreConfig, replica config.ReplicaConfig) (err error) {
 	var eng iface.Engine
 
 	switch server.EngineName {
@@ -19,7 +19,7 @@ func Start(server config.ServerConfig, store config.StoreConfig, replica config.
 		eng, err = engine.NewCacheEngineWith(cfg)
 	}
 
-	service, err := region.New(&replica, &slices, eng)
+	service, err := region.New(&replica, &server, eng)
 	if err != nil {
 		panic(err)
 	}

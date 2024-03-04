@@ -38,12 +38,14 @@ type CacheStoreConfig struct {
 }
 
 type ServerConfig struct {
-	ListenPort int    `mapstructure:"listen_port"`
-	HTTPPort   int    `mapstructure:"http_port"`
-	WorkersNum int    `mapstructure:"workers_num"`
-	Timeout    int    `mapstructure:"timeout"`
-	EngineName string `mapstructure:"engine"`
-	Protocol   string `mapstructure:"protocol"`
+	Id               string `mapstructure:"node_id"`
+	Port             int    `mapstructure:"service_port"`
+	MaxConnect       int    `mapstructure:"workers_num"`
+	Timeout          int    `mapstructure:"timeout"`
+	EngineName       string `mapstructure:"engine"`
+	VirtualNodeCount int    `mapstructure:"node_count"`
+	Address          string `mapstructure:"bind_addr"`
+	JoinAddr         string `mapstructure:"join_addr"`
 }
 
 func ReadServerConfigFile(filePath string) (ServerConfig, error) {
@@ -167,30 +169,5 @@ func ReadReplicaConfigFile(filePath string) (ReplicaConfig, error) {
 	if err != nil {
 		return ReplicaConfig{}, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
-	return config, nil
-}
-
-type SliceConfig struct {
-	Id               string `mapstructure:"node_id"`
-	Address          string `mapstructure:"bind_addr"`
-	JoinAddr         string `mapstructure:"join_addr"`
-	VirtualNodeCount int    `mapstructure:"node_count"`
-	ServicePort      int    `mapstructure:"service_port"`
-}
-
-func ReadSliceConfigFile(filePath string) (SliceConfig, error) {
-	viper.SetConfigFile(filePath)
-	viper.SetConfigType("yaml")
-	err := viper.ReadInConfig()
-	if err != nil {
-		return SliceConfig{}, err
-	}
-
-	var config SliceConfig
-	err = viper.Unmarshal(&config)
-	if err != nil {
-		return SliceConfig{}, fmt.Errorf("failed to unmarshal config: %w", err)
-	}
-
 	return config, nil
 }

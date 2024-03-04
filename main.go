@@ -43,17 +43,11 @@ func start() {
 		panic(err)
 	}
 
-	sliceConf, err := config.ReadSliceConfigFile(SliceConfigFile)
-	if err != nil {
-		panic(err)
-	}
-
-	print("listening at port:", serverConf.ListenPort)
-	print("   using protocol:", serverConf.Protocol)
-	println("   using engine:", serverConf.EngineName)
+	print("listening at port:", serverConf.Port)
+	println("  using engine:", serverConf.EngineName)
 
 	// 启动代理
-	err = proxy.Start(serverConf, storeConf, replicaConf, sliceConf)
+	err = proxy.Start(serverConf, storeConf, replicaConf)
 	if err != nil {
 		panic(err)
 	}
