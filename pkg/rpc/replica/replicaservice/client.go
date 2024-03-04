@@ -12,6 +12,7 @@ import (
 // Client is designed to provide IDL-compatible methods with call-option parameter for kitex framework.
 type Client interface {
 	Join(ctx context.Context, req *replica.JoinReq, callOptions ...callopt.Option) (r *replica.JoinResp, err error)
+	LeaderAddr(ctx context.Context, req *replica.LeaderAddrReq, callOptions ...callopt.Option) (r *replica.LeaderAddrResp, err error)
 }
 
 // NewClient creates a client for the service defined in IDL.
@@ -46,4 +47,9 @@ type kReplicaServiceClient struct {
 func (p *kReplicaServiceClient) Join(ctx context.Context, req *replica.JoinReq, callOptions ...callopt.Option) (r *replica.JoinResp, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.Join(ctx, req)
+}
+
+func (p *kReplicaServiceClient) LeaderAddr(ctx context.Context, req *replica.LeaderAddrReq, callOptions ...callopt.Option) (r *replica.LeaderAddrResp, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.LeaderAddr(ctx, req)
 }

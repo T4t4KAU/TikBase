@@ -10,6 +10,13 @@ struct JoinResp {
     1: required string message
 }
 
+struct LeaderAddrReq {}
+
+struct LeaderAddrResp {
+    1: required string address
+}
+
 service ReplicaService {
     JoinResp Join(1: JoinReq req)
+    LeaderAddrResp LeaderAddr(1: LeaderAddrReq req)
 }

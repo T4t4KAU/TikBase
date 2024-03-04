@@ -19,7 +19,8 @@ func NewServiceInfo() *kitex.ServiceInfo {
 	serviceName := "ReplicaService"
 	handlerType := (*replica.ReplicaService)(nil)
 	methods := map[string]kitex.MethodInfo{
-		"Join": kitex.NewMethodInfo(joinHandler, newReplicaServiceJoinArgs, newReplicaServiceJoinResult, false),
+		"Join":       kitex.NewMethodInfo(joinHandler, newReplicaServiceJoinArgs, newReplicaServiceJoinResult, false),
+		"LeaderAddr": kitex.NewMethodInfo(leaderAddrHandler, newReplicaServiceLeaderAddrArgs, newReplicaServiceLeaderAddrResult, false),
 	}
 	extra := map[string]interface{}{
 		"PackageName": "replica",
@@ -53,6 +54,24 @@ func newReplicaServiceJoinResult() interface{} {
 	return replica.NewReplicaServiceJoinResult()
 }
 
+func leaderAddrHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*replica.ReplicaServiceLeaderAddrArgs)
+	realResult := result.(*replica.ReplicaServiceLeaderAddrResult)
+	success, err := handler.(replica.ReplicaService).LeaderAddr(ctx, realArg.Req)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+func newReplicaServiceLeaderAddrArgs() interface{} {
+	return replica.NewReplicaServiceLeaderAddrArgs()
+}
+
+func newReplicaServiceLeaderAddrResult() interface{} {
+	return replica.NewReplicaServiceLeaderAddrResult()
+}
+
 type kClient struct {
 	c client.Client
 }
@@ -68,6 +87,16 @@ func (p *kClient) Join(ctx context.Context, req *replica.JoinReq) (r *replica.Jo
 	_args.Req = req
 	var _result replica.ReplicaServiceJoinResult
 	if err = p.c.Call(ctx, "Join", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) LeaderAddr(ctx context.Context, req *replica.LeaderAddrReq) (r *replica.LeaderAddrResp, err error) {
+	var _args replica.ReplicaServiceLeaderAddrArgs
+	_args.Req = req
+	var _result replica.ReplicaServiceLeaderAddrResult
+	if err = p.c.Call(ctx, "LeaderAddr", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil
