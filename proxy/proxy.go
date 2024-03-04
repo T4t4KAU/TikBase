@@ -10,6 +10,7 @@ import (
 func Start(server config.ServerConfig, store config.StoreConfig, replica config.ReplicaConfig) (err error) {
 	var eng iface.Engine
 
+	// 初始化存储引擎
 	switch server.EngineName {
 	case "base":
 		cfg := store.(config.BaseStoreConfig)
@@ -19,6 +20,7 @@ func Start(server config.ServerConfig, store config.StoreConfig, replica config.
 		eng, err = engine.NewCacheEngineWith(cfg)
 	}
 
+	// 启动region服务
 	service, err := region.New(&replica, &server, eng)
 	if err != nil {
 		panic(err)
@@ -28,10 +30,6 @@ func Start(server config.ServerConfig, store config.StoreConfig, replica config.
 		// 启动所有服务
 		service.Start()
 	}()
-
-	if replica.JoinAddr != "" {
-		// TODO: 启动副本存储
-	}
 
 	select {}
 

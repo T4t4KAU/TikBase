@@ -4,6 +4,6 @@ ADD . /src
 RUN cd /src && go build -o main
  
 FROM alpine:latest
-WORKDIR /base
-COPY --from=buildStage /src/main /base/
+WORKDIR /tb
+COPY --from=buildStage /src/main /tb/
 ENTRYPOINT ./main

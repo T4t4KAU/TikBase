@@ -24,6 +24,8 @@ type Client interface {
 	RPop(ctx context.Context, req *data.RPopReq, callOptions ...callopt.Option) (r *data.RPopResp, err error)
 	SAdd(ctx context.Context, req *data.SAddReq, callOptions ...callopt.Option) (r *data.SAddResp, err error)
 	SRem(ctx context.Context, req *data.SRemReq, callOptions ...callopt.Option) (r *data.SRemResp, err error)
+	ZAdd(ctx context.Context, req *data.ZAddReq, callOptions ...callopt.Option) (r *data.ZAddResp, err error)
+	ZRem(ctx context.Context, req *data.ZRemReq, callOptions ...callopt.Option) (r *data.ZRemResp, err error)
 }
 
 // NewClient creates a client for the service defined in IDL.
@@ -118,4 +120,14 @@ func (p *kDataServiceClient) SAdd(ctx context.Context, req *data.SAddReq, callOp
 func (p *kDataServiceClient) SRem(ctx context.Context, req *data.SRemReq, callOptions ...callopt.Option) (r *data.SRemResp, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.SRem(ctx, req)
+}
+
+func (p *kDataServiceClient) ZAdd(ctx context.Context, req *data.ZAddReq, callOptions ...callopt.Option) (r *data.ZAddResp, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.ZAdd(ctx, req)
+}
+
+func (p *kDataServiceClient) ZRem(ctx context.Context, req *data.ZRemReq, callOptions ...callopt.Option) (r *data.ZRemResp, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.ZRem(ctx, req)
 }

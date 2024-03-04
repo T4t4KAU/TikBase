@@ -131,6 +131,26 @@ struct SRemResp {
     2: required string message
 }
 
+struct ZAddReq {
+    1: required string key
+    2: required binary element
+}
+
+struct ZAddResp {
+    1: required bool success
+    2: required string message
+}
+
+struct ZRemReq {
+    1: required string key
+    2: required binary element
+}
+
+struct ZRemResp {
+    1: required bool success
+    2: required string message
+}
+
 service DataService {
     GetResp Get(1: GetReq req)
     SetResp Set(1: SetReq req)
@@ -145,4 +165,6 @@ service DataService {
     RPopResp RPop(1: RPopReq req)
     SAddResp SAdd(1: SAddReq req)
     SRemResp SRem(1: SRemReq req)
+    ZAddResp ZAdd(1: ZAddReq req)
+    ZRemResp ZRem(1: ZRemReq req)
 }

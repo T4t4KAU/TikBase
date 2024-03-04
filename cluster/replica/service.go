@@ -3,6 +3,7 @@ package replica
 import (
 	"context"
 	"github.com/T4t4KAU/TikBase/cluster/replica/raft"
+	"github.com/T4t4KAU/TikBase/pkg/consts"
 	"github.com/T4t4KAU/TikBase/pkg/rpc/replica"
 	"github.com/T4t4KAU/TikBase/pkg/rpc/replica/replicaservice"
 	"github.com/cloudwego/kitex/pkg/klog"
@@ -36,6 +37,14 @@ func (s *Service) Join(ctx context.Context, req *replica.JoinReq) (resp *replica
 	return resp, nil
 }
 
+// LeaderAddr implements the ReplicaServiceImpl interface.
+func (s *Service) LeaderAddr(ctx context.Context, req *replica.LeaderAddrReq) (resp *replica.LeaderAddrResp, err error) {
+	resp = new(replica.LeaderAddrResp)
+	resp.Address = s.peer.LeaderAddr()
+
+	return
+}
+
 // Start 启动服务
 func (s *Service) Start() error {
 	addr, err := net.ResolveTCPAddr("tcp", s.address)
@@ -59,5 +68,5 @@ func (s *Service) Start() error {
 }
 
 func (s *Service) Name() string {
-	return "replica-service"
+	return consts.ReplicaServiceName
 }

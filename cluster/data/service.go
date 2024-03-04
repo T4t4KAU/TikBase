@@ -5,7 +5,8 @@ import (
 	"github.com/T4t4KAU/TikBase/cluster/slice"
 	"github.com/T4t4KAU/TikBase/engine"
 	"github.com/T4t4KAU/TikBase/iface"
-	data "github.com/T4t4KAU/TikBase/pkg/rpc/data"
+	"github.com/T4t4KAU/TikBase/pkg/consts"
+	"github.com/T4t4KAU/TikBase/pkg/rpc/data"
 	"github.com/T4t4KAU/TikBase/pkg/rpc/data/dataservice"
 	"github.com/T4t4KAU/TikBase/pkg/utils"
 	"github.com/cloudwego/kitex/client"
@@ -47,7 +48,7 @@ func (s *Service) Start() error {
 }
 
 func (s *Service) Name() string {
-	return "data-service"
+	return consts.DataServiceName
 }
 
 // Get implements the Service interface.
@@ -117,7 +118,7 @@ func (s *Service) Del(ctx context.Context, req *data.DelReq) (resp *data.DelResp
 	return
 }
 
-// Expire implements the DataServiceImpl interface.
+// Expire implements the Service interface.
 func (s *Service) Expire(ctx context.Context, req *data.ExpireReq) (resp *data.ExpireResp, err error) {
 	node, err := s.slice.SelectNode(req.Key)
 	if err != nil {
@@ -328,6 +329,18 @@ func (s *Service) SRem(ctx context.Context, req *data.SRemReq) (resp *data.SRemR
 	resp.Message = utils.WithMessage(res.Error())
 	resp.Success = res.Success()
 
+	return
+}
+
+// ZAdd implements the Service interface.
+func (s *Service) ZAdd(ctx context.Context, req *data.ZAddReq) (resp *data.ZAddResp, err error) {
+	// TODO: Your code here...
+	return
+}
+
+// ZRem implements the Service interface.
+func (s *Service) ZRem(ctx context.Context, req *data.ZRemReq) (resp *data.ZRemResp, err error) {
+	// TODO: Your code here...
 	return
 }
 

@@ -32,6 +32,8 @@ func NewServiceInfo() *kitex.ServiceInfo {
 		"RPop":   kitex.NewMethodInfo(rPopHandler, newDataServiceRPopArgs, newDataServiceRPopResult, false),
 		"SAdd":   kitex.NewMethodInfo(sAddHandler, newDataServiceSAddArgs, newDataServiceSAddResult, false),
 		"SRem":   kitex.NewMethodInfo(sRemHandler, newDataServiceSRemArgs, newDataServiceSRemResult, false),
+		"ZAdd":   kitex.NewMethodInfo(zAddHandler, newDataServiceZAddArgs, newDataServiceZAddResult, false),
+		"ZRem":   kitex.NewMethodInfo(zRemHandler, newDataServiceZRemArgs, newDataServiceZRemResult, false),
 	}
 	extra := map[string]interface{}{
 		"PackageName": "data",
@@ -281,6 +283,42 @@ func newDataServiceSRemResult() interface{} {
 	return data.NewDataServiceSRemResult()
 }
 
+func zAddHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*data.DataServiceZAddArgs)
+	realResult := result.(*data.DataServiceZAddResult)
+	success, err := handler.(data.DataService).ZAdd(ctx, realArg.Req)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+func newDataServiceZAddArgs() interface{} {
+	return data.NewDataServiceZAddArgs()
+}
+
+func newDataServiceZAddResult() interface{} {
+	return data.NewDataServiceZAddResult()
+}
+
+func zRemHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*data.DataServiceZRemArgs)
+	realResult := result.(*data.DataServiceZRemResult)
+	success, err := handler.(data.DataService).ZRem(ctx, realArg.Req)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+func newDataServiceZRemArgs() interface{} {
+	return data.NewDataServiceZRemArgs()
+}
+
+func newDataServiceZRemResult() interface{} {
+	return data.NewDataServiceZRemResult()
+}
+
 type kClient struct {
 	c client.Client
 }
@@ -416,6 +454,26 @@ func (p *kClient) SRem(ctx context.Context, req *data.SRemReq) (r *data.SRemResp
 	_args.Req = req
 	var _result data.DataServiceSRemResult
 	if err = p.c.Call(ctx, "SRem", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) ZAdd(ctx context.Context, req *data.ZAddReq) (r *data.ZAddResp, err error) {
+	var _args data.DataServiceZAddArgs
+	_args.Req = req
+	var _result data.DataServiceZAddResult
+	if err = p.c.Call(ctx, "ZAdd", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) ZRem(ctx context.Context, req *data.ZRemReq) (r *data.ZRemResp, err error) {
+	var _args data.DataServiceZRemArgs
+	_args.Req = req
+	var _result data.DataServiceZRemResult
+	if err = p.c.Call(ctx, "ZRem", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil
