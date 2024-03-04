@@ -19,3 +19,15 @@ func (s *Service) RegionStatus(ctx context.Context, req *meta0.RegionStatusReq) 
 	// TODO: Your code here...
 	return
 }
+
+// ReplicaList implements the Service interface.
+func (s *Service) ReplicaList(ctx context.Context, req *meta0.ReplicaListReq) (resp *meta0.ReplicaListResp, err error) {
+	// TODO: Your code here...
+	return
+}
+
+// ReplicaStatus implements the Service interface.
+func (s *Service) ReplicaStatus(ctx context.Context, req *meta0.ReplicaStatusReq) (resp *meta0.ReplicaStatusResp, err error) {
+	// TODO: Your code here...
+	return
+}

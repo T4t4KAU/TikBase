@@ -1372,6 +1372,482 @@ func (p *DelResp) Field2DeepEqual(src string) bool {
 	return true
 }
 
+type ExpireReq struct {
+	Key  string `thrift:"key,1,required" frugal:"1,required,string" json:"key"`
+	Time int64  `thrift:"time,2,required" frugal:"2,required,i64" json:"time"`
+}
+
+func NewExpireReq() *ExpireReq {
+	return &ExpireReq{}
+}
+
+func (p *ExpireReq) InitDefault() {
+	*p = ExpireReq{}
+}
+
+func (p *ExpireReq) GetKey() (v string) {
+	return p.Key
+}
+
+func (p *ExpireReq) GetTime() (v int64) {
+	return p.Time
+}
+func (p *ExpireReq) SetKey(val string) {
+	p.Key = val
+}
+func (p *ExpireReq) SetTime(val int64) {
+	p.Time = val
+}
+
+var fieldIDToName_ExpireReq = map[int16]string{
+	1: "key",
+	2: "time",
+}
+
+func (p *ExpireReq) Read(iprot thrift.TProtocol) (err error) {
+
+	var fieldTypeId thrift.TType
+	var fieldId int16
+	var issetKey bool = false
+	var issetTime bool = false
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetKey = true
+			} else {
+				if err = iprot.Skip(fieldTypeId); err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 2:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetTime = true
+			} else {
+				if err = iprot.Skip(fieldTypeId); err != nil {
+					goto SkipFieldError
+				}
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	if !issetKey {
+		fieldId = 1
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetTime {
+		fieldId = 2
+		goto RequiredFieldNotSetError
+	}
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExpireReq[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+RequiredFieldNotSetError:
+	return thrift.NewTProtocolExceptionWithType(thrift.INVALID_DATA, fmt.Errorf("required field %s is not set", fieldIDToName_ExpireReq[fieldId]))
+}
+
+func (p *ExpireReq) ReadField1(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		p.Key = v
+	}
+	return nil
+}
+
+func (p *ExpireReq) ReadField2(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		p.Time = v
+	}
+	return nil
+}
+
+func (p *ExpireReq) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("ExpireReq"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *ExpireReq) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("key", thrift.STRING, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.Key); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *ExpireReq) writeField2(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("time", thrift.I64, 2); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI64(p.Time); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+
+func (p *ExpireReq) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ExpireReq(%+v)", *p)
+}
+
+func (p *ExpireReq) DeepEqual(ano *ExpireReq) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Key) {
+		return false
+	}
+	if !p.Field2DeepEqual(ano.Time) {
+		return false
+	}
+	return true
+}
+
+func (p *ExpireReq) Field1DeepEqual(src string) bool {
+
+	if strings.Compare(p.Key, src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *ExpireReq) Field2DeepEqual(src int64) bool {
+
+	if p.Time != src {
+		return false
+	}
+	return true
+}
+
+type ExpireResp struct {
+	Success bool   `thrift:"success,1,required" frugal:"1,required,bool" json:"success"`
+	Message string `thrift:"message,2,required" frugal:"2,required,string" json:"message"`
+}
+
+func NewExpireResp() *ExpireResp {
+	return &ExpireResp{}
+}
+
+func (p *ExpireResp) InitDefault() {
+	*p = ExpireResp{}
+}
+
+func (p *ExpireResp) GetSuccess() (v bool) {
+	return p.Success
+}
+
+func (p *ExpireResp) GetMessage() (v string) {
+	return p.Message
+}
+func (p *ExpireResp) SetSuccess(val bool) {
+	p.Success = val
+}
+func (p *ExpireResp) SetMessage(val string) {
+	p.Message = val
+}
+
+var fieldIDToName_ExpireResp = map[int16]string{
+	1: "success",
+	2: "message",
+}
+
+func (p *ExpireResp) Read(iprot thrift.TProtocol) (err error) {
+
+	var fieldTypeId thrift.TType
+	var fieldId int16
+	var issetSuccess bool = false
+	var issetMessage bool = false
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.BOOL {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetSuccess = true
+			} else {
+				if err = iprot.Skip(fieldTypeId); err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 2:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetMessage = true
+			} else {
+				if err = iprot.Skip(fieldTypeId); err != nil {
+					goto SkipFieldError
+				}
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	if !issetSuccess {
+		fieldId = 1
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetMessage {
+		fieldId = 2
+		goto RequiredFieldNotSetError
+	}
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExpireResp[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+RequiredFieldNotSetError:
+	return thrift.NewTProtocolExceptionWithType(thrift.INVALID_DATA, fmt.Errorf("required field %s is not set", fieldIDToName_ExpireResp[fieldId]))
+}
+
+func (p *ExpireResp) ReadField1(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadBool(); err != nil {
+		return err
+	} else {
+		p.Success = v
+	}
+	return nil
+}
+
+func (p *ExpireResp) ReadField2(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		p.Message = v
+	}
+	return nil
+}
+
+func (p *ExpireResp) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("ExpireResp"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *ExpireResp) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("success", thrift.BOOL, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteBool(p.Success); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *ExpireResp) writeField2(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("message", thrift.STRING, 2); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.Message); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+
+func (p *ExpireResp) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ExpireResp(%+v)", *p)
+}
+
+func (p *ExpireResp) DeepEqual(ano *ExpireResp) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Success) {
+		return false
+	}
+	if !p.Field2DeepEqual(ano.Message) {
+		return false
+	}
+	return true
+}
+
+func (p *ExpireResp) Field1DeepEqual(src bool) bool {
+
+	if p.Success != src {
+		return false
+	}
+	return true
+}
+func (p *ExpireResp) Field2DeepEqual(src string) bool {
+
+	if strings.Compare(p.Message, src) != 0 {
+		return false
+	}
+	return true
+}
+
 type HSetReq struct {
 	Key   string `thrift:"key,1,required" frugal:"1,required,string" json:"key"`
 	Field []byte `thrift:"field,2,required" frugal:"2,required,binary" json:"field"`
@@ -5795,6 +6271,8 @@ type DataService interface {
 
 	Del(ctx context.Context, req *DelReq) (r *DelResp, err error)
 
+	Expire(ctx context.Context, req *ExpireReq) (r *ExpireResp, err error)
+
 	HSet(ctx context.Context, req *HSetReq) (r *HSetResp, err error)
 
 	HGet(ctx context.Context, req *HGetReq) (r *HGetResp, err error)
@@ -5863,6 +6341,15 @@ func (p *DataServiceClient) Del(ctx context.Context, req *DelReq) (r *DelResp, e
 	_args.Req = req
 	var _result DataServiceDelResult
 	if err = p.Client_().Call(ctx, "Del", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+func (p *DataServiceClient) Expire(ctx context.Context, req *ExpireReq) (r *ExpireResp, err error) {
+	var _args DataServiceExpireArgs
+	_args.Req = req
+	var _result DataServiceExpireResult
+	if err = p.Client_().Call(ctx, "Expire", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil
@@ -5972,6 +6459,7 @@ func NewDataServiceProcessor(handler DataService) *DataServiceProcessor {
 	self.AddToProcessorMap("Get", &dataServiceProcessorGet{handler: handler})
 	self.AddToProcessorMap("Set", &dataServiceProcessorSet{handler: handler})
 	self.AddToProcessorMap("Del", &dataServiceProcessorDel{handler: handler})
+	self.AddToProcessorMap("Expire", &dataServiceProcessorExpire{handler: handler})
 	self.AddToProcessorMap("HSet", &dataServiceProcessorHSet{handler: handler})
 	self.AddToProcessorMap("HGet", &dataServiceProcessorHGet{handler: handler})
 	self.AddToProcessorMap("HDel", &dataServiceProcessorHDel{handler: handler})
@@ -6128,6 +6616,54 @@ func (p *dataServiceProcessorDel) Process(ctx context.Context, seqId int32, ipro
 		result.Success = retval
 	}
 	if err2 = oprot.WriteMessageBegin("Del", thrift.REPLY, seqId); err2 != nil {
+		err = err2
+	}
+	if err2 = result.Write(oprot); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.WriteMessageEnd(); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.Flush(ctx); err == nil && err2 != nil {
+		err = err2
+	}
+	if err != nil {
+		return
+	}
+	return true, err
+}
+
+type dataServiceProcessorExpire struct {
+	handler DataService
+}
+
+func (p *dataServiceProcessorExpire) Process(ctx context.Context, seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+	args := DataServiceExpireArgs{}
+	if err = args.Read(iprot); err != nil {
+		iprot.ReadMessageEnd()
+		x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
+		oprot.WriteMessageBegin("Expire", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush(ctx)
+		return false, err
+	}
+
+	iprot.ReadMessageEnd()
+	var err2 error
+	result := DataServiceExpireResult{}
+	var retval *ExpireResp
+	if retval, err2 = p.handler.Expire(ctx, args.Req); err2 != nil {
+		x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing Expire: "+err2.Error())
+		oprot.WriteMessageBegin("Expire", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush(ctx)
+		return true, err2
+	} else {
+		result.Success = retval
+	}
+	if err2 = oprot.WriteMessageBegin("Expire", thrift.REPLY, seqId); err2 != nil {
 		err = err2
 	}
 	if err2 = result.Write(oprot); err == nil && err2 != nil {
@@ -7608,6 +8144,352 @@ func (p *DataServiceDelResult) DeepEqual(ano *DataServiceDelResult) bool {
 }
 
 func (p *DataServiceDelResult) Field0DeepEqual(src *DelResp) bool {
+
+	if !p.Success.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type DataServiceExpireArgs struct {
+	Req *ExpireReq `thrift:"req,1" frugal:"1,default,ExpireReq" json:"req"`
+}
+
+func NewDataServiceExpireArgs() *DataServiceExpireArgs {
+	return &DataServiceExpireArgs{}
+}
+
+func (p *DataServiceExpireArgs) InitDefault() {
+	*p = DataServiceExpireArgs{}
+}
+
+var DataServiceExpireArgs_Req_DEFAULT *ExpireReq
+
+func (p *DataServiceExpireArgs) GetReq() (v *ExpireReq) {
+	if !p.IsSetReq() {
+		return DataServiceExpireArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+func (p *DataServiceExpireArgs) SetReq(val *ExpireReq) {
+	p.Req = val
+}
+
+var fieldIDToName_DataServiceExpireArgs = map[int16]string{
+	1: "req",
+}
+
+func (p *DataServiceExpireArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+func (p *DataServiceExpireArgs) Read(iprot thrift.TProtocol) (err error) {
+
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				if err = iprot.Skip(fieldTypeId); err != nil {
+					goto SkipFieldError
+				}
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_DataServiceExpireArgs[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *DataServiceExpireArgs) ReadField1(iprot thrift.TProtocol) error {
+	p.Req = NewExpireReq()
+	if err := p.Req.Read(iprot); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p *DataServiceExpireArgs) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("Expire_args"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *DataServiceExpireArgs) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("req", thrift.STRUCT, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := p.Req.Write(oprot); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *DataServiceExpireArgs) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("DataServiceExpireArgs(%+v)", *p)
+}
+
+func (p *DataServiceExpireArgs) DeepEqual(ano *DataServiceExpireArgs) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Req) {
+		return false
+	}
+	return true
+}
+
+func (p *DataServiceExpireArgs) Field1DeepEqual(src *ExpireReq) bool {
+
+	if !p.Req.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type DataServiceExpireResult struct {
+	Success *ExpireResp `thrift:"success,0,optional" frugal:"0,optional,ExpireResp" json:"success,omitempty"`
+}
+
+func NewDataServiceExpireResult() *DataServiceExpireResult {
+	return &DataServiceExpireResult{}
+}
+
+func (p *DataServiceExpireResult) InitDefault() {
+	*p = DataServiceExpireResult{}
+}
+
+var DataServiceExpireResult_Success_DEFAULT *ExpireResp
+
+func (p *DataServiceExpireResult) GetSuccess() (v *ExpireResp) {
+	if !p.IsSetSuccess() {
+		return DataServiceExpireResult_Success_DEFAULT
+	}
+	return p.Success
+}
+func (p *DataServiceExpireResult) SetSuccess(x interface{}) {
+	p.Success = x.(*ExpireResp)
+}
+
+var fieldIDToName_DataServiceExpireResult = map[int16]string{
+	0: "success",
+}
+
+func (p *DataServiceExpireResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func (p *DataServiceExpireResult) Read(iprot thrift.TProtocol) (err error) {
+
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 0:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField0(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				if err = iprot.Skip(fieldTypeId); err != nil {
+					goto SkipFieldError
+				}
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_DataServiceExpireResult[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *DataServiceExpireResult) ReadField0(iprot thrift.TProtocol) error {
+	p.Success = NewExpireResp()
+	if err := p.Success.Read(iprot); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p *DataServiceExpireResult) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("Expire_result"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField0(oprot); err != nil {
+			fieldId = 0
+			goto WriteFieldError
+		}
+
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *DataServiceExpireResult) writeField0(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSuccess() {
+		if err = oprot.WriteFieldBegin("success", thrift.STRUCT, 0); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.Success.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 end error: ", p), err)
+}
+
+func (p *DataServiceExpireResult) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("DataServiceExpireResult(%+v)", *p)
+}
+
+func (p *DataServiceExpireResult) DeepEqual(ano *DataServiceExpireResult) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field0DeepEqual(ano.Success) {
+		return false
+	}
+	return true
+}
+
+func (p *DataServiceExpireResult) Field0DeepEqual(src *ExpireResp) bool {
 
 	if !p.Success.DeepEqual(src) {
 		return false

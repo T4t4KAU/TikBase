@@ -17,7 +17,7 @@ type Slice struct {
 	iface.Engine
 }
 
-func New(options Options) (*Slice, error) {
+func New(options Options, eng iface.Engine) (*Slice, error) {
 	if options.Cluster == nil || len(options.Cluster) == 0 {
 		options.Cluster = []string{options.Address}
 	}
@@ -32,7 +32,9 @@ func New(options Options) (*Slice, error) {
 		address:     options.Address,
 		circle:      chash.New(options.VirtualNodeCount, chash.DefaultHash),
 		nodeManager: manager,
+		Engine:      eng,
 	}
+	slice.circle.AddNode(options.Address)
 
 	return slice, nil
 }

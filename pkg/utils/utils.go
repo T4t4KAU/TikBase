@@ -248,3 +248,10 @@ func PathExists(path string) bool {
 	}
 	return true
 }
+
+func WithMessage(err error) string {
+	if err != nil {
+		return err.Error()
+	}
+	return ""
+}

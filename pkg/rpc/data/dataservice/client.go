@@ -14,6 +14,7 @@ type Client interface {
 	Get(ctx context.Context, req *data.GetReq, callOptions ...callopt.Option) (r *data.GetResp, err error)
 	Set(ctx context.Context, req *data.SetReq, callOptions ...callopt.Option) (r *data.SetResp, err error)
 	Del(ctx context.Context, req *data.DelReq, callOptions ...callopt.Option) (r *data.DelResp, err error)
+	Expire(ctx context.Context, req *data.ExpireReq, callOptions ...callopt.Option) (r *data.ExpireResp, err error)
 	HSet(ctx context.Context, req *data.HSetReq, callOptions ...callopt.Option) (r *data.HSetResp, err error)
 	HGet(ctx context.Context, req *data.HGetReq, callOptions ...callopt.Option) (r *data.HGetResp, err error)
 	HDel(ctx context.Context, req *data.HDelReq, callOptions ...callopt.Option) (r *data.HDelResp, err error)
@@ -67,6 +68,11 @@ func (p *kDataServiceClient) Set(ctx context.Context, req *data.SetReq, callOpti
 func (p *kDataServiceClient) Del(ctx context.Context, req *data.DelReq, callOptions ...callopt.Option) (r *data.DelResp, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.Del(ctx, req)
+}
+
+func (p *kDataServiceClient) Expire(ctx context.Context, req *data.ExpireReq, callOptions ...callopt.Option) (r *data.ExpireResp, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.Expire(ctx, req)
 }
 
 func (p *kDataServiceClient) HSet(ctx context.Context, req *data.HSetReq, callOptions ...callopt.Option) (r *data.HSetResp, err error) {

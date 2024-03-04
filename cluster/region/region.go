@@ -9,6 +9,7 @@ import (
 	"github.com/T4t4KAU/TikBase/iface"
 	"github.com/T4t4KAU/TikBase/pkg/config"
 	"github.com/cloudwego/kitex/pkg/klog"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -44,14 +45,15 @@ func New(replicaConfig *config.ReplicaConfig, sliceConfig *config.SliceConfig, e
 		VirtualNodeCount:     sliceConfig.VirtualNodeCount,
 		UpdateCircleDuration: slice.DefaultOptions.UpdateCircleDuration,
 		Cluster:              []string{sliceConfig.JoinAddr},
-	})
+	}, eng)
+
 	if err != nil {
 		return &Region{}, err
 	}
 
 	/// 注册服务
 	re.registerService("replica-service", replica.NewService(peer, replicaConfig.ServiceAddr))
-	re.registerService("data-service", data.NewService(re.Slice))
+	re.registerService("data-service", data.NewService(re.Slice, ":"+strconv.Itoa(sliceConfig.ServicePort)))
 
 	return re, nil
 }

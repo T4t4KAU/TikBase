@@ -19,18 +19,19 @@ func NewServiceInfo() *kitex.ServiceInfo {
 	serviceName := "DataService"
 	handlerType := (*data.DataService)(nil)
 	methods := map[string]kitex.MethodInfo{
-		"Get":   kitex.NewMethodInfo(getHandler, newDataServiceGetArgs, newDataServiceGetResult, false),
-		"Set":   kitex.NewMethodInfo(setHandler, newDataServiceSetArgs, newDataServiceSetResult, false),
-		"Del":   kitex.NewMethodInfo(delHandler, newDataServiceDelArgs, newDataServiceDelResult, false),
-		"HSet":  kitex.NewMethodInfo(hSetHandler, newDataServiceHSetArgs, newDataServiceHSetResult, false),
-		"HGet":  kitex.NewMethodInfo(hGetHandler, newDataServiceHGetArgs, newDataServiceHGetResult, false),
-		"HDel":  kitex.NewMethodInfo(hDelHandler, newDataServiceHDelArgs, newDataServiceHDelResult, false),
-		"LPush": kitex.NewMethodInfo(lPushHandler, newDataServiceLPushArgs, newDataServiceLPushResult, false),
-		"RPush": kitex.NewMethodInfo(rPushHandler, newDataServiceRPushArgs, newDataServiceRPushResult, false),
-		"LPop":  kitex.NewMethodInfo(lPopHandler, newDataServiceLPopArgs, newDataServiceLPopResult, false),
-		"RPop":  kitex.NewMethodInfo(rPopHandler, newDataServiceRPopArgs, newDataServiceRPopResult, false),
-		"SAdd":  kitex.NewMethodInfo(sAddHandler, newDataServiceSAddArgs, newDataServiceSAddResult, false),
-		"SRem":  kitex.NewMethodInfo(sRemHandler, newDataServiceSRemArgs, newDataServiceSRemResult, false),
+		"Get":    kitex.NewMethodInfo(getHandler, newDataServiceGetArgs, newDataServiceGetResult, false),
+		"Set":    kitex.NewMethodInfo(setHandler, newDataServiceSetArgs, newDataServiceSetResult, false),
+		"Del":    kitex.NewMethodInfo(delHandler, newDataServiceDelArgs, newDataServiceDelResult, false),
+		"Expire": kitex.NewMethodInfo(expireHandler, newDataServiceExpireArgs, newDataServiceExpireResult, false),
+		"HSet":   kitex.NewMethodInfo(hSetHandler, newDataServiceHSetArgs, newDataServiceHSetResult, false),
+		"HGet":   kitex.NewMethodInfo(hGetHandler, newDataServiceHGetArgs, newDataServiceHGetResult, false),
+		"HDel":   kitex.NewMethodInfo(hDelHandler, newDataServiceHDelArgs, newDataServiceHDelResult, false),
+		"LPush":  kitex.NewMethodInfo(lPushHandler, newDataServiceLPushArgs, newDataServiceLPushResult, false),
+		"RPush":  kitex.NewMethodInfo(rPushHandler, newDataServiceRPushArgs, newDataServiceRPushResult, false),
+		"LPop":   kitex.NewMethodInfo(lPopHandler, newDataServiceLPopArgs, newDataServiceLPopResult, false),
+		"RPop":   kitex.NewMethodInfo(rPopHandler, newDataServiceRPopArgs, newDataServiceRPopResult, false),
+		"SAdd":   kitex.NewMethodInfo(sAddHandler, newDataServiceSAddArgs, newDataServiceSAddResult, false),
+		"SRem":   kitex.NewMethodInfo(sRemHandler, newDataServiceSRemArgs, newDataServiceSRemResult, false),
 	}
 	extra := map[string]interface{}{
 		"PackageName": "data",
@@ -98,6 +99,24 @@ func newDataServiceDelArgs() interface{} {
 
 func newDataServiceDelResult() interface{} {
 	return data.NewDataServiceDelResult()
+}
+
+func expireHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*data.DataServiceExpireArgs)
+	realResult := result.(*data.DataServiceExpireResult)
+	success, err := handler.(data.DataService).Expire(ctx, realArg.Req)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+func newDataServiceExpireArgs() interface{} {
+	return data.NewDataServiceExpireArgs()
+}
+
+func newDataServiceExpireResult() interface{} {
+	return data.NewDataServiceExpireResult()
 }
 
 func hSetHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
@@ -297,6 +316,16 @@ func (p *kClient) Del(ctx context.Context, req *data.DelReq) (r *data.DelResp, e
 	_args.Req = req
 	var _result data.DataServiceDelResult
 	if err = p.c.Call(ctx, "Del", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) Expire(ctx context.Context, req *data.ExpireReq) (r *data.ExpireResp, err error) {
+	var _args data.DataServiceExpireArgs
+	_args.Req = req
+	var _result data.DataServiceExpireResult
+	if err = p.c.Call(ctx, "Expire", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil

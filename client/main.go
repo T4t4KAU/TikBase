@@ -2,9 +2,14 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"fmt"
-	"github.com/T4t4KAU/TikBase/pkg/client"
+	"github.com/T4t4KAU/TikBase/pkg/rpc/data"
+	"github.com/T4t4KAU/TikBase/pkg/rpc/data/dataservice"
+	"github.com/T4t4KAU/TikBase/pkg/utils"
+	"github.com/cloudwego/kitex/client"
+
 	"io"
 	"os"
 	"strconv"
@@ -14,14 +19,14 @@ import (
 
 var logo = " _____ _ _    ____                 \n|_   _(_) | _| __ )  __ _ ___  ___ \n  | | | | |/ /  _ \\ / _` / __|/ _ \\\n  | | | |   <| |_) | (_| \\__ \\  __/\n  |_| |_|_|\\_\\____/ \\__,_|___/\\___|\n"
 
-var cli *client.Client
-
 var (
 	errNumOfArguments = errors.New("invalid number of arguments")
 	errInvalidCommand = errors.New("invalid command")
 
-	address = "127.0.0.1:9096"
+	address = "127.0.0.1:10024"
 )
+
+var cli dataservice.Client
 
 func main() {
 	reader := bufio.NewReader(os.Stdin)
@@ -29,7 +34,8 @@ func main() {
 
 	var err error
 	// 创建客户端
-	cli, err = client.New(address, "resp")
+
+	cli, err = dataservice.NewClient(address, client.WithHostPorts(address))
 	if err != nil {
 		panic(err)
 	}
@@ -89,7 +95,14 @@ func parseSetCommand(writer io.Writer, command []string) {
 		_, _ = fmt.Fprintln(writer, errNumOfArguments.Error())
 		return
 	}
-	err := cli.Set(command[1], command[2])
+
+	ctx := context.Background()
+	req := &data.SetReq{
+		Key:   command[1],
+		Value: utils.S2B(command[2]),
+	}
+
+	_, err := cli.Set(ctx, req)
 	if err != nil {
 		Error(writer, err)
 		return
@@ -102,12 +115,18 @@ func parseGetCommand(writer io.Writer, command []string) {
 		Error(writer, errNumOfArguments)
 		return
 	}
-	val, err := cli.Get(command[1])
+
+	ctx := context.Background()
+	req := &data.GetReq{
+		Key: command[1],
+	}
+
+	resp, err := cli.Get(ctx, req)
 	if err != nil {
 		Error(writer, err)
 		return
 	}
-	_, _ = fmt.Fprintln(writer, val)
+	_, _ = fmt.Fprintln(writer, string(resp.Value))
 }
 
 func parseDelCommand(writer io.Writer, command []string) {
@@ -115,7 +134,13 @@ func parseDelCommand(writer io.Writer, command []string) {
 		Error(writer, errNumOfArguments)
 		return
 	}
-	err := cli.Del(command[1])
+
+	ctx := context.Background()
+	req := &data.DelReq{
+		Key: command[1],
+	}
+
+	_, err := cli.Del(ctx, req)
 	if err != nil {
 		Error(writer, err)
 		return
@@ -134,7 +159,14 @@ func parseExpireCommand(writer io.Writer, command []string) {
 		Error(writer, err)
 		return
 	}
-	err = cli.Expire(command[1], int64(ttl))
+
+	ctx := context.Background()
+	req := &data.ExpireReq{
+		Key:  command[1],
+		Time: int64(ttl),
+	}
+
+	_, err = cli.Expire(ctx, req)
 	if err != nil {
 		Error(writer, err)
 		return

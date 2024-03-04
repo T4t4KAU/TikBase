@@ -20,8 +20,10 @@ func NewServiceInfo() *kitex.ServiceInfo {
 	serviceName := "MetaService"
 	handlerType := (*meta.MetaService)(nil)
 	methods := map[string]kitex.MethodInfo{
-		"RegionList":   kitex.NewMethodInfo(regionListHandler, newMetaServiceRegionListArgs, newMetaServiceRegionListResult, false),
-		"RegionStatus": kitex.NewMethodInfo(regionStatusHandler, newMetaServiceRegionStatusArgs, newMetaServiceRegionStatusResult, false),
+		"RegionList":    kitex.NewMethodInfo(regionListHandler, newMetaServiceRegionListArgs, newMetaServiceRegionListResult, false),
+		"RegionStatus":  kitex.NewMethodInfo(regionStatusHandler, newMetaServiceRegionStatusArgs, newMetaServiceRegionStatusResult, false),
+		"ReplicaList":   kitex.NewMethodInfo(replicaListHandler, newMetaServiceReplicaListArgs, newMetaServiceReplicaListResult, false),
+		"ReplicaStatus": kitex.NewMethodInfo(replicaStatusHandler, newMetaServiceReplicaStatusArgs, newMetaServiceReplicaStatusResult, false),
 	}
 	extra := map[string]interface{}{
 		"PackageName": "meta",
@@ -73,6 +75,42 @@ func newMetaServiceRegionStatusResult() interface{} {
 	return meta.NewMetaServiceRegionStatusResult()
 }
 
+func replicaListHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*meta.MetaServiceReplicaListArgs)
+	realResult := result.(*meta.MetaServiceReplicaListResult)
+	success, err := handler.(meta.MetaService).ReplicaList(ctx, realArg.Req)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+func newMetaServiceReplicaListArgs() interface{} {
+	return meta.NewMetaServiceReplicaListArgs()
+}
+
+func newMetaServiceReplicaListResult() interface{} {
+	return meta.NewMetaServiceReplicaListResult()
+}
+
+func replicaStatusHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*meta.MetaServiceReplicaStatusArgs)
+	realResult := result.(*meta.MetaServiceReplicaStatusResult)
+	success, err := handler.(meta.MetaService).ReplicaStatus(ctx, realArg.Req)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+func newMetaServiceReplicaStatusArgs() interface{} {
+	return meta.NewMetaServiceReplicaStatusArgs()
+}
+
+func newMetaServiceReplicaStatusResult() interface{} {
+	return meta.NewMetaServiceReplicaStatusResult()
+}
+
 type kClient struct {
 	c client.Client
 }
@@ -98,6 +136,26 @@ func (p *kClient) RegionStatus(ctx context.Context, req *meta0.RegionStatusReq) 
 	_args.Req = req
 	var _result meta.MetaServiceRegionStatusResult
 	if err = p.c.Call(ctx, "RegionStatus", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) ReplicaList(ctx context.Context, req *meta0.ReplicaListReq) (r *meta0.ReplicaListResp, err error) {
+	var _args meta.MetaServiceReplicaListArgs
+	_args.Req = req
+	var _result meta.MetaServiceReplicaListResult
+	if err = p.c.Call(ctx, "ReplicaList", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) ReplicaStatus(ctx context.Context, req *meta0.ReplicaStatusReq) (r *meta0.ReplicaStatusResp, err error) {
+	var _args meta.MetaServiceReplicaStatusArgs
+	_args.Req = req
+	var _result meta.MetaServiceReplicaStatusResult
+	if err = p.c.Call(ctx, "ReplicaStatus", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil

@@ -29,6 +29,16 @@ struct DelResp {
     2: required string message
 }
 
+struct ExpireReq {
+    1: required string key
+    2: required i64 time
+}
+
+struct ExpireResp {
+    1: required bool success
+    2: required string message
+}
+
 struct HSetReq {
     1: required string key
     2: required binary field
@@ -125,6 +135,7 @@ service DataService {
     GetResp Get(1: GetReq req)
     SetResp Set(1: SetReq req)
     DelResp Del(1: DelReq req)
+    ExpireResp Expire(1: ExpireReq req)
     HSetResp HSet(1: HSetReq req)
     HGetResp HGet(1: HGetReq req)
     HDelResp HDel(1: HDelReq req)

@@ -175,6 +175,7 @@ type SliceConfig struct {
 	Address          string `mapstructure:"bind_addr"`
 	JoinAddr         string `mapstructure:"join_addr"`
 	VirtualNodeCount int    `mapstructure:"node_count"`
+	ServicePort      int    `mapstructure:"service_port"`
 }
 
 func ReadSliceConfigFile(filePath string) (SliceConfig, error) {

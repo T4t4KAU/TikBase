@@ -13,6 +13,8 @@ import (
 type Client interface {
 	RegionList(ctx context.Context, req *meta0.RegionListReq, callOptions ...callopt.Option) (r *meta0.RegionListResp, err error)
 	RegionStatus(ctx context.Context, req *meta0.RegionStatusReq, callOptions ...callopt.Option) (r *meta0.RegionStatusResp, err error)
+	ReplicaList(ctx context.Context, req *meta0.ReplicaListReq, callOptions ...callopt.Option) (r *meta0.ReplicaListResp, err error)
+	ReplicaStatus(ctx context.Context, req *meta0.ReplicaStatusReq, callOptions ...callopt.Option) (r *meta0.ReplicaStatusResp, err error)
 }
 
 // NewClient creates a client for the service defined in IDL.
@@ -52,4 +54,14 @@ func (p *kMetaServiceClient) RegionList(ctx context.Context, req *meta0.RegionLi
 func (p *kMetaServiceClient) RegionStatus(ctx context.Context, req *meta0.RegionStatusReq, callOptions ...callopt.Option) (r *meta0.RegionStatusResp, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.RegionStatus(ctx, req)
+}
+
+func (p *kMetaServiceClient) ReplicaList(ctx context.Context, req *meta0.ReplicaListReq, callOptions ...callopt.Option) (r *meta0.ReplicaListResp, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.ReplicaList(ctx, req)
+}
+
+func (p *kMetaServiceClient) ReplicaStatus(ctx context.Context, req *meta0.ReplicaStatusReq, callOptions ...callopt.Option) (r *meta0.ReplicaStatusResp, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.ReplicaStatus(ctx, req)
 }

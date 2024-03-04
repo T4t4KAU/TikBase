@@ -817,10 +817,756 @@ func (p *RegionStatusResp) Field4DeepEqual(src string) bool {
 	return true
 }
 
+type ReplicaListReq struct {
+}
+
+func NewReplicaListReq() *ReplicaListReq {
+	return &ReplicaListReq{}
+}
+
+func (p *ReplicaListReq) InitDefault() {
+	*p = ReplicaListReq{}
+}
+
+var fieldIDToName_ReplicaListReq = map[int16]string{}
+
+func (p *ReplicaListReq) Read(iprot thrift.TProtocol) (err error) {
+
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		if err = iprot.Skip(fieldTypeId); err != nil {
+			goto SkipFieldTypeError
+		}
+
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+SkipFieldTypeError:
+	return thrift.PrependError(fmt.Sprintf("%T skip field type %d error", p, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *ReplicaListReq) Write(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteStructBegin("ReplicaListReq"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *ReplicaListReq) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ReplicaListReq(%+v)", *p)
+}
+
+func (p *ReplicaListReq) DeepEqual(ano *ReplicaListReq) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	return true
+}
+
+type ReplicaListResp struct {
+	Message string `thrift:"message,1,required" frugal:"1,required,string" json:"message"`
+}
+
+func NewReplicaListResp() *ReplicaListResp {
+	return &ReplicaListResp{}
+}
+
+func (p *ReplicaListResp) InitDefault() {
+	*p = ReplicaListResp{}
+}
+
+func (p *ReplicaListResp) GetMessage() (v string) {
+	return p.Message
+}
+func (p *ReplicaListResp) SetMessage(val string) {
+	p.Message = val
+}
+
+var fieldIDToName_ReplicaListResp = map[int16]string{
+	1: "message",
+}
+
+func (p *ReplicaListResp) Read(iprot thrift.TProtocol) (err error) {
+
+	var fieldTypeId thrift.TType
+	var fieldId int16
+	var issetMessage bool = false
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetMessage = true
+			} else {
+				if err = iprot.Skip(fieldTypeId); err != nil {
+					goto SkipFieldError
+				}
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	if !issetMessage {
+		fieldId = 1
+		goto RequiredFieldNotSetError
+	}
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ReplicaListResp[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+RequiredFieldNotSetError:
+	return thrift.NewTProtocolExceptionWithType(thrift.INVALID_DATA, fmt.Errorf("required field %s is not set", fieldIDToName_ReplicaListResp[fieldId]))
+}
+
+func (p *ReplicaListResp) ReadField1(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		p.Message = v
+	}
+	return nil
+}
+
+func (p *ReplicaListResp) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("ReplicaListResp"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *ReplicaListResp) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("message", thrift.STRING, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.Message); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *ReplicaListResp) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ReplicaListResp(%+v)", *p)
+}
+
+func (p *ReplicaListResp) DeepEqual(ano *ReplicaListResp) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Message) {
+		return false
+	}
+	return true
+}
+
+func (p *ReplicaListResp) Field1DeepEqual(src string) bool {
+
+	if strings.Compare(p.Message, src) != 0 {
+		return false
+	}
+	return true
+}
+
+type ReplicaStatusReq struct {
+	Name string `thrift:"name,1,required" frugal:"1,required,string" json:"name"`
+}
+
+func NewReplicaStatusReq() *ReplicaStatusReq {
+	return &ReplicaStatusReq{}
+}
+
+func (p *ReplicaStatusReq) InitDefault() {
+	*p = ReplicaStatusReq{}
+}
+
+func (p *ReplicaStatusReq) GetName() (v string) {
+	return p.Name
+}
+func (p *ReplicaStatusReq) SetName(val string) {
+	p.Name = val
+}
+
+var fieldIDToName_ReplicaStatusReq = map[int16]string{
+	1: "name",
+}
+
+func (p *ReplicaStatusReq) Read(iprot thrift.TProtocol) (err error) {
+
+	var fieldTypeId thrift.TType
+	var fieldId int16
+	var issetName bool = false
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetName = true
+			} else {
+				if err = iprot.Skip(fieldTypeId); err != nil {
+					goto SkipFieldError
+				}
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	if !issetName {
+		fieldId = 1
+		goto RequiredFieldNotSetError
+	}
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ReplicaStatusReq[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+RequiredFieldNotSetError:
+	return thrift.NewTProtocolExceptionWithType(thrift.INVALID_DATA, fmt.Errorf("required field %s is not set", fieldIDToName_ReplicaStatusReq[fieldId]))
+}
+
+func (p *ReplicaStatusReq) ReadField1(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		p.Name = v
+	}
+	return nil
+}
+
+func (p *ReplicaStatusReq) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("ReplicaStatusReq"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *ReplicaStatusReq) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("name", thrift.STRING, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.Name); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *ReplicaStatusReq) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ReplicaStatusReq(%+v)", *p)
+}
+
+func (p *ReplicaStatusReq) DeepEqual(ano *ReplicaStatusReq) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Name) {
+		return false
+	}
+	return true
+}
+
+func (p *ReplicaStatusReq) Field1DeepEqual(src string) bool {
+
+	if strings.Compare(p.Name, src) != 0 {
+		return false
+	}
+	return true
+}
+
+type ReplicaStatusResp struct {
+	Name    string `thrift:"name,1,required" frugal:"1,required,string" json:"name"`
+	Address string `thrift:"address,2,required" frugal:"2,required,string" json:"address"`
+	Message string `thrift:"message,3,required" frugal:"3,required,string" json:"message"`
+}
+
+func NewReplicaStatusResp() *ReplicaStatusResp {
+	return &ReplicaStatusResp{}
+}
+
+func (p *ReplicaStatusResp) InitDefault() {
+	*p = ReplicaStatusResp{}
+}
+
+func (p *ReplicaStatusResp) GetName() (v string) {
+	return p.Name
+}
+
+func (p *ReplicaStatusResp) GetAddress() (v string) {
+	return p.Address
+}
+
+func (p *ReplicaStatusResp) GetMessage() (v string) {
+	return p.Message
+}
+func (p *ReplicaStatusResp) SetName(val string) {
+	p.Name = val
+}
+func (p *ReplicaStatusResp) SetAddress(val string) {
+	p.Address = val
+}
+func (p *ReplicaStatusResp) SetMessage(val string) {
+	p.Message = val
+}
+
+var fieldIDToName_ReplicaStatusResp = map[int16]string{
+	1: "name",
+	2: "address",
+	3: "message",
+}
+
+func (p *ReplicaStatusResp) Read(iprot thrift.TProtocol) (err error) {
+
+	var fieldTypeId thrift.TType
+	var fieldId int16
+	var issetName bool = false
+	var issetAddress bool = false
+	var issetMessage bool = false
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetName = true
+			} else {
+				if err = iprot.Skip(fieldTypeId); err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 2:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetAddress = true
+			} else {
+				if err = iprot.Skip(fieldTypeId); err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 3:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField3(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetMessage = true
+			} else {
+				if err = iprot.Skip(fieldTypeId); err != nil {
+					goto SkipFieldError
+				}
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	if !issetName {
+		fieldId = 1
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetAddress {
+		fieldId = 2
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetMessage {
+		fieldId = 3
+		goto RequiredFieldNotSetError
+	}
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ReplicaStatusResp[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+RequiredFieldNotSetError:
+	return thrift.NewTProtocolExceptionWithType(thrift.INVALID_DATA, fmt.Errorf("required field %s is not set", fieldIDToName_ReplicaStatusResp[fieldId]))
+}
+
+func (p *ReplicaStatusResp) ReadField1(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		p.Name = v
+	}
+	return nil
+}
+
+func (p *ReplicaStatusResp) ReadField2(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		p.Address = v
+	}
+	return nil
+}
+
+func (p *ReplicaStatusResp) ReadField3(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		p.Message = v
+	}
+	return nil
+}
+
+func (p *ReplicaStatusResp) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("ReplicaStatusResp"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField3(oprot); err != nil {
+			fieldId = 3
+			goto WriteFieldError
+		}
+
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *ReplicaStatusResp) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("name", thrift.STRING, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.Name); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *ReplicaStatusResp) writeField2(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("address", thrift.STRING, 2); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.Address); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+
+func (p *ReplicaStatusResp) writeField3(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("message", thrift.STRING, 3); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.Message); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+
+func (p *ReplicaStatusResp) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ReplicaStatusResp(%+v)", *p)
+}
+
+func (p *ReplicaStatusResp) DeepEqual(ano *ReplicaStatusResp) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Name) {
+		return false
+	}
+	if !p.Field2DeepEqual(ano.Address) {
+		return false
+	}
+	if !p.Field3DeepEqual(ano.Message) {
+		return false
+	}
+	return true
+}
+
+func (p *ReplicaStatusResp) Field1DeepEqual(src string) bool {
+
+	if strings.Compare(p.Name, src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *ReplicaStatusResp) Field2DeepEqual(src string) bool {
+
+	if strings.Compare(p.Address, src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *ReplicaStatusResp) Field3DeepEqual(src string) bool {
+
+	if strings.Compare(p.Message, src) != 0 {
+		return false
+	}
+	return true
+}
+
 type MetaService interface {
 	RegionList(ctx context.Context, req *RegionListReq) (r *RegionListResp, err error)
 
 	RegionStatus(ctx context.Context, req *RegionStatusReq) (r *RegionStatusResp, err error)
+
+	ReplicaList(ctx context.Context, req *ReplicaListReq) (r *ReplicaListResp, err error)
+
+	ReplicaStatus(ctx context.Context, req *ReplicaStatusReq) (r *ReplicaStatusResp, err error)
 }
 
 type MetaServiceClient struct {
@@ -867,6 +1613,24 @@ func (p *MetaServiceClient) RegionStatus(ctx context.Context, req *RegionStatusR
 	}
 	return _result.GetSuccess(), nil
 }
+func (p *MetaServiceClient) ReplicaList(ctx context.Context, req *ReplicaListReq) (r *ReplicaListResp, err error) {
+	var _args MetaServiceReplicaListArgs
+	_args.Req = req
+	var _result MetaServiceReplicaListResult
+	if err = p.Client_().Call(ctx, "ReplicaList", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+func (p *MetaServiceClient) ReplicaStatus(ctx context.Context, req *ReplicaStatusReq) (r *ReplicaStatusResp, err error) {
+	var _args MetaServiceReplicaStatusArgs
+	_args.Req = req
+	var _result MetaServiceReplicaStatusResult
+	if err = p.Client_().Call(ctx, "ReplicaStatus", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
 
 type MetaServiceProcessor struct {
 	processorMap map[string]thrift.TProcessorFunction
@@ -890,6 +1654,8 @@ func NewMetaServiceProcessor(handler MetaService) *MetaServiceProcessor {
 	self := &MetaServiceProcessor{handler: handler, processorMap: make(map[string]thrift.TProcessorFunction)}
 	self.AddToProcessorMap("RegionList", &metaServiceProcessorRegionList{handler: handler})
 	self.AddToProcessorMap("RegionStatus", &metaServiceProcessorRegionStatus{handler: handler})
+	self.AddToProcessorMap("ReplicaList", &metaServiceProcessorReplicaList{handler: handler})
+	self.AddToProcessorMap("ReplicaStatus", &metaServiceProcessorReplicaStatus{handler: handler})
 	return self
 }
 func (p *MetaServiceProcessor) Process(ctx context.Context, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
@@ -989,6 +1755,102 @@ func (p *metaServiceProcessorRegionStatus) Process(ctx context.Context, seqId in
 		result.Success = retval
 	}
 	if err2 = oprot.WriteMessageBegin("RegionStatus", thrift.REPLY, seqId); err2 != nil {
+		err = err2
+	}
+	if err2 = result.Write(oprot); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.WriteMessageEnd(); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.Flush(ctx); err == nil && err2 != nil {
+		err = err2
+	}
+	if err != nil {
+		return
+	}
+	return true, err
+}
+
+type metaServiceProcessorReplicaList struct {
+	handler MetaService
+}
+
+func (p *metaServiceProcessorReplicaList) Process(ctx context.Context, seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+	args := MetaServiceReplicaListArgs{}
+	if err = args.Read(iprot); err != nil {
+		iprot.ReadMessageEnd()
+		x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
+		oprot.WriteMessageBegin("ReplicaList", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush(ctx)
+		return false, err
+	}
+
+	iprot.ReadMessageEnd()
+	var err2 error
+	result := MetaServiceReplicaListResult{}
+	var retval *ReplicaListResp
+	if retval, err2 = p.handler.ReplicaList(ctx, args.Req); err2 != nil {
+		x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing ReplicaList: "+err2.Error())
+		oprot.WriteMessageBegin("ReplicaList", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush(ctx)
+		return true, err2
+	} else {
+		result.Success = retval
+	}
+	if err2 = oprot.WriteMessageBegin("ReplicaList", thrift.REPLY, seqId); err2 != nil {
+		err = err2
+	}
+	if err2 = result.Write(oprot); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.WriteMessageEnd(); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.Flush(ctx); err == nil && err2 != nil {
+		err = err2
+	}
+	if err != nil {
+		return
+	}
+	return true, err
+}
+
+type metaServiceProcessorReplicaStatus struct {
+	handler MetaService
+}
+
+func (p *metaServiceProcessorReplicaStatus) Process(ctx context.Context, seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+	args := MetaServiceReplicaStatusArgs{}
+	if err = args.Read(iprot); err != nil {
+		iprot.ReadMessageEnd()
+		x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
+		oprot.WriteMessageBegin("ReplicaStatus", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush(ctx)
+		return false, err
+	}
+
+	iprot.ReadMessageEnd()
+	var err2 error
+	result := MetaServiceReplicaStatusResult{}
+	var retval *ReplicaStatusResp
+	if retval, err2 = p.handler.ReplicaStatus(ctx, args.Req); err2 != nil {
+		x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing ReplicaStatus: "+err2.Error())
+		oprot.WriteMessageBegin("ReplicaStatus", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush(ctx)
+		return true, err2
+	} else {
+		result.Success = retval
+	}
+	if err2 = oprot.WriteMessageBegin("ReplicaStatus", thrift.REPLY, seqId); err2 != nil {
 		err = err2
 	}
 	if err2 = result.Write(oprot); err == nil && err2 != nil {
@@ -1691,6 +2553,698 @@ func (p *MetaServiceRegionStatusResult) DeepEqual(ano *MetaServiceRegionStatusRe
 }
 
 func (p *MetaServiceRegionStatusResult) Field0DeepEqual(src *RegionStatusResp) bool {
+
+	if !p.Success.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type MetaServiceReplicaListArgs struct {
+	Req *ReplicaListReq `thrift:"req,1" frugal:"1,default,ReplicaListReq" json:"req"`
+}
+
+func NewMetaServiceReplicaListArgs() *MetaServiceReplicaListArgs {
+	return &MetaServiceReplicaListArgs{}
+}
+
+func (p *MetaServiceReplicaListArgs) InitDefault() {
+	*p = MetaServiceReplicaListArgs{}
+}
+
+var MetaServiceReplicaListArgs_Req_DEFAULT *ReplicaListReq
+
+func (p *MetaServiceReplicaListArgs) GetReq() (v *ReplicaListReq) {
+	if !p.IsSetReq() {
+		return MetaServiceReplicaListArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+func (p *MetaServiceReplicaListArgs) SetReq(val *ReplicaListReq) {
+	p.Req = val
+}
+
+var fieldIDToName_MetaServiceReplicaListArgs = map[int16]string{
+	1: "req",
+}
+
+func (p *MetaServiceReplicaListArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+func (p *MetaServiceReplicaListArgs) Read(iprot thrift.TProtocol) (err error) {
+
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				if err = iprot.Skip(fieldTypeId); err != nil {
+					goto SkipFieldError
+				}
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_MetaServiceReplicaListArgs[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *MetaServiceReplicaListArgs) ReadField1(iprot thrift.TProtocol) error {
+	p.Req = NewReplicaListReq()
+	if err := p.Req.Read(iprot); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p *MetaServiceReplicaListArgs) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("ReplicaList_args"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *MetaServiceReplicaListArgs) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("req", thrift.STRUCT, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := p.Req.Write(oprot); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *MetaServiceReplicaListArgs) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("MetaServiceReplicaListArgs(%+v)", *p)
+}
+
+func (p *MetaServiceReplicaListArgs) DeepEqual(ano *MetaServiceReplicaListArgs) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Req) {
+		return false
+	}
+	return true
+}
+
+func (p *MetaServiceReplicaListArgs) Field1DeepEqual(src *ReplicaListReq) bool {
+
+	if !p.Req.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type MetaServiceReplicaListResult struct {
+	Success *ReplicaListResp `thrift:"success,0,optional" frugal:"0,optional,ReplicaListResp" json:"success,omitempty"`
+}
+
+func NewMetaServiceReplicaListResult() *MetaServiceReplicaListResult {
+	return &MetaServiceReplicaListResult{}
+}
+
+func (p *MetaServiceReplicaListResult) InitDefault() {
+	*p = MetaServiceReplicaListResult{}
+}
+
+var MetaServiceReplicaListResult_Success_DEFAULT *ReplicaListResp
+
+func (p *MetaServiceReplicaListResult) GetSuccess() (v *ReplicaListResp) {
+	if !p.IsSetSuccess() {
+		return MetaServiceReplicaListResult_Success_DEFAULT
+	}
+	return p.Success
+}
+func (p *MetaServiceReplicaListResult) SetSuccess(x interface{}) {
+	p.Success = x.(*ReplicaListResp)
+}
+
+var fieldIDToName_MetaServiceReplicaListResult = map[int16]string{
+	0: "success",
+}
+
+func (p *MetaServiceReplicaListResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func (p *MetaServiceReplicaListResult) Read(iprot thrift.TProtocol) (err error) {
+
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 0:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField0(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				if err = iprot.Skip(fieldTypeId); err != nil {
+					goto SkipFieldError
+				}
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_MetaServiceReplicaListResult[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *MetaServiceReplicaListResult) ReadField0(iprot thrift.TProtocol) error {
+	p.Success = NewReplicaListResp()
+	if err := p.Success.Read(iprot); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p *MetaServiceReplicaListResult) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("ReplicaList_result"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField0(oprot); err != nil {
+			fieldId = 0
+			goto WriteFieldError
+		}
+
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *MetaServiceReplicaListResult) writeField0(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSuccess() {
+		if err = oprot.WriteFieldBegin("success", thrift.STRUCT, 0); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.Success.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 end error: ", p), err)
+}
+
+func (p *MetaServiceReplicaListResult) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("MetaServiceReplicaListResult(%+v)", *p)
+}
+
+func (p *MetaServiceReplicaListResult) DeepEqual(ano *MetaServiceReplicaListResult) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field0DeepEqual(ano.Success) {
+		return false
+	}
+	return true
+}
+
+func (p *MetaServiceReplicaListResult) Field0DeepEqual(src *ReplicaListResp) bool {
+
+	if !p.Success.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type MetaServiceReplicaStatusArgs struct {
+	Req *ReplicaStatusReq `thrift:"req,1" frugal:"1,default,ReplicaStatusReq" json:"req"`
+}
+
+func NewMetaServiceReplicaStatusArgs() *MetaServiceReplicaStatusArgs {
+	return &MetaServiceReplicaStatusArgs{}
+}
+
+func (p *MetaServiceReplicaStatusArgs) InitDefault() {
+	*p = MetaServiceReplicaStatusArgs{}
+}
+
+var MetaServiceReplicaStatusArgs_Req_DEFAULT *ReplicaStatusReq
+
+func (p *MetaServiceReplicaStatusArgs) GetReq() (v *ReplicaStatusReq) {
+	if !p.IsSetReq() {
+		return MetaServiceReplicaStatusArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+func (p *MetaServiceReplicaStatusArgs) SetReq(val *ReplicaStatusReq) {
+	p.Req = val
+}
+
+var fieldIDToName_MetaServiceReplicaStatusArgs = map[int16]string{
+	1: "req",
+}
+
+func (p *MetaServiceReplicaStatusArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+func (p *MetaServiceReplicaStatusArgs) Read(iprot thrift.TProtocol) (err error) {
+
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				if err = iprot.Skip(fieldTypeId); err != nil {
+					goto SkipFieldError
+				}
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_MetaServiceReplicaStatusArgs[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *MetaServiceReplicaStatusArgs) ReadField1(iprot thrift.TProtocol) error {
+	p.Req = NewReplicaStatusReq()
+	if err := p.Req.Read(iprot); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p *MetaServiceReplicaStatusArgs) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("ReplicaStatus_args"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *MetaServiceReplicaStatusArgs) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("req", thrift.STRUCT, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := p.Req.Write(oprot); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *MetaServiceReplicaStatusArgs) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("MetaServiceReplicaStatusArgs(%+v)", *p)
+}
+
+func (p *MetaServiceReplicaStatusArgs) DeepEqual(ano *MetaServiceReplicaStatusArgs) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Req) {
+		return false
+	}
+	return true
+}
+
+func (p *MetaServiceReplicaStatusArgs) Field1DeepEqual(src *ReplicaStatusReq) bool {
+
+	if !p.Req.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type MetaServiceReplicaStatusResult struct {
+	Success *ReplicaStatusResp `thrift:"success,0,optional" frugal:"0,optional,ReplicaStatusResp" json:"success,omitempty"`
+}
+
+func NewMetaServiceReplicaStatusResult() *MetaServiceReplicaStatusResult {
+	return &MetaServiceReplicaStatusResult{}
+}
+
+func (p *MetaServiceReplicaStatusResult) InitDefault() {
+	*p = MetaServiceReplicaStatusResult{}
+}
+
+var MetaServiceReplicaStatusResult_Success_DEFAULT *ReplicaStatusResp
+
+func (p *MetaServiceReplicaStatusResult) GetSuccess() (v *ReplicaStatusResp) {
+	if !p.IsSetSuccess() {
+		return MetaServiceReplicaStatusResult_Success_DEFAULT
+	}
+	return p.Success
+}
+func (p *MetaServiceReplicaStatusResult) SetSuccess(x interface{}) {
+	p.Success = x.(*ReplicaStatusResp)
+}
+
+var fieldIDToName_MetaServiceReplicaStatusResult = map[int16]string{
+	0: "success",
+}
+
+func (p *MetaServiceReplicaStatusResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func (p *MetaServiceReplicaStatusResult) Read(iprot thrift.TProtocol) (err error) {
+
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 0:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField0(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				if err = iprot.Skip(fieldTypeId); err != nil {
+					goto SkipFieldError
+				}
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_MetaServiceReplicaStatusResult[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *MetaServiceReplicaStatusResult) ReadField0(iprot thrift.TProtocol) error {
+	p.Success = NewReplicaStatusResp()
+	if err := p.Success.Read(iprot); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p *MetaServiceReplicaStatusResult) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("ReplicaStatus_result"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField0(oprot); err != nil {
+			fieldId = 0
+			goto WriteFieldError
+		}
+
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *MetaServiceReplicaStatusResult) writeField0(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSuccess() {
+		if err = oprot.WriteFieldBegin("success", thrift.STRUCT, 0); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.Success.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 end error: ", p), err)
+}
+
+func (p *MetaServiceReplicaStatusResult) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("MetaServiceReplicaStatusResult(%+v)", *p)
+}
+
+func (p *MetaServiceReplicaStatusResult) DeepEqual(ano *MetaServiceReplicaStatusResult) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field0DeepEqual(ano.Success) {
+		return false
+	}
+	return true
+}
+
+func (p *MetaServiceReplicaStatusResult) Field0DeepEqual(src *ReplicaStatusResp) bool {
 
 	if !p.Success.DeepEqual(src) {
 		return false
