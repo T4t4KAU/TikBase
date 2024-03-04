@@ -35,12 +35,12 @@ docker run venuns/tikbase:latest
 ```
 
 客户端启动方式(用于测试)：
-```bash
+```
 go run client/main.go
 ```
 
 在客户端中命令行操作：
-```bash
+```
  _____ _ _    ____                 
 |_   _(_) | _| __ )  __ _ ___  ___ 
   | | | | |/ /  _ \ / _` / __|/ _ \
@@ -58,35 +58,4 @@ value
 [OK]
 > get key        # 获取键值对
 [KEY NOT FOUND]
-```
-已经支持Go SDK:
-```
-go get "github.com/T4t4KAU/tikbc"
-```
-示例代码:
-```go
-package main
-
-import (
-	"github.com/T4t4KAU/tikbc"
-	"log"
-)
-
-func main() {
-	cli, err := tikbc.New("127.0.0.1:9096", "resp")
-	if err != nil {
-		log.Fatalln(err)
-	}
-	err = cli.Set("test_key", "test_value")
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	v, err := cli.Get("test_key")
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	println(v)
-}
 ```
