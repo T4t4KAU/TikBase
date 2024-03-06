@@ -5,9 +5,9 @@ import (
 	"github.com/T4t4KAU/TikBase/cluster/replica"
 	"github.com/T4t4KAU/TikBase/cluster/replica/raft"
 	"github.com/T4t4KAU/TikBase/cluster/slice"
-	"github.com/T4t4KAU/TikBase/cluster/txn"
 	"github.com/T4t4KAU/TikBase/iface"
 	"github.com/T4t4KAU/TikBase/pkg/config"
+	"github.com/T4t4KAU/TikBase/pkg/consts"
 	"github.com/cloudwego/kitex/pkg/klog"
 	"strconv"
 	"sync"
@@ -16,8 +16,6 @@ import (
 
 type Region struct {
 	services map[string]iface.IService
-	txm      *txn.TxManager
-	*slice.Slice
 }
 
 func New(replicaConfig *config.ReplicaConfig, serverConfig *config.ServerConfig, eng iface.Engine) (*Region, error) {
@@ -38,7 +36,8 @@ func New(replicaConfig *config.ReplicaConfig, serverConfig *config.ServerConfig,
 		return &Region{}, err
 	}
 
-	re.Slice, err = slice.New(slice.Options{
+	// 创建数据分区
+	sc, err := slice.New(slice.Options{
 		Name:                 serverConfig.Id,
 		Address:              serverConfig.Address,
 		ServerType:           "tcp",
@@ -52,8 +51,8 @@ func New(replicaConfig *config.ReplicaConfig, serverConfig *config.ServerConfig,
 	}
 
 	/// 注册服务
-	re.registerService("replica-service", replica.NewService(peer, replicaConfig.ServiceAddr))
-	re.registerService("data-service", data.NewService(re.Slice, ":"+strconv.Itoa(serverConfig.Port)))
+	re.registerService(consts.ReplicaServiceName, replica.NewService(peer, replicaConfig.ServiceAddr))
+	re.registerService(consts.DataServiceName, data.NewService(sc, ":"+strconv.Itoa(serverConfig.Port)))
 
 	return re, nil
 }
