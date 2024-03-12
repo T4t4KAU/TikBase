@@ -2,7 +2,6 @@ package slist
 
 import (
 	"github.com/T4t4KAU/TikBase/engine/data"
-	"github.com/T4t4KAU/TikBase/iface"
 	"github.com/T4t4KAU/TikBase/pkg/utils"
 	"math/rand"
 	"sync"
@@ -20,8 +19,8 @@ func isInsertUp() bool {
 
 // Node 跳表节点
 type Node struct {
-	Key   string
-	Value iface.Value
+	Key   []byte
+	Value *data.LogRecordPos
 	Next  *Node // 指向后继结点
 	Down  *Node // 指向下方结点
 }
@@ -33,7 +32,7 @@ func (n *Node) Compare(node *Node) int {
 	return utils.CompareKey(n.Key, node.Key)
 }
 
-func newNode(key string, value iface.Value) *Node {
+func newNode(key []byte, value *data.LogRecordPos) *Node {
 	return &Node{
 		Key:   key,
 		Value: value,
@@ -49,7 +48,7 @@ type List struct {
 func New() *List {
 	return &List{
 		// 创建头结点
-		Head: newNode("", nil),
+		Head: newNode([]byte(""), nil),
 	}
 }
 
@@ -69,7 +68,7 @@ func (list *List) Level() int {
 }
 
 // Insert 插入值
-func (list *List) Insert(key string, val iface.Value) bool {
+func (list *List) Insert(key []byte, pos *data.LogRecordPos) bool {
 	if list == nil || list.Head == nil {
 		return false
 	}
@@ -85,7 +84,7 @@ func (list *List) Insert(key string, val iface.Value) bool {
 	// 从下往上逐层遍历
 	// 找到插入值的前驱结点
 	for p != nil {
-		for p.Next != nil && utils.CompareKey(p.Next.Key, key) < 0 {
+		for p.Next != nil && utils.CompareBytes(p.Next.Key, key) < 0 {
 			p = p.Next
 		}
 		// 将每层找到的结点存入路径
@@ -99,7 +98,7 @@ func (list *List) Insert(key string, val iface.Value) bool {
 
 	// 向当前层增加结点
 	for insertUpFlag && len(path) > 0 {
-		node := newNode(key, val)
+		node := newNode(key, pos)
 		prevNode := path[len(path)-1]
 		path = path[:len(path)-1]
 
@@ -115,9 +114,9 @@ func (list *List) Insert(key string, val iface.Value) bool {
 
 	// 建立新的层
 	if len(path) <= 0 && isInsertUp() {
-		node := newNode(key, val)
+		node := newNode(key, pos)
 		node.Down = downNode
-		newHead := newNode("", nil)
+		newHead := newNode([]byte(""), nil)
 		newHead.Next = node
 		newHead.Down = list.Head
 		list.Head = newHead
@@ -127,7 +126,7 @@ func (list *List) Insert(key string, val iface.Value) bool {
 }
 
 // Remove 删除元素
-func (list *List) Remove(key string) bool {
+func (list *List) Remove(key []byte) bool {
 	p, ok := list.Head, false
 
 	list.mutex.Lock()
@@ -152,19 +151,19 @@ func (list *List) Remove(key string) bool {
 }
 
 // Search 搜索
-func (list *List) Search(key string) (*Node, bool) {
+func (list *List) Search(key []byte) (*Node, bool) {
 	p := list.Head
 
 	list.mutex.RLock()
 	defer list.mutex.RUnlock()
 
 	for p != nil {
-		for p.Next != nil && utils.CompareKey(p.Next.Key, key) < 0 {
+		for p.Next != nil && utils.CompareBytes(p.Next.Key, key) < 0 {
 			p = p.Next
 		}
 
 		// 在该层搜索不到 下降到下一层
-		if p.Next == nil || utils.CompareKey(p.Next.Key, key) < 0 {
+		if p.Next == nil || utils.CompareBytes(p.Next.Key, key) < 0 {
 			p = p.Down
 		} else {
 			return p.Next, true
@@ -173,7 +172,7 @@ func (list *List) Search(key string) (*Node, bool) {
 	return &Node{}, false
 }
 
-func (list *List) Update(key string, val iface.Value) bool {
+func (list *List) Update(key []byte, pos *data.LogRecordPos) bool {
 	p, ok := list.Head, false
 
 	list.mutex.Lock()
@@ -189,52 +188,12 @@ func (list *List) Update(key string, val iface.Value) bool {
 		if p.Next == nil || utils.CompareKey(p.Next.Key, key) < 0 {
 			p = p.Down
 		} else {
-			p.Next.Value = val
+			p.Next.Value = pos
 			p = p.Down
 			ok = true
 		}
 	}
 	return ok
-}
-
-func (list *List) FilterKey(f Filter) *[]string {
-	p := list.Head
-	keys := make([]string, 0)
-
-	list.mutex.RLock()
-	defer list.mutex.RUnlock()
-
-	for p.Down != nil {
-		p = p.Down
-	}
-
-	for p.Next != nil {
-		if f(p.Next) {
-			keys = append(keys, p.Next.Key)
-		}
-		p = p.Next
-	}
-	return &keys
-}
-
-func (list *List) FilterNode(filter Filter) *[]*Node {
-	p := list.Head
-	nodes := make([]*Node, 0)
-
-	list.mutex.RLock()
-	defer list.mutex.RUnlock()
-
-	for p.Down != nil {
-		p = p.Down
-	}
-
-	for p.Next != nil {
-		if filter(p.Next) {
-			nodes = append(nodes, p.Next)
-		}
-		p = p.Next
-	}
-	return &nodes
 }
 
 type Iterator struct {

@@ -16,7 +16,7 @@ type TccResp struct {
 
 type TccComponent interface {
 	ID() string
-	Try(ctx context.Context, req *TccReq) (*TccResp, error)
-	Confirm(ctx context.Context, txId string) (*TccResp, error)
-	Cancel(ctx context.Context, txId string) (*TccResp, error)
+	Try(ctx context.Context, req *TccReq) (*TccResp, error)     // 尝试
+	Confirm(ctx context.Context, txId string) (*TccResp, error) // 确认
+	Cancel(ctx context.Context, txId string) (*TccResp, error)  // 取消
 }

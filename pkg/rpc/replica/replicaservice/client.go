@@ -13,6 +13,7 @@ import (
 type Client interface {
 	Join(ctx context.Context, req *replica.JoinReq, callOptions ...callopt.Option) (r *replica.JoinResp, err error)
 	LeaderAddr(ctx context.Context, req *replica.LeaderAddrReq, callOptions ...callopt.Option) (r *replica.LeaderAddrResp, err error)
+	GetId(ctx context.Context, req *replica.GetIdReq, callOptions ...callopt.Option) (r *replica.GetIdResp, err error)
 }
 
 // NewClient creates a client for the service defined in IDL.
@@ -52,4 +53,9 @@ func (p *kReplicaServiceClient) Join(ctx context.Context, req *replica.JoinReq, 
 func (p *kReplicaServiceClient) LeaderAddr(ctx context.Context, req *replica.LeaderAddrReq, callOptions ...callopt.Option) (r *replica.LeaderAddrResp, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.LeaderAddr(ctx, req)
+}
+
+func (p *kReplicaServiceClient) GetId(ctx context.Context, req *replica.GetIdReq, callOptions ...callopt.Option) (r *replica.GetIdResp, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.GetId(ctx, req)
 }

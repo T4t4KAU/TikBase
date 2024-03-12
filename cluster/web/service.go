@@ -2,6 +2,7 @@ package web
 
 import (
 	"github.com/T4t4KAU/TikBase/iface"
+	"github.com/T4t4KAU/TikBase/pkg/consts"
 	"github.com/T4t4KAU/TikBase/pkg/net/http"
 )
 
@@ -20,7 +21,7 @@ func NewService(addr string, eng iface.Engine) *Service {
 }
 
 func (s *Service) Name() string {
-	return "web-service"
+	return consts.WebServiceName
 }
 
 // Start 启动服务

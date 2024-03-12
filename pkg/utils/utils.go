@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bytes"
 	"encoding/binary"
 	"io/fs"
 	"math/rand"
@@ -254,4 +255,8 @@ func WithMessage(err error) string {
 		return err.Error()
 	}
 	return ""
+}
+
+func CompareBytes(a, b []byte) int {
+	return bytes.Compare(a, b)
 }
