@@ -63,6 +63,7 @@ func NewTimeWheel(slotNum int, interval time.Duration) *TimeWheel {
 	return &t
 }
 
+// 时间轮转动
 func (t *TimeWheel) run() {
 	defer func() {
 		if err := recover(); err != nil {

@@ -205,12 +205,13 @@ func ValidateAddress(address string) bool {
 	return true
 }
 
-func SplitAddressAndPort(address string) (string, string) {
+func SplitAddressAndPort(address string) (string, int, error) {
 	if !strings.Contains(address, ":") {
-		return address, ""
+		return address, 0, nil
 	}
 	parts := strings.Split(address, ":")
-	return parts[0], parts[1]
+	port, err := strconv.Atoi(parts[1])
+	return parts[0], port, err
 }
 
 func KeyBytes(key string) [][]byte {

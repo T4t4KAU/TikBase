@@ -14,6 +14,7 @@ import (
 	"time"
 )
 
+// Region 数据分区
 type Region struct {
 	services map[string]iface.IService
 }
@@ -30,7 +31,7 @@ func New(replicaConfig *config.ReplicaConfig, serverConfig *config.ServerConfig,
 		MaxPool:       replicaConfig.WorkerNum,
 		SnapshotCount: replicaConfig.SnapshotCount,
 		Timeout:       time.Duration(replicaConfig.Timeout),
-		Single:        replicaConfig.JoinAddr == "",
+		Single:        replicaConfig.JoinAddr == "", // 是否单节点
 	}, replicaConfig.Id, eng)
 	if err != nil {
 		return &Region{}, err
@@ -61,9 +62,20 @@ func (r *Region) registerService(name string, service iface.IService) {
 	r.services[name] = service
 }
 
+func (r *Region) GetService(name string) iface.IService {
+	return r.services[name]
+}
+
+func (r *Region) registerServices(services map[string]iface.IService) {
+	for name, service := range services {
+		r.registerService(name, service)
+	}
+}
+
 func (r *Region) Start() {
 	var wg sync.WaitGroup
 
+	// 启动所有服务
 	for _, svc := range r.services {
 		wg.Add(1)
 		go func(service iface.IService) {
@@ -74,5 +86,5 @@ func (r *Region) Start() {
 
 	wg.Wait()
 
-	klog.Info("all service start")
+	klog.Info("all services start")
 }

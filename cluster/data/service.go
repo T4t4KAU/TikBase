@@ -66,6 +66,8 @@ func (s *Service) Get(ctx context.Context, req *data.GetReq) (resp *data.GetResp
 	}
 
 	resp = new(data.GetResp)
+
+	// 执行指令
 	res := s.slice.Exec(iface.GET_STR, utils.KeyBytes(req.Key))
 	resp.Message = utils.WithMessage(res.Error())
 	resp.Success = res.Success()

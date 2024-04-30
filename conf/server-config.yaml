@@ -3,6 +3,6 @@ service_port: 10024
 max_connect: 20
 timeout: 60
 engine: "base"
-bind_addr: "127.0.0.1"
+bind_addr: "127.0.0.1:10091"
 node_count: 3
-join_addr: "127.0.0.1"
+join_addr: "127.0.0.1:10091"

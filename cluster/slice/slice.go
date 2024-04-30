@@ -9,12 +9,13 @@ import (
 	"time"
 )
 
+// Slice 数据切片
 type Slice struct {
-	options     Options
-	address     string
-	circle      *chash.ConsistentHash
-	nodeManager *memberlist.Memberlist
-	iface.Engine
+	options      Options                // 配置信息
+	address      string                 // 地址
+	circle       *chash.ConsistentHash  // 一致性哈希
+	nodeManager  *memberlist.Memberlist // 节点管理器
+	iface.Engine                        // 存储引擎
 }
 
 func New(options Options, eng iface.Engine) (*Slice, error) {
@@ -22,6 +23,7 @@ func New(options Options, eng iface.Engine) (*Slice, error) {
 		options.Cluster = []string{options.Address}
 	}
 
+	// 创建节点管理器
 	manager, err := createNodeManager(options)
 	if err != nil {
 		return nil, err
@@ -34,6 +36,8 @@ func New(options Options, eng iface.Engine) (*Slice, error) {
 		nodeManager: manager,
 		Engine:      eng,
 	}
+
+	// 添加新节点
 	slice.circle.AddNode(options.Address)
 
 	return slice, nil
@@ -44,7 +48,7 @@ func createNodeManager(options Options) (*memberlist.Memberlist, error) {
 	config := memberlist.DefaultLANConfig()
 	config.Name = options.Name
 
-	config.BindAddr, _ = utils.SplitAddressAndPort(options.Address)
+	config.BindAddr, config.BindPort, _ = utils.SplitAddressAndPort(options.Address)
 	config.LogOutput = ioutil.Discard // 禁用日志输出
 
 	// 创建管理器
@@ -67,8 +71,8 @@ func (s *Slice) IsCurrentNode(address string) bool {
 	return s.address == address
 }
 
-func (s *Slice) nodes() []string {
-	members := s.nodeManager.Members()
+func (s *Slice) Nodes() []string {
+	members := s.nodeManager.Members() // 获取成员
 	nodes := make([]string, len(members))
 	for i, member := range members {
 		nodes[i] = member.Name
@@ -78,7 +82,7 @@ func (s *Slice) nodes() []string {
 }
 
 func (s *Slice) updateCircle() {
-	s.circle.AddNode(s.nodes()...)
+	s.circle.AddNode(s.Nodes()...)
 }
 
 func (s *Slice) autoUpdateCircle() {

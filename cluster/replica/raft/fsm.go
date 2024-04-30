@@ -2,7 +2,7 @@ package raft
 
 import (
 	"encoding/json"
-	"fmt"
+	"github.com/cloudwego/kitex/pkg/klog"
 	"github.com/hashicorp/raft"
 	"io"
 )
@@ -13,7 +13,7 @@ func (fsm *FSM) Apply(entry *raft.Log) any {
 
 	// 反序列化数据 获取执行命令
 	if err := unmarshal(entry.Data, &c); err != nil {
-		panic(fmt.Sprintf("failed to unmarshal command: %s", err.Error()))
+		klog.Errorf("failed to unmarshal command: %s", err.Error())
 	}
 
 	// 执行命令

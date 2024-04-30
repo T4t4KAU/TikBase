@@ -72,7 +72,7 @@ func (peer *Peer) Bootstrap() error {
 	config.LocalID = raft.ServerID(localId)            // 本地节点ID
 	raftPath := filepath.Join(peer.dirPath, "raft.db") // raft日志存储路径
 
-	newNode := !utils.PathExists(raftPath) // 检查普及是否存在 如果不存在则说明是新节点
+	newNode := !utils.PathExists(raftPath) // 检查路径是否存在 如果不存在则说明是新节点
 	addr, err := net.ResolveTCPAddr("tcp", peer.address)
 	if err != nil {
 		return err
@@ -126,6 +126,15 @@ func (peer *Peer) Bootstrap() error {
 	}
 
 	return nil
+}
+
+func (peer *Peer) ReplicaList() string {
+	servers := peer.raftNode.GetConfiguration().Configuration().Servers
+	data, err := json.Marshal(servers)
+	if err != nil {
+		return ""
+	}
+	return utils.B2S(data)
 }
 
 // LeaderAddr 返回主节点地址
@@ -309,7 +318,10 @@ func (peer *Peer) Join(nodeId, serviceAddr, raftAddr string) error {
 		return f.Error()
 	}
 
-	// TODO: SetMeta
+	// 存储元数据
+	if err := peer.SetMeta(nodeId, serviceAddr); err != nil {
+		return err
+	}
 
 	klog.Infof("node %s at %s joined successfully", nodeId, raftAddr)
 	return nil

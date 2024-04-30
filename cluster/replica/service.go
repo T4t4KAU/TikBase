@@ -18,8 +18,12 @@ type Service struct {
 }
 
 func (s *Service) GetId(ctx context.Context, req *replica.GetIdReq) (r *replica.GetIdResp, err error) {
-	//TODO implement me
-	panic("implement me")
+	r.NodeId = s.peer.ID()
+	return
+}
+
+func (s *Service) ReplicaList() string {
+	return s.peer.ReplicaList()
 }
 
 func NewService(peer *raft.Peer, addr string) *Service {

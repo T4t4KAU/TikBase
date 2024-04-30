@@ -1,6 +1,7 @@
 package bases
 
 import (
+	"fmt"
 	"github.com/T4t4KAU/TikBase/engine/values"
 	"github.com/T4t4KAU/TikBase/iface"
 	"github.com/T4t4KAU/TikBase/pkg/errno"
@@ -35,7 +36,7 @@ func TestNew(t *testing.T) {
 
 func TestBase_Set(t *testing.T) {
 	opts := DefaultOptions
-	dir, _ := os.MkdirTemp("", "github.com/T4t4KAU/TikBase")
+	dir, _ := os.MkdirTemp("", "test")
 	opts.DirPath = dir
 	b, err := NewBaseWith(opts)
 	assert.Nil(t, err)
@@ -283,4 +284,72 @@ func TestBase_LPush(t *testing.T) {
 	assert.Nil(t, err)
 
 	t.Log(v.String())
+}
+
+func BenchmarkBase_Set(b *testing.B) {
+	b.ResetTimer()
+	b.ReportAllocs()
+
+	opts := DefaultOptions
+	dir, _ := os.MkdirTemp("", "test")
+	opts.DirPath = dir
+	base, err := NewBaseWith(opts)
+	if err != nil {
+		b.Error(err)
+		return
+	}
+
+	for i := 0; i < b.N; i++ {
+		v := values.New([]byte("value"), 0, iface.STRING)
+		_ = base.Set(fmt.Sprintf("key%d", i), &v)
+		assert.Nil(b, err)
+	}
+}
+
+func BenchmarkBase_Get(b *testing.B) {
+	opts := DefaultOptions
+	dir, _ := os.MkdirTemp("", "test")
+	opts.DirPath = dir
+	base, err := NewBaseWith(opts)
+	if err != nil {
+		b.Error(err)
+		return
+	}
+
+	for i := 0; i < b.N; i++ {
+		v := values.New([]byte("value"), 0, iface.STRING)
+		_ = base.Set(fmt.Sprintf("key%d", i), &v)
+		assert.Nil(b, err)
+	}
+
+	b.ResetTimer()
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		_, err = base.Get(fmt.Sprintf("key%d", i))
+		assert.Nil(b, err)
+	}
+}
+
+func BenchmarkBase_Delete(b *testing.B) {
+	opts := DefaultOptions
+	dir, _ := os.MkdirTemp("", "test")
+	opts.DirPath = dir
+	base, err := NewBaseWith(opts)
+	if err != nil {
+		b.Error(err)
+		return
+	}
+
+	for i := 0; i < b.N; i++ {
+		v := values.New([]byte("value"), 0, iface.STRING)
+		err = base.Set(fmt.Sprintf("key%d", i), &v)
+		assert.Nil(b, err)
+	}
+
+	b.ResetTimer()
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		err = base.Del(fmt.Sprintf("key%d", i))
+		assert.Nil(b, err)
+	}
 }

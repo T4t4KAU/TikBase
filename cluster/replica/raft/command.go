@@ -23,6 +23,7 @@ const (
 	Consistent
 )
 
+// Encode 将指令编码
 func (c command) Encode() ([]byte, error) {
 	return json.Marshal(c)
 }
