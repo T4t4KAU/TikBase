@@ -67,7 +67,9 @@ func (c *ConsistentHash) GetNode(key string) (string, error) {
 	if len(c.Nodes) == 0 {
 		return "", errors.New("no node")
 	}
-	hash := c.Hash(utils.S2B(key))
+
+	hash := c.Hash(utils.S2B(key)) // 数据类型转换
+
 	idx := sort.Search(len(c.Nodes), func(i int) bool {
 		return c.Nodes[i] >= hash
 	})

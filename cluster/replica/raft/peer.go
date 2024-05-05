@@ -23,7 +23,7 @@ const (
 	openTimeout         = 60 * time.Second
 )
 
-// Peer 单机节点
+// Peer Raft_节点
 type Peer struct {
 	id        string // 节点ID
 	raftNode  *raft.Raft

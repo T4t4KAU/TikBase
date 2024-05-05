@@ -6,8 +6,11 @@ import (
 	"github.com/T4t4KAU/TikBase/iface"
 	"github.com/T4t4KAU/TikBase/pkg/errno"
 	"github.com/T4t4KAU/TikBase/pkg/utils"
+	"github.com/boltdb/bolt"
 	"github.com/stretchr/testify/assert"
+	"log"
 	"os"
+	"strconv"
 	"testing"
 )
 
@@ -351,5 +354,32 @@ func BenchmarkBase_Delete(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		err = base.Del(fmt.Sprintf("key%d", i))
 		assert.Nil(b, err)
+	}
+}
+
+func BenchmarkBolt_Set(b *testing.B) {
+	b.ResetTimer()
+	b.ReportAllocs()
+
+	db, err := bolt.Open("test.db", os.ModePerm, nil)
+	if err != nil {
+		b.Error(err)
+		return
+	}
+
+	for i := 0; i < b.N; i++ {
+		err := db.Update(func(tx *bolt.Tx) error {
+			bucket, err := tx.CreateBucketIfNotExists([]byte("MyBucket"))
+			if err != nil {
+				return err
+			}
+			key := []byte("key" + strconv.Itoa(i))
+			value := []byte("value" + strconv.Itoa(i))
+			err = bucket.Put(key, value)
+			return err
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }

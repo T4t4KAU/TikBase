@@ -8,10 +8,10 @@ import (
 
 // Raft 状态机指令
 type command struct {
-	Ins   iface.INS `json:"op,omitempty"`
-	Key   string    `json:"key,omitempty"`
-	Field string    `json:"field,omitempty"`
-	Value []byte    `json:"value,omitempty"`
+	Ins   iface.INS `json:"op,omitempty"`    // 指令
+	Key   string    `json:"key,omitempty"`   // 键
+	Field string    `json:"field,omitempty"` // 字段
+	Value []byte    `json:"value,omitempty"` // 值
 }
 
 // ConsistencyLevel 一致性级别

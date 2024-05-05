@@ -81,10 +81,12 @@ func (s *Slice) Nodes() []string {
 	return nodes
 }
 
+// 更新哈希环
 func (s *Slice) updateCircle() {
 	s.circle.AddNode(s.Nodes()...)
 }
 
+// 自动更新哈希环
 func (s *Slice) autoUpdateCircle() {
 	s.updateCircle()
 

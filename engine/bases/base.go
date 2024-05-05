@@ -193,6 +193,7 @@ func (b *Base) Set(key string, value iface.Value) error {
 	return nil
 }
 
+// Del 删除键值对
 func (b *Base) Del(key string) error {
 	if len(key) == 0 {
 		return errno.ErrKeyIsEmpty

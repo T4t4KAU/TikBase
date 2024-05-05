@@ -60,15 +60,6 @@ func (c *Cache) segmentOf(key string) *segment {
 	return &c.segments[index(key)&(c.segmentSize-1)]
 }
 
-// 从dump文件中恢复缓存
-func recoverFromDumpFile(dumpFile string) (*Cache, bool) {
-	cache, err := newEmptyDump().from(dumpFile)
-	if err != nil {
-		return nil, false
-	}
-	return cache, true
-}
-
 // Get 返回指定value 未找到则返回false
 func (c *Cache) Get(key string) (iface.Value, error) {
 	c.waitForDumping()
@@ -77,6 +68,12 @@ func (c *Cache) Get(key string) (iface.Value, error) {
 
 func (c *Cache) Set(key string, value []byte, ttl int64) error {
 	return c.SetWithTTL(key, value, ttl, iface.STRING)
+}
+
+// Del 从缓存中删除指定键值对
+func (c *Cache) Del(key string) error {
+	c.waitForDumping()
+	return c.segmentOf(key).delete(key)
 }
 
 // Expire 设置超时时间
@@ -113,12 +110,6 @@ func (c *Cache) Exist(key string) error {
 func (c *Cache) SetWithTTL(key string, value []byte, ttl int64, typ iface.Type) error {
 	c.waitForDumping()
 	return c.segmentOf(key).set(key, value, ttl, typ)
-}
-
-// Del 从缓存中删除指定键值对
-func (c *Cache) Del(key string) error {
-	c.waitForDumping()
-	return c.segmentOf(key).delete(key)
 }
 
 // Status 返回缓存当前状态
@@ -203,4 +194,13 @@ func (c *Cache) RecoverFromBytes(data []byte) error {
 	c.dumping = 0
 
 	return nil
+}
+
+// 从dump文件中恢复缓存
+func recoverFromDumpFile(dumpFile string) (*Cache, bool) {
+	cache, err := newEmptyDump().from(dumpFile)
+	if err != nil {
+		return nil, false
+	}
+	return cache, true
 }

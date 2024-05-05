@@ -59,9 +59,9 @@ func (ins INS) String() string {
 }
 
 type Engine interface {
-	Exec(ins INS, args [][]byte) Result
-	Snapshot() ([]byte, error)
-	RecoverFromBytes(data []byte) error
+	Exec(ins INS, args [][]byte) Result // 执行指令
+	Snapshot() ([]byte, error)          // 生成快照
+	RecoverFromBytes(data []byte) error // 恢复数据
 }
 
 type KVStore interface {
