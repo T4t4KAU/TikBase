@@ -8,6 +8,7 @@ struct SetReq {
 struct SetResp {
     1: required bool success
     2: required string message
+    3: required i32 status_code
 }
 
 struct GetReq {
@@ -18,6 +19,7 @@ struct GetResp {
     1: required bool success
     2: required binary value
     3: required string message
+    4: required i32 status_code
 }
 
 struct DelReq {
@@ -27,6 +29,7 @@ struct DelReq {
 struct DelResp {
     1: required bool success
     2: required string message
+    3: required i32 status_code
 }
 
 struct ExpireReq {
@@ -37,6 +40,7 @@ struct ExpireReq {
 struct ExpireResp {
     1: required bool success
     2: required string message
+    3: required i32 status_code
 }
 
 struct HSetReq {
@@ -48,6 +52,7 @@ struct HSetReq {
 struct HSetResp {
     1: required bool success
     2: required string message
+    3: required i32 status_code
 }
 
 struct HGetReq {
@@ -59,6 +64,7 @@ struct HGetResp {
     1: required bool success
     2: required binary value
     3: required string message
+    4: required i32 status_code
 }
 
 struct HDelReq {
@@ -69,6 +75,7 @@ struct HDelReq {
 struct HDelResp {
     1: required bool success
     2: required string message
+    3: required i32 status_code
 }
 
 struct LPushReq {
@@ -79,6 +86,7 @@ struct LPushReq {
 struct LPushResp {
     1: required bool success
     2: required string message
+    3: required i32 status_code
 }
 
 struct RPushReq {
@@ -89,6 +97,7 @@ struct RPushReq {
 struct RPushResp {
     1: required bool success
     2: required string message
+    3: required i32 status_code
 }
 
 struct LPopReq {
@@ -99,6 +108,7 @@ struct LPopResp {
     1: required bool success
     2: required binary element
     3: required string message
+    4: required i32 status_code
 }
 
 struct RPopReq {
@@ -109,6 +119,7 @@ struct RPopResp {
     1: required bool success
     2: required binary element
     3: required string message
+    4: required i32 status_code
 }
 
 struct SAddReq {
@@ -119,6 +130,7 @@ struct SAddReq {
 struct SAddResp {
     1: required bool success
     2: required string message
+    3: required i32 status_code
 }
 
 struct SRemReq {
@@ -129,6 +141,7 @@ struct SRemReq {
 struct SRemResp {
     1: required bool success
     2: required string message
+    3: required i32 status_code
 }
 
 struct ZAddReq {
@@ -139,6 +152,7 @@ struct ZAddReq {
 struct ZAddResp {
     1: required bool success
     2: required string message
+    3: required i32 status_code
 }
 
 struct ZRemReq {
@@ -149,6 +163,7 @@ struct ZRemReq {
 struct ZRemResp {
     1: required bool success
     2: required string message
+    3: required i32 status_code
 }
 
 service DataService {

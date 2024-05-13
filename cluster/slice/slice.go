@@ -1,11 +1,11 @@
 package slice
 
 import (
-	"github.com/T4t4KAU/TikBase/cluster/chash"
 	"github.com/T4t4KAU/TikBase/iface"
 	"github.com/T4t4KAU/TikBase/pkg/utils"
 	"github.com/hashicorp/memberlist"
 	"io/ioutil"
+	"stathat.com/c/consistent"
 	"time"
 )
 
@@ -13,11 +13,12 @@ import (
 type Slice struct {
 	options      Options                // 配置信息
 	address      string                 // 地址
-	circle       *chash.ConsistentHash  // 一致性哈希
+	circle       *consistent.Consistent // 一致性哈希
 	nodeManager  *memberlist.Memberlist // 节点管理器
 	iface.Engine                        // 存储引擎
 }
 
+// New 创建并启动数据切片
 func New(options Options, eng iface.Engine) (*Slice, error) {
 	if options.Cluster == nil || len(options.Cluster) == 0 {
 		options.Cluster = []string{options.Address}
@@ -32,20 +33,20 @@ func New(options Options, eng iface.Engine) (*Slice, error) {
 	slice := &Slice{
 		options:     options,
 		address:     options.Address,
-		circle:      chash.New(options.VirtualNodeCount, chash.DefaultHash),
+		circle:      consistent.New(),
 		nodeManager: manager,
 		Engine:      eng,
 	}
 
-	// 添加新节点
-	slice.circle.AddNode(options.Address)
+	slice.circle.NumberOfReplicas = options.VirtualNodeCount
+	slice.autoUpdateCircle()
 
 	return slice, nil
 }
 
 // 创建节点管理器
 func createNodeManager(options Options) (*memberlist.Memberlist, error) {
-	config := memberlist.DefaultLANConfig()
+	config := memberlist.DefaultLANConfig() // 在默认LAN配置上进行配置
 	config.Name = options.Name
 
 	config.BindAddr, config.BindPort, _ = utils.SplitAddressAndPort(options.Address)
@@ -64,7 +65,7 @@ func createNodeManager(options Options) (*memberlist.Memberlist, error) {
 
 // SelectNode 选择节点
 func (s *Slice) SelectNode(key string) (string, error) {
-	return s.circle.GetNode(key)
+	return s.circle.Get(key)
 }
 
 func (s *Slice) IsCurrentNode(address string) bool {
@@ -83,7 +84,7 @@ func (s *Slice) Nodes() []string {
 
 // 更新哈希环
 func (s *Slice) updateCircle() {
-	s.circle.AddNode(s.Nodes()...)
+	s.circle.Set(s.Nodes())
 }
 
 // 自动更新哈希环

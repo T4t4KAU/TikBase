@@ -6,3 +6,10 @@ const (
 	DataServiceName    = "DataService"
 	WebServiceName     = "WebService"
 )
+
+const (
+	Success = iota
+	Redirect
+	Error
+	Deny
+)

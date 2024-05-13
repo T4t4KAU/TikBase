@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/apache/thrift v0.13.0
+	github.com/boltdb/bolt v1.3.1
 	github.com/cloudwego/kitex v0.8.0
 	github.com/gofrs/flock v0.8.1
 	github.com/google/btree v1.1.2
@@ -16,11 +17,11 @@ require (
 	github.com/stretchr/testify v1.8.4
 	go.etcd.io/bbolt v1.3.8
 	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa
+	stathat.com/c/consistent v1.0.0
 )
 
 require (
 	github.com/armon/go-metrics v0.4.1 // indirect
-	github.com/boltdb/bolt v1.3.1 // indirect
 	github.com/bytedance/gopkg v0.0.0-20230728082804-614d0af6619b // indirect
 	github.com/bytedance/sonic v1.10.2 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect

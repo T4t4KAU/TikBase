@@ -9,7 +9,6 @@ import (
 	"github.com/T4t4KAU/TikBase/pkg/rpc/data"
 	"github.com/T4t4KAU/TikBase/pkg/rpc/data/dataservice"
 	"github.com/T4t4KAU/TikBase/pkg/utils"
-	"github.com/cloudwego/kitex/client"
 	"github.com/cloudwego/kitex/pkg/klog"
 	"github.com/cloudwego/kitex/pkg/rpcinfo"
 	"github.com/cloudwego/kitex/server"
@@ -349,22 +348,10 @@ func (s *Service) ZRem(ctx context.Context, req *data.ZRemReq) (resp *data.ZRemR
 func (s *Service) RedirectGet(ctx context.Context, req *data.GetReq, node string) (resp *data.GetResp, err error) {
 	resp = new(data.GetResp)
 
-	c, err := dataservice.NewClient(node, client.WithHostPorts(node))
-	if err != nil {
-		return &data.GetResp{
-			Message: err.Error(),
-			Success: false,
-		}, err
-	}
-
-	r, err := c.Get(ctx, req)
-	if err != nil {
-		return
-	}
-
-	resp.Success = r.Success
-	resp.Message = r.Message
-	resp.Value = r.Value
+	resp.Success = false
+	resp.Message = node
+	resp.Value = nil
+	resp.StatusCode = consts.Redirect
 
 	return
 }
@@ -372,21 +359,9 @@ func (s *Service) RedirectGet(ctx context.Context, req *data.GetReq, node string
 func (s *Service) RedirectSet(ctx context.Context, req *data.SetReq, node string) (resp *data.SetResp, err error) {
 	resp = new(data.SetResp)
 
-	c, err := dataservice.NewClient(node, client.WithHostPorts(node))
-	if err != nil {
-		return &data.SetResp{
-			Message: err.Error(),
-			Success: false,
-		}, err
-	}
-
-	r, err := c.Set(ctx, req)
-	if err != nil {
-		return
-	}
-
-	resp.Success = r.Success
-	resp.Message = r.Message
+	resp.Success = false
+	resp.Message = node
+	resp.StatusCode = consts.Redirect
 
 	return
 }
@@ -394,18 +369,9 @@ func (s *Service) RedirectSet(ctx context.Context, req *data.SetReq, node string
 func (s *Service) RedirectDel(ctx context.Context, req *data.DelReq, node string) (resp *data.DelResp, err error) {
 	resp = new(data.DelResp)
 
-	c, err := dataservice.NewClient(node, client.WithHostPorts(node))
-	if err != nil {
-		return
-	}
-
-	r, err := c.Del(ctx, req)
-	if err != nil {
-		return
-	}
-
-	resp.Success = r.Success
-	resp.Message = r.Message
+	resp.Success = false
+	resp.Message = node
+	resp.StatusCode = consts.Redirect
 
 	return
 }
@@ -413,18 +379,9 @@ func (s *Service) RedirectDel(ctx context.Context, req *data.DelReq, node string
 func (s *Service) RedirectExpire(ctx context.Context, req *data.ExpireReq, node string) (resp *data.ExpireResp, err error) {
 	resp = new(data.ExpireResp)
 
-	c, err := dataservice.NewClient(node, client.WithHostPorts(node))
-	if err != nil {
-		return
-	}
-
-	r, err := c.Expire(ctx, req)
-	if err != nil {
-		return
-	}
-
-	resp.Success = r.Success
-	resp.Message = r.Message
+	resp.Success = false
+	resp.Message = node
+	resp.StatusCode = consts.Redirect
 
 	return
 }
@@ -432,18 +389,9 @@ func (s *Service) RedirectExpire(ctx context.Context, req *data.ExpireReq, node 
 func (s *Service) RedirectHSet(ctx context.Context, req *data.HSetReq, node string) (resp *data.HSetResp, err error) {
 	resp = new(data.HSetResp)
 
-	c, err := dataservice.NewClient(node, client.WithHostPorts(node))
-	if err != nil {
-		return
-	}
-
-	r, err := c.HSet(ctx, req)
-	if err != nil {
-		return
-	}
-
-	resp.Success = r.Success
-	resp.Message = r.Message
+	resp.Success = false
+	resp.Message = node
+	resp.StatusCode = consts.Redirect
 
 	return
 }
@@ -451,18 +399,10 @@ func (s *Service) RedirectHSet(ctx context.Context, req *data.HSetReq, node stri
 func (s *Service) RedirectHGet(ctx context.Context, req *data.HGetReq, node string) (resp *data.HGetResp, err error) {
 	resp = new(data.HGetResp)
 
-	c, err := dataservice.NewClient(node, client.WithHostPorts(node))
-	if err != nil {
-		return
-	}
-
-	r, err := c.HGet(ctx, req)
-	if err != nil {
-		return
-	}
-
-	resp.Success = r.Success
-	resp.Message = r.Message
+	resp.Success = false
+	resp.Message = node
+	resp.Value = nil
+	resp.StatusCode = consts.Redirect
 
 	return
 }
@@ -470,18 +410,9 @@ func (s *Service) RedirectHGet(ctx context.Context, req *data.HGetReq, node stri
 func (s *Service) RedirectHDel(ctx context.Context, req *data.HDelReq, node string) (resp *data.HDelResp, err error) {
 	resp = new(data.HDelResp)
 
-	c, err := dataservice.NewClient(node, client.WithHostPorts(node))
-	if err != nil {
-		return
-	}
-
-	r, err := c.HDel(ctx, req)
-	if err != nil {
-		return
-	}
-
-	resp.Success = r.Success
-	resp.Message = r.Message
+	resp.Success = false
+	resp.Message = node
+	resp.StatusCode = consts.Redirect
 
 	return
 }
@@ -489,37 +420,18 @@ func (s *Service) RedirectHDel(ctx context.Context, req *data.HDelReq, node stri
 func (s *Service) RedirectLPush(ctx context.Context, req *data.LPushReq, node string) (resp *data.LPushResp, err error) {
 	resp = new(data.LPushResp)
 
-	c, err := dataservice.NewClient(node, client.WithHostPorts(node))
-	if err != nil {
-		return
-	}
-
-	r, err := c.LPush(ctx, req)
-	if err != nil {
-		return
-	}
-
-	resp.Success = r.Success
-	resp.Message = r.Message
-
+	resp.Success = false
+	resp.Message = node
+	resp.StatusCode = consts.Redirect
 	return
 }
 
 func (s *Service) RedirectRPush(ctx context.Context, req *data.RPushReq, node string) (resp *data.RPushResp, err error) {
 	resp = new(data.RPushResp)
 
-	c, err := dataservice.NewClient(node, client.WithHostPorts(node))
-	if err != nil {
-		return
-	}
-
-	r, err := c.RPush(ctx, req)
-	if err != nil {
-		return
-	}
-
-	resp.Success = r.Success
-	resp.Message = r.Message
+	resp.Success = false
+	resp.Message = node
+	resp.StatusCode = consts.Redirect
 
 	return
 }
@@ -527,19 +439,9 @@ func (s *Service) RedirectRPush(ctx context.Context, req *data.RPushReq, node st
 func (s *Service) RedirectLPop(ctx context.Context, req *data.LPopReq, node string) (resp *data.LPopResp, err error) {
 	resp = new(data.LPopResp)
 
-	c, err := dataservice.NewClient(node, client.WithHostPorts(node))
-	if err != nil {
-		return
-	}
-
-	r, err := c.LPop(ctx, req)
-	if err != nil {
-		return
-	}
-
-	resp.Success = r.Success
-	resp.Message = r.Message
-	resp.Element = r.Element
+	resp.Success = false
+	resp.Message = node
+	resp.StatusCode = consts.Redirect
 
 	return
 }
@@ -547,19 +449,9 @@ func (s *Service) RedirectLPop(ctx context.Context, req *data.LPopReq, node stri
 func (s *Service) RedirectRPop(ctx context.Context, req *data.RPopReq, node string) (resp *data.RPopResp, err error) {
 	resp = new(data.RPopResp)
 
-	c, err := dataservice.NewClient(req.Key, client.WithHostPorts(req.Key))
-	if err != nil {
-		return
-	}
-
-	r, err := c.RPop(ctx, req)
-	if err != nil {
-		return
-	}
-
-	resp.Success = r.Success
-	resp.Message = r.Message
-	resp.Element = r.Element
+	resp.Success = false
+	resp.Message = node
+	resp.StatusCode = consts.Redirect
 
 	return
 }
@@ -567,18 +459,9 @@ func (s *Service) RedirectRPop(ctx context.Context, req *data.RPopReq, node stri
 func (s *Service) RedirectSAdd(ctx context.Context, req *data.SAddReq, node string) (resp *data.SAddResp, err error) {
 	resp = new(data.SAddResp)
 
-	c, err := dataservice.NewClient(node, client.WithHostPorts(node))
-	if err != nil {
-		return
-	}
-
-	r, err := c.SAdd(ctx, req)
-	if err != nil {
-		return
-	}
-
-	resp.Success = r.Success
-	resp.Message = r.Message
+	resp.Success = false
+	resp.Message = node
+	resp.StatusCode = consts.Redirect
 
 	return
 }
@@ -586,18 +469,9 @@ func (s *Service) RedirectSAdd(ctx context.Context, req *data.SAddReq, node stri
 func (s *Service) RedirectSRem(ctx context.Context, req *data.SRemReq, node string) (resp *data.SRemResp, err error) {
 	resp = new(data.SRemResp)
 
-	c, err := dataservice.NewClient(node, client.WithHostPorts(node))
-	if err != nil {
-		return
-	}
-
-	r, err := c.SRem(ctx, req)
-	if err != nil {
-		return
-	}
-
-	resp.Success = r.Success
-	resp.Message = r.Message
+	resp.Success = false
+	resp.Message = node
+	resp.StatusCode = consts.Redirect
 
 	return
 }
