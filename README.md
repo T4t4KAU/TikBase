@@ -23,9 +23,14 @@
 1. 分布式事务
 2. 基于 LSM-Tree 的存储引擎
 
-服务端启动方式(占用9096端口)：
+服务端启动方式：
 ```bash
 go run main.go
+```
+
+编译项目：
+```bash
+go build main.go
 ```
 
 支持 Docker 安装并启动(当前只支持ARM架构):
