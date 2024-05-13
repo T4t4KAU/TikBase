@@ -88,8 +88,12 @@ func (s *Service) Start() error {
 
 	time.Sleep(joinDealyTime)
 
-	// 加入集群
-	return join(s.config.ServiceAddr, s.config.Address, s.peer.ID(), s.config.JoinAddr)
+	if s.config.JoinAddr != "" {
+		err = join(s.config.RaftAddr, s.config.ServiceAddr, s.peer.ID(), s.config.JoinAddr)
+	}
+
+	return err
+
 }
 
 func (s *Service) Name() string {

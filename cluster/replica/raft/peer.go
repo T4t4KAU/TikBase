@@ -50,6 +50,14 @@ func NewPeer(option Option, id string, eng iface.Engine) (*Peer, error) {
 	}, nil
 }
 
+func (peer *Peer) Apply(c iface.Command) error {
+	b, err := marshal(c)
+	if err != nil {
+		return err
+	}
+	return peer.raftNode.Apply(b, raftTimeout).Error()
+}
+
 // Engine 返回存储引擎
 func (peer *Peer) Engine() iface.Engine {
 	return peer.store
@@ -233,7 +241,7 @@ func (peer *Peer) Set(key string, val []byte) error {
 	}
 
 	// 创建SET命令
-	c := &command{
+	c := &iface.Command{
 		Ins:   iface.SET_STR,
 		Key:   key,
 		Value: val,
@@ -254,7 +262,7 @@ func (peer *Peer) Del(key string) error {
 	}
 
 	// 创建DEL命令
-	c := &command{
+	c := &iface.Command{
 		Ins: iface.DEL,
 		Key: key,
 	}

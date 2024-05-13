@@ -27,7 +27,7 @@ func New(replicaConfig *config.ReplicaConfig, serverConfig *config.ServerConfig,
 	// 创建节点
 	peer, err := raft.NewPeer(raft.Option{
 		RaftDir:       replicaConfig.DirPath,
-		RaftBind:      replicaConfig.Address,
+		RaftBind:      replicaConfig.RaftAddr,
 		MaxPool:       replicaConfig.WorkerNum,
 		SnapshotCount: replicaConfig.SnapshotCount,
 		Timeout:       time.Duration(replicaConfig.Timeout),
@@ -53,7 +53,7 @@ func New(replicaConfig *config.ReplicaConfig, serverConfig *config.ServerConfig,
 
 	/// 注册服务
 	re.registerService(consts.ReplicaServiceName, replica.NewService(peer, replicaConfig.ServiceAddr, replicaConfig))
-	re.registerService(consts.DataServiceName, data.NewService(sc, ":"+strconv.Itoa(serverConfig.Port)))
+	re.registerService(consts.DataServiceName, data.NewService(sc, ":"+strconv.Itoa(serverConfig.Port), peer))
 
 	return re, nil
 }

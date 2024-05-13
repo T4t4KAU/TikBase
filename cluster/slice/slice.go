@@ -11,6 +11,7 @@ import (
 
 // Slice 数据切片
 type Slice struct {
+	name         string
 	options      Options                // 配置信息
 	address      string                 // 地址
 	circle       *consistent.Consistent // 一致性哈希
@@ -47,7 +48,7 @@ func New(options Options, eng iface.Engine) (*Slice, error) {
 // 创建节点管理器
 func createNodeManager(options Options) (*memberlist.Memberlist, error) {
 	config := memberlist.DefaultLANConfig() // 在默认LAN配置上进行配置
-	config.Name = options.Name
+	config.Name = options.Address
 
 	config.BindAddr, config.BindPort, _ = utils.SplitAddressAndPort(options.Address)
 	config.LogOutput = ioutil.Discard // 禁用日志输出

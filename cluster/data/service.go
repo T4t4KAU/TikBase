@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"github.com/T4t4KAU/TikBase/cluster/replica/raft"
 	"github.com/T4t4KAU/TikBase/cluster/slice"
 	"github.com/T4t4KAU/TikBase/engine"
 	"github.com/T4t4KAU/TikBase/iface"
@@ -21,12 +22,14 @@ import (
 type Service struct {
 	address string
 	slice   *slice.Slice
+	peer    *raft.Peer
 }
 
-func NewService(sc *slice.Slice, addr string) *Service {
+func NewService(sc *slice.Slice, addr string, peer *raft.Peer) *Service {
 	return &Service{
 		slice:   sc,
 		address: addr,
+		peer:    peer,
 	}
 }
 
@@ -94,6 +97,16 @@ func (s *Service) Set(ctx context.Context, req *data.SetReq) (resp *data.SetResp
 	resp.Message = utils.WithMessage(res.Error())
 	resp.Success = res.Success()
 
+	if e := s.peer.Apply(iface.Command{
+		Ins:   iface.SET_STR,
+		Key:   req.Key,
+		Value: req.Value,
+	}); e != nil {
+		klog.Error("failed to apply command: ", e)
+	} else {
+		klog.Infof("apply command ok")
+	}
+
 	return
 }
 
@@ -115,6 +128,15 @@ func (s *Service) Del(ctx context.Context, req *data.DelReq) (resp *data.DelResp
 	res := s.slice.Exec(iface.DEL, utils.KeyBytes(req.Key))
 	resp.Message = utils.WithMessage(res.Error())
 	resp.Success = res.Success()
+
+	if e := s.peer.Apply(iface.Command{
+		Ins: iface.SET_STR,
+		Key: req.Key,
+	}); e != nil {
+		klog.Error("failed to apply command: ", e)
+	} else {
+		klog.Infof("apply command ok")
+	}
 
 	return
 }

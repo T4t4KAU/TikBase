@@ -2,6 +2,7 @@ package raft
 
 import (
 	"encoding/json"
+	"github.com/T4t4KAU/TikBase/iface"
 	"github.com/cloudwego/kitex/pkg/klog"
 	"github.com/hashicorp/raft"
 	"io"
@@ -9,7 +10,7 @@ import (
 
 // Apply 应用日志项
 func (fsm *FSM) Apply(entry *raft.Log) any {
-	var c command
+	var c iface.Command
 
 	// 反序列化数据 获取执行命令
 	if err := unmarshal(entry.Data, &c); err != nil {

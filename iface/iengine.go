@@ -1,7 +1,9 @@
 package iface
 
 import (
+	"encoding/json"
 	"github.com/T4t4KAU/TikBase/engine/data"
+	"github.com/T4t4KAU/TikBase/pkg/utils"
 )
 
 type INS int
@@ -139,4 +141,21 @@ type Filter interface {
 	Hash() []byte
 	Reset()
 	KeyLen() int
+}
+
+// Command 复制状态机指令
+type Command struct {
+	Ins   INS    `json:"op,omitempty"`    // 指令
+	Key   string `json:"key,omitempty"`   // 键
+	Field string `json:"field,omitempty"` // 字段
+	Value []byte `json:"value,omitempty"` // 值
+}
+
+// Encode 将指令编码
+func (c Command) Encode() ([]byte, error) {
+	return json.Marshal(c)
+}
+
+func (c Command) Args() [][]byte {
+	return utils.KeyValueBytes(c.Key, c.Value)
 }

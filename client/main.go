@@ -23,7 +23,7 @@ var (
 	errNumOfArguments = errors.New("invalid number of arguments")
 	errInvalidCommand = errors.New("invalid command")
 
-	address = "127.0.0.1:10024"
+	address = "127.0.0.1:10081"
 )
 
 var cli dataservice.Client
