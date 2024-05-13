@@ -5,6 +5,7 @@ const (
 	ReplicaServiceName = "ReplicaService"
 	DataServiceName    = "DataService"
 	WebServiceName     = "WebService"
+	SliceServiceName   = "SliceService"
 )
 
 const (

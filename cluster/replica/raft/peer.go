@@ -71,6 +71,7 @@ func (peer *Peer) Bootstrap() error {
 	config := raft.DefaultConfig()                     // 使用默认配置
 	config.LocalID = raft.ServerID(localId)            // 本地节点ID
 	raftPath := filepath.Join(peer.dirPath, "raft.db") // raft日志存储路径
+	config.LogOutput = os.Stdout
 
 	newNode := !utils.PathExists(raftPath) // 检查路径是否存在 如果不存在则说明是新节点
 	addr, err := net.ResolveTCPAddr("tcp", peer.address)
