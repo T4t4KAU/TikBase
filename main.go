@@ -11,7 +11,7 @@ var (
 	ServerConfFile    = "./conf/server-config.yaml"
 	BaseConfigFile    = "./conf/base-config.yaml"
 	CacheConfigFile   = "./conf/cache-config.yaml"
-	ReplicaConfigFile = "./conf/replica-config-1.yaml"
+	ReplicaConfigFile = "./conf/replica-config-2.yaml"
 	SliceConfigFile   = "./conf/slice-config.yaml"
 )
 

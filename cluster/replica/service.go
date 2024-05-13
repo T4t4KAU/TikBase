@@ -3,18 +3,26 @@ package replica
 import (
 	"context"
 	"github.com/T4t4KAU/TikBase/cluster/replica/raft"
+	"github.com/T4t4KAU/TikBase/pkg/config"
 	"github.com/T4t4KAU/TikBase/pkg/consts"
 	"github.com/T4t4KAU/TikBase/pkg/rpc/replica"
 	"github.com/T4t4KAU/TikBase/pkg/rpc/replica/replicaservice"
+	"github.com/cloudwego/kitex/client"
 	"github.com/cloudwego/kitex/pkg/klog"
 	"github.com/cloudwego/kitex/pkg/rpcinfo"
 	"github.com/cloudwego/kitex/server"
 	"net"
+	"time"
+)
+
+const (
+	joinDealyTime = 500 * time.Millisecond
 )
 
 type Service struct {
 	peer    *raft.Peer
 	address string
+	config  *config.ReplicaConfig
 }
 
 func (s *Service) GetId(ctx context.Context, req *replica.GetIdReq) (r *replica.GetIdResp, err error) {
@@ -26,10 +34,11 @@ func (s *Service) ReplicaList() string {
 	return s.peer.ReplicaList()
 }
 
-func NewService(peer *raft.Peer, addr string) *Service {
+func NewService(peer *raft.Peer, addr string, config *config.ReplicaConfig) *Service {
 	return &Service{
 		peer:    peer,
 		address: addr,
+		config:  config,
 	}
 }
 
@@ -73,9 +82,35 @@ func (s *Service) Start() error {
 
 	klog.Infof("start replica service at %s", s.address)
 
-	return srv.Run()
+	go func() {
+		_ = srv.Run()
+	}()
+
+	time.Sleep(joinDealyTime)
+
+	// 加入集群
+	return join(s.config.ServiceAddr, s.config.Address, s.peer.ID(), s.config.JoinAddr)
 }
 
 func (s *Service) Name() string {
 	return consts.ReplicaServiceName
+}
+
+func join(raftAddr, serviceAddr, nodeId string, joinAddr string) error {
+	cli, err := replicaservice.NewClient(consts.ReplicaServiceName, client.WithHostPorts(joinAddr))
+	if err != nil {
+		return err
+	}
+	_, err = cli.Join(context.Background(), &replica.JoinReq{
+		RaftAddr:    raftAddr,
+		ServiceAddr: serviceAddr,
+		NodeId:      nodeId,
+	})
+
+	if err != nil {
+		klog.Errorf("failed to join: error=%v", err)
+		return err
+	}
+
+	return nil
 }

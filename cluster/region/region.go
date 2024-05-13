@@ -52,7 +52,7 @@ func New(replicaConfig *config.ReplicaConfig, serverConfig *config.ServerConfig,
 	}
 
 	/// 注册服务
-	re.registerService(consts.ReplicaServiceName, replica.NewService(peer, replicaConfig.ServiceAddr))
+	re.registerService(consts.ReplicaServiceName, replica.NewService(peer, replicaConfig.ServiceAddr, replicaConfig))
 	re.registerService(consts.DataServiceName, data.NewService(sc, ":"+strconv.Itoa(serverConfig.Port)))
 
 	return re, nil

@@ -146,14 +146,13 @@ func BaseEngineConfig(config BaseStoreConfig) (bases.Options, bases.WriteBatchOp
 type ReplicaConfig struct {
 	Id            string `mapstructure:"node_id"`
 	Count         int    `mapstructure:"replicas"`
-	Address       string `mapstructure:"bind_addr"`
+	ServiceAddr   string `mapstructure:"service_addr"`
+	RaftAddr      string `mapstructure:"raft_addr"`
 	DirPath       string `mapstructure:"dir_path"`
 	WorkerNum     int    `mapstructure:"worker_num"`
 	SnapshotCount int    `mapstructure:"snapshot_count"`
 	Timeout       int    `mapstructure:"timeout"`
 	JoinAddr      string `mapstructure:"join_addr"`
-	ServiceAddr   string `mapstructure:"service_addr"`
-	TargetAddr    string `mapstructure:"target_addr"`
 }
 
 func ReadReplicaConfigFile(filePath string) (ReplicaConfig, error) {

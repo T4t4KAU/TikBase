@@ -1,6 +1,6 @@
 node_id: node1
-bind_addr: "127.0.0.1:10041"
-service_addr: "127.0.0.1:10042"
+service_addr: "127.0.0.1:10041"
+raft_addr: "127.0.0.1:10042"
 dir_path: "./temp"
 worker_num: 10
 snapshot_count: 2
