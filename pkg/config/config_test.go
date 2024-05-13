@@ -24,7 +24,7 @@ func TestReadBaseConfigFile(t *testing.T) {
 }
 
 func TestReadRegionConfigFile(t *testing.T) {
-	c, err := ReadReplicaConfigFile("../../conf/replica-config-master.yaml")
+	c, err := ReadReplicaConfigFile("../../conf/replica-config-1.yaml")
 	if err != nil {
 		t.Error(err)
 		return

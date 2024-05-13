@@ -5,5 +5,3 @@ dir_path: "./temp"
 worker_num: 10
 snapshot_count: 2
 timeout: 600
-
-
